@@ -4,7 +4,7 @@
 [![docs.io](https://docs.rs/opencl3/badge.svg)](https://docs.rs/opencl3/)
 [![OpenCL 3.0](https://img.shields.io/badge/OpenCL-3.0-blue.svg)](https://www.khronos.org/registry/OpenCL/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-![Rust](https://github.com/kenba/opencl3/workflows/Rust/badge.svg)
+[![Rust](https://github.com/kenba/opencl3/workflows/Rust/badge.svg)](https://github.com/kenba/opencl3/actions)
 
 A Rust implementation of the Khronos [OpenCL](https://www.khronos.org/registry/OpenCL/) API.
 
@@ -60,7 +60,6 @@ following to your project's `Cargo.toml` instead:
 version = "0.1"
 features = ["CL_VERSION_2_1", "CL_VERSION_2_2"]
 ```
-
 
 ## License
 
