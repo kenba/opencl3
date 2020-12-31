@@ -48,6 +48,7 @@ impl Kernel {
         self.kernel
     }
 
+    #[cfg(feature = "CL_VERSION_2_1")]
     pub fn clone(&self) -> Result<Kernel, cl_int> {
         let kernel = clone_kernel(self.kernel)?;
         Ok(Kernel {

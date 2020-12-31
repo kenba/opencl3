@@ -788,6 +788,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
+    #[cfg(feature = "CL_VERSION_2_1")]
     pub fn enqueue_svm_migrate_mem(
         &self,
         svm_pointers: &[*const c_void],
