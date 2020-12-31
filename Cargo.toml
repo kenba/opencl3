@@ -1,0 +1,26 @@
+[package]
+name = "opencl3"
+version = "0.1.0"
+authors = ["Ken Barker <ken.barker@via-technology.aero>"]
+description = "A Rust implementation of the Khronos OpenCL 3.0 API."
+documentation = "https://docs.rs/opencl3/"
+homepage = "https://github.com/kenba/opencl3"
+repository = "https://github.com/kenba/opencl3"
+readme = "README.md"
+keywords = ["opencl", "gpu", "gpgpu"]
+edition = "2018"
+
+[features]
+
+CL_VERSION_1_2 = ["cl3/CL_VERSION_1_2"]
+CL_VERSION_2_0 = ["cl3/CL_VERSION_2_0"]
+CL_VERSION_2_1 = ["cl3/CL_VERSION_2_1"]
+CL_VERSION_2_2 = ["cl3/CL_VERSION_2_2"]
+CL_VERSION_3_0 = ["cl3/CL_VERSION_3_0"]
+
+# Default features:
+default = ["CL_VERSION_1_2", "CL_VERSION_2_0"]
+
+[dependencies]
+libc = "0.2"
+cl3 = "0.1"
