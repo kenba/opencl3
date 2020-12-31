@@ -8,6 +8,8 @@ homepage = "https://github.com/kenba/opencl3"
 repository = "https://github.com/kenba/opencl3"
 readme = "README.md"
 keywords = ["opencl", "gpu", "gpgpu"]
+categories = ["api-bindings", "asynchronous"]
+license = "Apache-2.0"
 edition = "2018"
 
 [features]
