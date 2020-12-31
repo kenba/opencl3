@@ -24,7 +24,7 @@ pub struct Event {
 impl Drop for Event {
     fn drop(&mut self) {
         release_event(self.event).unwrap();
-        println!("Event::drop");
+        // println!("Event::drop");
     }
 }
 

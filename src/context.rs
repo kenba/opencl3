@@ -72,7 +72,7 @@ impl Drop for Context {
         self.devices.clear();
         context::release_context(self.context).unwrap();
         self.context = ptr::null_mut();
-        println!("Context::drop");
+        // println!("Context::drop");
     }
 }
 

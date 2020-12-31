@@ -27,7 +27,7 @@ impl Drop for Sampler {
     fn drop(&mut self) {
         sampler::release_sampler(self.sampler).unwrap();
         self.sampler = ptr::null_mut();
-        println!("Sampler::drop");
+        // println!("Sampler::drop");
     }
 }
 

@@ -87,7 +87,7 @@ impl Drop for Buffer {
     fn drop(&mut self) {
         memory::release_mem_object(self.buffer).unwrap();
         self.buffer = ptr::null_mut();
-        println!("Buffer::drop");
+        // println!("Buffer::drop");
     }
 }
 
@@ -132,7 +132,7 @@ impl Drop for Image {
     fn drop(&mut self) {
         memory::release_mem_object(self.image).unwrap();
         self.image = ptr::null_mut();
-        println!("Image::drop");
+        // println!("Image::drop");
     }
 }
 
@@ -222,7 +222,7 @@ impl Drop for Pipe {
     fn drop(&mut self) {
         memory::release_mem_object(self.pipe).unwrap();
         self.pipe = ptr::null_mut();
-        println!("Pipe::drop");
+        // println!("Pipe::drop");
     }
 }
 

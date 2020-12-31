@@ -27,7 +27,7 @@ impl Drop for Program {
     fn drop(&mut self) {
         release_program(self.program).unwrap();
         self.program = ptr::null_mut();
-        println!("Program::drop");
+        // println!("Program::drop");
     }
 }
 

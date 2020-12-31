@@ -144,7 +144,7 @@ fn test_opencl_1_2_example() {
         events.clear();
 
         // Block until all commands on the queue have completed
-        queue.flush().unwrap();
+        queue.finish().unwrap();
 
         assert_eq!(1300.0, results[ARRAY_SIZE - 1]);
         println!("results back: {}", results[ARRAY_SIZE - 1]);
@@ -164,8 +164,7 @@ fn test_opencl_2_0_example() {
     let mut is_opencl_2: bool = false;
     for p in platforms {
         let platform_version = p.version().unwrap().into_string().unwrap();
-        is_opencl_2 = platform_version.contains(&opencl_2);
-        if is_opencl_2 {
+        if platform_version.contains(&opencl_2) {
             let devices = p
                 .get_devices(CL_DEVICE_TYPE_GPU)
                 .expect("Platform::get_devices failed");
@@ -183,7 +182,7 @@ fn test_opencl_2_0_example() {
     }
 
     if !is_opencl_2 {
-        assert!(false, "OpenCL 2 platform and device not found")
+        assert!(false, "OpenCL 2 device not found")
     }
 
     // Create OpenCL context from the OpenCL 2 device

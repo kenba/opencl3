@@ -93,7 +93,7 @@ impl<'a, T> Drop for SvmRawVec<'a, T> {
         if !self.ptr.is_null() {
             svm_free(self.context.get(), self.ptr as *mut c_void);
             self.ptr = ptr::null_mut();
-            println!("SvmRawVec::drop");
+            // println!("SvmRawVec::drop");
         }
     }
 }

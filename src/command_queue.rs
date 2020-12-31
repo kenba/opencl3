@@ -35,7 +35,7 @@ pub struct CommandQueue {
 impl Drop for CommandQueue {
     fn drop(&mut self) {
         release_command_queue(self.queue).unwrap();
-        println!("CommandQueue::drop");
+        // println!("CommandQueue::drop");
     }
 }
 
