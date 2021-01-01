@@ -66,7 +66,7 @@ version = "0.1"
 features = ["CL_VERSION_2_1", "CL_VERSION_2_2"]
 ```
 
-See [OpenCL Description](docs/opencl_description.md)
+See [OpenCL Description](https://github.com/kenba/opencl3/blob/main/docs/opencl_description.md)
 
 ## License
 

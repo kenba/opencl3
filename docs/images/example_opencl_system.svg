@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="246px" preserveAspectRatio="none" style="width:398px;height:246px;" version="1.1" viewBox="0 0 398 246" width="398px" zoomAndPan="magnify"><defs><filter height="300%" id="f1mp00u0tw38d4" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><rect fill="#FEFECE" filter="url(#f1mp00u0tw38d4)" height="35.0938" style="stroke:#A80036;stroke-width:1.5;" width="54" x="124.5" y="7"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="40" x="131.5" y="21.457">system</text><line style="stroke:#A80036;stroke-width:1.5;" x1="125.5" x2="177.5" y1="26.0938" y2="26.0938"/><rect fill="#FEFECE" filter="url(#f1mp00u0tw38d4)" height="35.0938" style="stroke:#A80036;stroke-width:1.5;" width="73" x="7" y="102"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="59" x="14" y="116.457">platform_1</text><line style="stroke:#A80036;stroke-width:1.5;" x1="8" x2="79" y1="121.0938" y2="121.0938"/><rect fill="#FEFECE" filter="url(#f1mp00u0tw38d4)" height="35.0938" style="stroke:#A80036;stroke-width:1.5;" width="73" x="115" y="102"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="59" x="122" y="116.457">platform_2</text><line style="stroke:#A80036;stroke-width:1.5;" x1="116" x2="187" y1="121.0938" y2="121.0938"/><rect fill="#FEFECE" filter="url(#f1mp00u0tw38d4)" height="35.0938" style="stroke:#A80036;stroke-width:1.5;" width="73" x="223" y="102"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="59" x="230" y="116.457">platform_3</text><line style="stroke:#A80036;stroke-width:1.5;" x1="224" x2="295" y1="121.0938" y2="121.0938"/><rect fill="#FEFECE" filter="url(#f1mp00u0tw38d4)" height="35.0938" style="stroke:#A80036;stroke-width:1.5;" width="63" x="12" y="197"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="49" x="19" y="211.457">device_1</text><line style="stroke:#A80036;stroke-width:1.5;" x1="13" x2="74" y1="216.0938" y2="216.0938"/><rect fill="#FEFECE" filter="url(#f1mp00u0tw38d4)" height="35.0938" style="stroke:#A80036;stroke-width:1.5;" width="63" x="120" y="197"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="49" x="127" y="211.457">device_2</text><line style="stroke:#A80036;stroke-width:1.5;" x1="121" x2="182" y1="216.0938" y2="216.0938"/><rect fill="#FEFECE" filter="url(#f1mp00u0tw38d4)" height="35.0938" style="stroke:#A80036;stroke-width:1.5;" width="63" x="223" y="197"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="49" x="230" y="211.457">device_3</text><line style="stroke:#A80036;stroke-width:1.5;" x1="224" x2="285" y1="216.0938" y2="216.0938"/><rect fill="#FEFECE" filter="url(#f1mp00u0tw38d4)" height="35.0938" style="stroke:#A80036;stroke-width:1.5;" width="63" x="321" y="197"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="49" x="328" y="211.457">device_4</text><line style="stroke:#A80036;stroke-width:1.5;" x1="322" x2="383" y1="216.0938" y2="216.0938"/><!--MD5=[f68154fc02dd051a67f6788e70091099]
+reverse link system to platform_1--><path codeLine="17" d="M122.08,50.83 C103.3,67.01 79.47,87.52 63.01,101.7 " fill="none" id="system-backto-platform_1" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="132.19,42.13,125.0332,43.0131,123.0957,49.959,130.2525,49.0759,132.19,42.13" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[accf8706614c2e87c26a5787e06a2853]
+reverse link system to platform_2--><path codeLine="18" d="M151.5,55.21 C151.5,70.58 151.5,88.78 151.5,101.7 " fill="none" id="system-backto-platform_2" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="151.5,42.13,147.5,48.13,151.5,54.13,155.5,48.13,151.5,42.13" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[8148989fc4f59313db12e0b3a9db7d1c]
+reverse link system to platform_3--><path codeLine="19" d="M180.92,50.83 C199.7,67.01 223.53,87.52 239.99,101.7 " fill="none" id="system-backto-platform_3" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="170.81,42.13,172.7475,49.0759,179.9043,49.959,177.9668,43.0131,170.81,42.13" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[9d6dcf9b6b14aab93a436374bdf5d14f]
+reverse link platform_1 to device_1--><path codeLine="21" d="M43.5,150.21 C43.5,165.58 43.5,183.78 43.5,196.7 " fill="none" id="platform_1-backto-device_1" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="43.5,137.13,39.5,143.13,43.5,149.13,47.5,143.13,43.5,137.13" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[4f8efefcf068dea61a13bd83048f7e72]
+reverse link platform_1 to device_2--><path codeLine="22" d="M72.92,145.83 C91.7,162.01 115.53,182.52 131.99,196.7 " fill="none" id="platform_1-backto-device_2" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="62.81,137.13,64.7475,144.0759,71.9043,144.959,69.9668,138.0131,62.81,137.13" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[b50eded65ef27003c16259a0f05a05c0]
+reverse link platform_2 to device_2--><path codeLine="24" d="M151.5,150.21 C151.5,165.58 151.5,183.78 151.5,196.7 " fill="none" id="platform_2-backto-device_2" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="151.5,137.13,147.5,143.13,151.5,149.13,155.5,143.13,151.5,137.13" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[5140a152020fdd078b42955f728fcbb8]
+reverse link platform_3 to device_2--><path codeLine="26" d="M230.08,145.83 C211.3,162.01 187.47,182.52 171.01,196.7 " fill="none" id="platform_3-backto-device_2" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="240.19,137.13,233.0332,138.0131,231.0957,144.959,238.2525,144.0759,240.19,137.13" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[a36420b1a6587a04b7972aee33dd10e9]
+reverse link platform_3 to device_3--><path codeLine="27" d="M257.9,150.21 C257.08,165.58 256.1,183.78 255.4,196.7 " fill="none" id="platform_3-backto-device_3" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="258.61,137.13,254.2928,142.906,257.9641,149.1126,262.2812,143.3366,258.61,137.13" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[d367a14c37c37cf22dd66db82a8d1269]
+reverse link platform_3 to device_4--><path codeLine="28" d="M285.51,146.51 C301.58,162.58 321.72,182.72 335.7,196.7 " fill="none" id="platform_3-backto-device_4" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="276.13,137.13,277.5442,144.2011,284.6153,145.6153,283.2011,138.5442,276.13,137.13" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[40023d9955e529f13d7bfd3cb12cdc64]
+@startuml
+
+'Copyright (c) 2017 Via Technology Ltd. All Rights Reserved.
+
+'title OpenCL Compute System Objects
+
+object system
+
+object platform_1
+object platform_2
+object platform_3
+
+object device_1
+object device_2
+object device_3
+object device_4
+
+system *- - platform_1
+system *- - platform_2
+system *- - platform_3
+
+platform_1 *- - device_1
+platform_1 *- - device_2
+
+platform_2 *- - device_2
+
+platform_3 *- - device_2
+platform_3 *- - device_3
+platform_3 *- - device_4
+
+@enduml
+
+@startuml
+
+
+
+object system
+
+object platform_1
+object platform_2
+object platform_3
+
+object device_1
+object device_2
+object device_3
+object device_4
+
+system *- - platform_1
+system *- - platform_2
+system *- - platform_3
+
+platform_1 *- - device_1
+platform_1 *- - device_2
+
+platform_2 *- - device_2
+
+platform_3 *- - device_2
+platform_3 *- - device_3
+platform_3 *- - device_4
+
+@enduml
+
+PlantUML version 1.2020.26(Mon Dec 21 17:45:07 GMT 2020)
+(GPL source distribution)
+Java Runtime: Java(TM) SE Runtime Environment
+JVM: Java HotSpot(TM) Client VM
+Default Encoding: Cp1252
+Language: en
+Country: GB
+--></g></svg>

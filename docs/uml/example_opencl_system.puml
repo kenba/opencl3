@@ -1,0 +1,31 @@
+@startuml
+
+'Copyright (c) 2017 Via Technology Ltd. All Rights Reserved.
+
+'title OpenCL Compute System Objects
+
+object system
+
+object platform_1
+object platform_2
+object platform_3
+
+object device_1
+object device_2
+object device_3
+object device_4
+
+system *-- platform_1
+system *-- platform_2
+system *-- platform_3
+
+platform_1 *-- device_1
+platform_1 *-- device_2
+
+platform_2 *-- device_2
+
+platform_3 *-- device_2
+platform_3 *-- device_3
+platform_3 *-- device_4
+
+@enduml

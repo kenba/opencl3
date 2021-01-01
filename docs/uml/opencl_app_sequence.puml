@@ -1,0 +1,68 @@
+@startuml
+
+'Copyright (c) 2021 Via Technology Ltd. All Rights Reserved.
+
+'title OpenCL Application Sequence
+
+actor "OpenCL Application" as user
+
+participant "OpenCL\nplatforms" as platforms
+
+participant "OpenCL\ndevices" as devices
+
+participant "OpenCL\nContext" as opencl_context
+
+participant "OpenCL\nCommandQueue" as opencl_queue
+
+participant "OpenCL\nProgram" as opencl_program
+
+participant "OpenCL\nKernel" as opencl_kernel
+
+participant "OpenCL\nMemory" as opencl_memory
+
+group Query
+  user -> platforms : Query OpenCL platforms.
+  user <- platforms : available OpenCL platforms
+
+  user -> devices : Query OpenCL devices.
+  user <- devices : available OpenCL devices
+end
+
+group Initialisation
+  user -> user : Choose most appropriate\nplatform and device(s)
+
+  user -> opencl_context : Construct OpenCL Context for platform and device(s)
+
+  devices -> opencl_context : Context devices
+
+  opencl_context -> opencl_queue : Create device\ncommand_queue(s)
+
+  user -> opencl_context : Construct and build programs: source, binary and/or IL
+  opencl_context -> opencl_program : Build program
+  opencl_context -> opencl_kernel : Construct kernels for program
+
+  user -> opencl_context : Create OpenCL memory
+  opencl_context -> opencl_memory : Create: buffers, images, samplers, pipes, svm, etc.
+end
+
+group Compute Data
+  group loop
+    user -> opencl_memory : Write input data to OpenCL memory
+    user -> opencl_context : get Kernel
+    user -> opencl_queue : ExecuteKernel
+    user <- opencl_queue : queue finished or wait for events
+    user <- opencl_memory : Read output data from OpenCL memory
+  end
+end
+
+group Clean Up
+  user -> opencl_context : drop context
+
+  opencl_context -> opencl_memory : release: buffers, images, samplers, pipes, svm, etc.
+  opencl_context -> opencl_kernel : release kernels
+  opencl_context -> opencl_program : release programs
+  opencl_context -> opencl_queue : release command_queue
+  opencl_context -> opencl_context : release context
+end
+
+@enduml
