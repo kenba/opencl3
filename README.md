@@ -32,7 +32,12 @@ is a unified specification that adds little new functionality to previous OpenCL
 It specifies that all **OpenCL 1.2** features are **mandatory**, while all
 OpenCL 2.x and 3.0 features are now optional.
 
-TODO describe optional features
+OpenCL 2.x and 3.0 optional features include:
+* Shared Virtual Memory (SVM),
+* nested parallelism,
+* pipes
+* atomics
+* and a generic address space,
 
 ## Design
 
@@ -40,8 +45,8 @@ See the crate [documentation](https://docs.rs/opencl3/).
 
 ## Use
 
-Ensure that an OpenCL ICD and the appropriate OpenCL hardware driver(s) are installed,
-see [cl3](ttps://crates.io/crates/cl3).
+Ensure that an OpenCL Installable Client Driver (ICD) and the appropriate OpenCL
+hardware driver(s) are installed, see [cl3](https://crates.io/crates/cl3).
 
 `opencl3` supports OpenCL 1.2 and 2.0 ICD loaders by default. If you have an
 OpenCL 2.0 ICD loader then add the following to your project's `Cargo.toml`:
@@ -60,6 +65,8 @@ following to your project's `Cargo.toml` instead:
 version = "0.1"
 features = ["CL_VERSION_2_1", "CL_VERSION_2_2"]
 ```
+
+See [OpenCL Description](docs/opencl_description.md)
 
 ## License
 
