@@ -46,12 +46,13 @@ group Initialisation
 end
 
 group Compute Data
+  user -> opencl_context : get kernel(s)
+
   group loop
     user -> opencl_memory : Write input data to OpenCL memory
-    user -> opencl_context : get Kernel
-    user -> opencl_queue : ExecuteKernel
-    user <- opencl_queue : queue finished or wait for events
+    user -> opencl_queue : execute kernel(s)
     user <- opencl_memory : Read output data from OpenCL memory
+    user <- opencl_queue : wait for events or queue finished
   end
 end
 
@@ -61,7 +62,7 @@ group Clean Up
   opencl_context -> opencl_memory : release: buffers, images, samplers, pipes, svm, etc.
   opencl_context -> opencl_kernel : release kernels
   opencl_context -> opencl_program : release programs
-  opencl_context -> opencl_queue : release command_queue
+  opencl_context -> opencl_queue : release command_queues
   opencl_context -> opencl_context : release context
 end
 
