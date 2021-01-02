@@ -1,4 +1,4 @@
-// Copyright (c) 2020 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2020-2021 Via Technology Ltd. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -44,6 +44,8 @@
 //! It specifies that all **OpenCL 1.2** features are **mandatory**, while all
 //! OpenCL 2.x and OpenCL 3.0 features are now optional.
 //!
+//! See [OpenCL Description](https://github.com/kenba/opencl3/blob/main/docs/opencl_description.md).
+//!
 //! # OpenCL Architecture
 //!
 //! The [OpenCL Specification](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#_the_opencl_architecture)
@@ -84,25 +86,40 @@
 //! "enqueued" by the OpenCL application on each [command_queue].
 //! An application can wait for all "enqueued" commands to finish on a
 //! [command_queue] or it can wait for specific [event]s to complete.
-//! TODO describe out-of-order execution.
+//! Normally [command_queue]s run commands in the order that they are given.
+//! However, [event]s can be used to execute [kernel]s out-of-order.
 //!
 //! # OpenCL Objects
+//!
+//! [Platform]: platform/struct.Platform.html
+//! [Device]: device/struct.Device.html
+//! [SubDevice]: device/struct.SubDevice.html
+//! [Context]: context/struct.Context.html
+//! [Program]: program/struct.Program.html
+//! [Kernel]: kernel/struct.Kernel.html
+//! [Buffer]: memory/struct.Buffer.html
+//! [Image]: memory/struct.Image.html
+//! [Sampler]: sampler/struct.Sampler.html
+//! [SvmVec]: svm/struct.SvmVec.html
+//! [Pipe]: memory/struct.Pipe.html
+//! [CommandQueue]: command_queue/struct.CommandQueue.html
+//! [Event]: event/struct.Event.html
 //!
 //! ## Platform Model
 //!
 //! The platform model has thee objects:
-//! * [platform]
-//! * [device]
-//! * [context]
+//! * [Platform]
+//! * [Device]
+//! * [Context]
 //!
-//! Of these three objects, the OpenCL [context] is by *far* the most important.
-//! Each application must create a [context] from the most appropriate [device]s
-//! available on one of [platform]s on the *host* system that the application
+//! Of these three objects, the OpenCL [Context] is by *far* the most important.
+//! Each application must create a [Context] from the most appropriate [Device]s
+//! available on one of [Platform]s on the *host* system that the application
 //! is running on.
 //!
-//! Most example OpenCL applications just choose the first available [platform]
-//! and [device] for their [context]. However, since many systems have multiple
-//! platforms and devices, the first [platform] and [device] are unlikely to
+//! Most example OpenCL applications just choose the first available [Platform]
+//! and [Device] for their [Context]. However, since many systems have multiple
+//! platforms and devices, the first [Platform] and [Device] are unlikely to
 //! provide the best performance.  
 //! For example, on a system with an APU (combined CPU and GPU, e.g. Intel i7)
 //! and a discrete graphics card (e.g. Nvidia GTX 1070) OpenCL may find the
@@ -110,49 +127,49 @@
 //!
 //! OpenCL applications often require the performance of discrete graphics cards
 //! or specific OpenCL features, such as [svm] or double/half floating point
-//! precision. In such cases, it is necessary to query the [platform]s and
-//! [device]s to choose the most appropriate [device]s for the application before
-//! creating the [context].
+//! precision. In such cases, it is necessary to query the [Platform]s and
+//! [Device]s to choose the most appropriate [Device]s for the application before
+//! creating the [Context].
 //!
-//! The [platform] and [device] modules contain structures and methods to simplify
-//! querying the host system [platform]s and [device]s to create a [context].
+//! The [Platform] and [Device] modules contain structures and methods to simplify
+//! querying the host system [Platform]s and [Device]s to create a [Context].
 //!
 //! ## Programming Model
 //!
 //! The OpenCL programming model has two objects:
-//! * [program]
-//! * [kernel]
+//! * [Program]
+//! * [Kernel]
 //!
-//! OpenCL [kernel] functions are contained in OpenCL [program]s.  
+//! OpenCL [Kernel] functions are contained in OpenCL [Program]s.  
 //!
-//! Kernels are usually defined as functions in OpenCL program source code,
-//! however OpenCL devices may contain built-in kernels,
+//! Kernels are usually defined as functions in OpenCL [Program] source code,
+//! however OpenCL [Device]s may contain built-in [Kernel]s,
 //! e.g.: some Intel GPUs have built-in motion estimation kernels.
 //!
-//! OpenCL [program] objects can be created from OpenCL source code,
+//! OpenCL [Program] objects can be created from OpenCL source code,
 //! built-in kernels, binaries and intermediate language binaries.
-//! Depending upon how an OpenCL [program] object was created, it may need to
-//! be built (or complied and linked) before the [kernel]s in them can be
+//! Depending upon how an OpenCL [Program] object was created, it may need to
+//! be built (or complied and linked) before the [Kernel]s in them can be
 //! created.
 //!
-//! All the [kernel]s in an [program] can be created together or they can be
+//! All the [Kernel]s in an [Program] can be created together or they can be
 //! created individually, by name.
 //!
 //! ## Memory Model
 //!
 //! The OpenCL memory model consists of five objects:
-//! * `buffer`
-//! * `image`
-//! * [sampler]
-//! * [svm]
-//! * `pipe`
+//! * [Buffer]
+//! * [Image]
+//! * [Sampler]
+//! * [SvmVec]
+//! * [Pipe]
 //!
-//! `buffer`, `image` and [sampler] are OpenCL 1.2 (i.e. **mandatory**) objects,  
-//! [svm] and `pipe` are are OpenCL 2.0 (i.e. optional) objects.
+//! [Buffer], [Image] and [Sampler] are OpenCL 1.2 (i.e. **mandatory**) objects,  
+//! [svm] and [Pipe] are are OpenCL 2.0 (i.e. optional) objects.
 //!
-//! A `buffer` is a contiguous block of memory used for general purpose data.  
-//! An `image` holds data for one, two or three dimensional images.  
-//! A [sampler] describes how a [kernel] is to sample an `image`, see
+//! A [Buffer] is a contiguous block of memory used for general purpose data.  
+//! An [Image] holds data for one, two or three dimensional images.  
+//! A [Sampler] describes how a [Kernel] is to sample an [Image], see
 //! [Sampler objects](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#_sampler_objects).  
 //!
 //! [Shared Virtual Memory](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#_shared_virtual_memory)
@@ -160,25 +177,25 @@
 //! without explicitly transferring it.
 //!
 //! [Pipes](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#_pipes)
-//! store memory as FIFOs between [kernel]s. Pipes are not accessible from the host.
+//! store memory as FIFOs between [Kernel]s. [Pipe]s are not accessible from the host.
 //!
 //! ## Execution Model
 //!
 //! The OpenCL execution model has two objects:
-//! * [command_queue]
-//! * [event]
+//! * [CommandQueue]
+//! * [Event]
 //!
 //! OpenCL commands to transfer memory and execute kernels on devices are
-//! performed via [command_queue]s.
+//! performed via [CommandQueue]s.
 //!
 //! Each OpenCL device (and sub-device) must have at least one command_queue
 //! associated with it, so that commands may be enqueued on to the device.
 //!
-//! There are several OpenCL command_queue "enqueue_" methods to transfer
+//! There are several OpenCL [CommandQueue] "enqueue_" methods to transfer
 //! data between host and device memory, map SVM memory and execute kernels.
 //! All the "enqueue_" methods accept an event_wait_list parameter and return
-//! an [event] that can be used to monitor and control *out-of-order* execution
-//! of kernels on a command_queue, see
+//! an [Event] that can be used to monitor and control *out-of-order* execution
+//! of kernels on a [CommandQueue], see
 //! [Event Objects](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#event-objects).
 
 extern crate cl3;
@@ -188,11 +205,11 @@ pub mod context;
 pub mod device;
 pub mod event;
 pub mod kernel;
+pub mod memory;
 pub mod platform;
 pub mod program;
 pub mod sampler;
 pub mod svm;
-pub mod memory;
 
 pub mod error_codes {
     pub use cl3::error_codes::*;
