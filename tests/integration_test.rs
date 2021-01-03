@@ -1,4 +1,4 @@
-// Copyright (c) 2020 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2020-2021 Via Technology Ltd. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -64,8 +64,8 @@ fn test_opencl_1_2_example() {
 
     // Create a command_queue on the the device
     context
-        .create_command_queue(CL_QUEUE_PROFILING_ENABLE)
-        .expect("Context::create_command_queue failed");
+        .create_command_queues(CL_QUEUE_PROFILING_ENABLE)
+        .expect("Context::create_command_queues failed");
 
     // Build the OpenCL program source and create the kernel.
     let src = CString::new(PROGRAM_SOURCE).unwrap();
@@ -197,11 +197,11 @@ fn test_opencl_2_0_example() {
 
     let mut context = Context::from_device(device).expect("Context::from_device failed");
     context
-        .create_command_queue_with_properties(
+        .create_command_queues_with_properties(
             CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE,
             0,
         )
-        .expect("Context::create_command_queue failed");
+        .expect("Context::create_command_queues_with_properties failed");
 
     // Build the OpenCL program source and create the kernel.
     let src = CString::new(PROGRAM_SOURCE).unwrap();
@@ -250,15 +250,14 @@ fn test_opencl_2_0_example() {
                 .enqueue_nd_range(&queue, &events)
                 .unwrap();
             events.clear();
-    
             events.push(kernel_event.get());
             event::wait_for_events(&events).unwrap();
-    
             events.clear();
 
             assert_eq!(1300.0, results[ARRAY_SIZE - 1]);
             println!("results back: {}", results[ARRAY_SIZE - 1]);
-        } else { // !is_fine_grained_svm 
+        } else {
+            // !is_fine_grained_svm
             // Map the SVM
             let map_ones_event = queue
                 .enqueue_svm_map(CL_FALSE, CL_MAP_WRITE, &mut ones, &events)

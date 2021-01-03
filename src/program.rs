@@ -1,4 +1,4 @@
-// Copyright (c) 2020 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2020-2021 Via Technology Ltd. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,9 @@ use cl3::types::{cl_context, cl_device_id, cl_int, cl_kernel, cl_program, cl_uch
 use libc::{intptr_t, size_t};
 use std::ffi::{CStr, CString};
 use std::ptr;
+
+/// An OpenCL program object.  
+/// Implements the Drop trait to call release_program when the object is dropped.
 pub struct Program {
     program: cl_program,
 }
@@ -26,8 +29,6 @@ pub struct Program {
 impl Drop for Program {
     fn drop(&mut self) {
         release_program(self.program).unwrap();
-        self.program = ptr::null_mut();
-        // println!("Program::drop");
     }
 }
 
@@ -36,12 +37,30 @@ impl Program {
         Program { program }
     }
 
-    pub fn create_from_source(context: cl_context, src: &CStr) -> Result<Program, cl_int> {
-        let char_ptrs: [*const _; 1] = [src.as_ptr()];
-        let program = create_program_with_source(context, 1, char_ptrs.as_ptr(), ptr::null())?;
+    /// Create a Program for a context and load source code into that object.  
+    ///
+    /// * `context` - a valid OpenCL context.
+    /// * `srcs` - a slice of CStr containing the source code character strings.
+    ///
+    /// returns a Result containing the new Program
+    /// or the error code from the OpenCL C API function.
+    pub fn create_from_source(context: cl_context, srcs: &[&CStr]) -> Result<Program, cl_int> {
+        let count = srcs.len() as cl_uint;
+        let src_ptrs = srcs.iter().map(|s| s.as_ptr()).collect::<Vec<_>>();
+        let src_lens = srcs.iter().map(|s| s.to_bytes().len()).collect::<Vec<_>>();
+        let program =
+            create_program_with_source(context, count, src_ptrs.as_ptr(), src_lens.as_ptr())?;
         Ok(Program::new(program))
     }
 
+    /// Create a Program for a context and load binary bits into that object.  
+    ///
+    /// * `context` - a valid OpenCL context.
+    /// * `devices` - a slice of devices that are in context.
+    /// * `binaries` - a slice of program binaries slices.
+    ///
+    /// returns a Result containing the new Program
+    /// or the error code from the OpenCL C API function.
     pub fn create_from_binary(
         context: cl_context,
         devices: &[cl_device_id],
@@ -51,6 +70,15 @@ impl Program {
         Ok(Program::new(program))
     }
 
+    /// Create a Program for a context and  loads the information related to
+    /// the built-in kernels into that object.  
+    ///
+    /// * `context` - a valid OpenCL context.
+    /// * `devices` - a slice of devices that are in context.
+    /// * `kernel_names` - a semi-colon separated list of built-in kernel names.
+    ///
+    /// returns a Result containing the new Program
+    /// or the error code from the OpenCL C API function.
     pub fn create_from_builtin_kernels(
         context: cl_context,
         devices: &[cl_device_id],
@@ -60,20 +88,50 @@ impl Program {
         Ok(Program::new(program))
     }
 
-    // #[cfg(feature = "CL_VERSION_2_1")]
-    // pub fn create_from_il(context: cl_context, il: &[u8]) -> Result<Program, cl_int> {
-    //     let program = create_program_with_il(context, &il)?;
-    //     Ok(Program::new(program))
-    // }
+    /// Create a Program for a context and load code in an intermediate language
+    /// into that object.  
+    /// CL_VERSION_2_1
+    ///
+    /// * `context` - a valid OpenCL context.
+    /// * `il` - a slice of program intermediate language code.
+    ///
+    /// returns a Result containing the new Program
+    /// or the error code from the OpenCL C API function.
+    #[cfg(feature = "CL_VERSION_2_1")]
+    pub fn create_from_il(context: cl_context, il: &[u8]) -> Result<Program, cl_int> {
+        let program = create_program_with_il(context, &il)?;
+        Ok(Program::new(program))
+    }
 
+    /// Build (compile & link) a Program.  
+    ///
+    /// * `devices` - a slice of devices that are in context.
+    /// * `options` - the build options in a null-terminated string.
+    /// * `pfn_notify` - an optional function pointer to a notification routine.
+    /// * `user_data` - passed as an argument when pfn_notify is called, or ptr::null_mut().
+    ///
+    /// returns a null Result
+    /// or the error code from the OpenCL C API function.
     pub fn build(&self, devices: &[cl_device_id], options: &CStr) -> Result<(), cl_int> {
         build_program(self.program, &devices, &options, None, ptr::null_mut())
     }
 
+    /// Create an OpenCL kernel object for a Program with a successfully built executable.  
+    ///
+    /// * `kernel_name` - a kernel function name in the program.
+    ///
+    /// returns a Result containing the new cl_kernel
+    /// or the error code from the OpenCL C API function.
     pub fn create_kernel(&self, kernel_name: &CStr) -> Result<cl_kernel, cl_int> {
         kernel::create_kernel(self.program, kernel_name)
     }
 
+    /// Create OpenCL kernel objects for all kernel functions in a program.  
+    ///
+    /// * `program` - a valid OpenCL program.
+    ///
+    /// returns a Result containing the new cl_kernels in a Vec
+    /// or the error code from the OpenCL C API function.
     pub fn create_kernels_in_program(&self) -> Result<Vec<cl_kernel>, cl_int> {
         kernel::create_kernels_in_program(self.program)
     }
