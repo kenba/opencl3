@@ -14,7 +14,10 @@
 
 use super::context::Context;
 
-use cl3::device::{CL_DEVICE_SVM_FINE_GRAIN_BUFFER, CL_DEVICE_SVM_FINE_GRAIN_SYSTEM};
+use cl3::device::{
+    CL_DEVICE_SVM_COARSE_GRAIN_BUFFER, CL_DEVICE_SVM_FINE_GRAIN_BUFFER,
+    CL_DEVICE_SVM_FINE_GRAIN_SYSTEM,
+};
 use cl3::memory::{svm_alloc, svm_free, CL_MEM_READ_WRITE, CL_MEM_SVM_FINE_GRAIN_BUFFER};
 use cl3::types::{cl_device_svm_capabilities, cl_svm_mem_flags, cl_uint};
 use libc::c_void;
@@ -30,12 +33,15 @@ struct SvmRawVec<'a, T> {
     fine_grain_buffer: bool,
 }
 
-// expect 0 != svm_capabilities
 impl<'a, T> SvmRawVec<'a, T> {
     fn new(context: &'a Context, svm_capabilities: cl_device_svm_capabilities) -> Self {
         assert!(0 < mem::size_of::<T>(), "No Zero Sized Types!");
 
-        assert!(0 != svm_capabilities, "No OpenCL SVM, use OpenCL buffers");
+        assert!(
+            0 != svm_capabilities
+                & (CL_DEVICE_SVM_COARSE_GRAIN_BUFFER | CL_DEVICE_SVM_FINE_GRAIN_BUFFER),
+            "No OpenCL SVM, use OpenCL buffers"
+        );
 
         let fine_grain_system: bool = svm_capabilities & CL_DEVICE_SVM_FINE_GRAIN_SYSTEM != 0;
         assert!(!fine_grain_system, "SVM supports system memory, use Vec!");

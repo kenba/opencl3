@@ -15,13 +15,10 @@
 pub use cl3::context::{CL_CONTEXT_INTEROP_USER_SYNC, CL_CONTEXT_PLATFORM};
 
 use super::command_queue::CommandQueue;
-use super::device::{
-    Device, SubDevice, CL_DEVICE_SVM_COARSE_GRAIN_BUFFER, CL_DEVICE_SVM_FINE_GRAIN_BUFFER,
-};
+use super::device::{Device, SubDevice};
 use super::kernel::Kernel;
 use super::memory::get_supported_image_formats;
 use super::program::Program;
-use super::svm::SvmVec;
 
 use cl3::context;
 use cl3::types::{
@@ -253,6 +250,8 @@ impl Context {
         self.kernels.get::<CStr>(&kernel_name)
     }
 
+    /// Get the common Shared Virtual Memory (SVM) capabilities of the
+    /// devices in the Context.
     pub fn get_svm_mem_capability(&self) -> cl_device_svm_capabilities {
         let device = Device::new(self.devices[0]);
         let mut svm_capability = device.svm_mem_capability();
@@ -263,15 +262,6 @@ impl Context {
         }
 
         svm_capability
-    }
-
-    pub fn create_svm_vec<T>(&self, svm_capability: cl_device_svm_capabilities) -> SvmVec<T> {
-        assert!(
-            0 < svm_capability
-                & (CL_DEVICE_SVM_COARSE_GRAIN_BUFFER | CL_DEVICE_SVM_FINE_GRAIN_BUFFER),
-            "create_svm_vec: devices not not support SVM buffers"
-        );
-        SvmVec::new(&self, svm_capability)
     }
 
     pub fn get_supported_image_formats(
