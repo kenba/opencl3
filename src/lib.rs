@@ -99,7 +99,7 @@
 //! [Kernel]: kernel/struct.Kernel.html
 //! [Buffer]: memory/struct.Buffer.html
 //! [Image]: memory/struct.Image.html
-//! [Sampler]: sampler/struct.Sampler.html
+//! [Sampler]: memory/struct.Sampler.html
 //! [SvmVec]: svm/struct.SvmVec.html
 //! [Pipe]: memory/struct.Pipe.html
 //! [CommandQueue]: command_queue/struct.CommandQueue.html
@@ -208,7 +208,6 @@ pub mod kernel;
 pub mod memory;
 pub mod platform;
 pub mod program;
-pub mod sampler;
 pub mod svm;
 
 pub mod error_codes {

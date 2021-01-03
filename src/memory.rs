@@ -17,8 +17,10 @@ pub use cl3::memory::*;
 use super::context::Context;
 
 use cl3::memory;
+use cl3::sampler;
 use cl3::types::{
-    cl_buffer_create_type, cl_image_desc, cl_image_format, cl_int, cl_mem, cl_mem_flags, cl_uint,
+    cl_addressing_mode, cl_bool, cl_buffer_create_type, cl_filter_mode, cl_image_desc,
+    cl_image_format, cl_int, cl_mem, cl_mem_flags, cl_sampler, cl_sampler_properties, cl_uint,
     cl_ulong,
 };
 use libc::{c_void, intptr_t, size_t};
@@ -208,6 +210,49 @@ impl Image {
     pub fn get_num_samples(&self) -> Result<cl_uint, cl_int> {
         let value = memory::get_image_info(self.image, ImageInfo::CL_IMAGE_NUM_SAMPLES)?;
         Ok(value.to_uint())
+    }
+}
+
+pub struct Sampler {
+    sampler: cl_sampler,
+}
+
+impl Drop for Sampler {
+    fn drop(&mut self) {
+        sampler::release_sampler(self.sampler).unwrap();
+    }
+}
+
+impl Sampler {
+    pub fn new(sampler: cl_sampler) -> Sampler {
+        Sampler { sampler }
+    }
+
+    pub fn create<T>(
+        context: &Context,
+        normalize_coords: cl_bool,
+        addressing_mode: cl_addressing_mode,
+        filter_mode: cl_filter_mode,
+    ) -> Result<Sampler, cl_int> {
+        let sampler = sampler::create_sampler(
+            context.get(),
+            normalize_coords,
+            addressing_mode,
+            filter_mode,
+        )?;
+        Ok(Sampler::new(sampler))
+    }
+
+    pub fn create_with_properties<T>(
+        context: &Context,
+        properties: *const cl_sampler_properties,
+    ) -> Result<Sampler, cl_int> {
+        let sampler = sampler::create_sampler_with_properties(context.get(), properties)?;
+        Ok(Sampler::new(sampler))
+    }
+
+    pub fn get(&self) -> cl_sampler {
+        self.sampler
     }
 }
 

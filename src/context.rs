@@ -40,7 +40,6 @@ use std::ptr;
 /// * [SubDevice]s
 /// * [Program]s
 /// * [Kernel]s
-/// * [Sampler]s
 ///
 /// It implements the Drop trait so that the OpenCL objects are released when
 /// the Context goes out of scope.
@@ -61,7 +60,6 @@ impl Drop for Context {
         self.sub_devices.clear();
         self.devices.clear();
         context::release_context(self.context).unwrap();
-        self.context = ptr::null_mut();
     }
 }
 
