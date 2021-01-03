@@ -15,7 +15,9 @@
 pub use cl3::context::{CL_CONTEXT_INTEROP_USER_SYNC, CL_CONTEXT_PLATFORM};
 
 use super::command_queue::CommandQueue;
-use super::device::{Device, SubDevice};
+use super::device::{
+    Device, SubDevice, CL_DEVICE_SVM_COARSE_GRAIN_BUFFER, CL_DEVICE_SVM_FINE_GRAIN_BUFFER,
+};
 use super::kernel::Kernel;
 use super::memory::{get_supported_image_formats, Buffer, Image, Pipe};
 use super::program::Program;
@@ -25,8 +27,9 @@ use super::svm::SvmVec;
 use cl3::context;
 use cl3::types::{
     cl_addressing_mode, cl_bool, cl_command_queue_properties, cl_context, cl_context_properties,
-    cl_device_id, cl_device_partition_property, cl_filter_mode, cl_image_desc, cl_image_format,
-    cl_int, cl_mem, cl_mem_flags, cl_mem_object_type, cl_sampler, cl_sampler_properties, cl_uint,
+    cl_device_id, cl_device_partition_property, cl_device_svm_capabilities, cl_filter_mode,
+    cl_image_desc, cl_image_format, cl_int, cl_mem, cl_mem_flags, cl_mem_object_type, cl_sampler,
+    cl_sampler_properties, cl_uint,
 };
 use libc::{c_char, c_void, intptr_t, size_t};
 use std::collections::HashMap;
@@ -269,8 +272,6 @@ impl Context {
         self.kernels.get::<CStr>(&kernel_name)
     }
 
-    // TODO add buffer, etc.
-
     pub fn create_buffer<T>(
         &mut self,
         flags: cl_mem_flags,
@@ -283,12 +284,25 @@ impl Context {
         Ok(mem)
     }
 
-    pub fn create_svm_vec<T>(&self, capacity: usize) -> SvmVec<T> {
+    pub fn get_svm_mem_capability(&self) -> cl_device_svm_capabilities {
         let device = Device::new(self.devices[0]);
-        let svm_capability = device.svm_capabilities().unwrap();
-        let mut svm = SvmVec::new(&self, svm_capability);
-        svm.reserve(capacity);
-        svm
+        let mut svm_capability = device.svm_mem_capability();
+
+        for index in 1..self.devices.len() {
+            let device = Device::new(self.devices[index]);
+            svm_capability &= device.svm_mem_capability();
+        }
+
+        svm_capability
+    }
+
+    pub fn create_svm_vec<T>(&self, svm_capability: cl_device_svm_capabilities) -> SvmVec<T> {
+        assert!(
+            0 < svm_capability
+                & (CL_DEVICE_SVM_COARSE_GRAIN_BUFFER | CL_DEVICE_SVM_FINE_GRAIN_BUFFER),
+            "create_svm_vec: devices not not support SVM buffers"
+        );
+        SvmVec::new(&self, svm_capability)
     }
 
     pub fn get_supported_image_formats(

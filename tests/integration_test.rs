@@ -215,14 +215,19 @@ fn test_opencl_2_0_example() {
         println!("Kernel name: {:?}", kernel_name);
     }
 
+    let svm_capability = context.get_svm_mem_capability();
+    assert!(0 < svm_capability);
+
     // The input data
     const ARRAY_SIZE: usize = 1000;
-    let mut ones = context.create_svm_vec::<cl_float>(ARRAY_SIZE);
+    let mut ones = context.create_svm_vec::<cl_float>(svm_capability);
+    ones.reserve(ARRAY_SIZE);
     for _ in 0..ARRAY_SIZE {
         ones.push(1.0);
     }
 
-    let mut sums = context.create_svm_vec::<cl_float>(ARRAY_SIZE);
+    let mut sums = context.create_svm_vec::<cl_float>(svm_capability);
+    sums.reserve(ARRAY_SIZE);
     for i in 0..ARRAY_SIZE {
         sums.push(1.0 + 1.0 * i as cl_float);
     }
@@ -232,7 +237,8 @@ fn test_opencl_2_0_example() {
     // Convert to CString for get_kernel function
     let kernel_name = CString::new(KERNEL_NAME).unwrap();
     if let Some(kernel) = context.get_kernel(&kernel_name) {
-        let mut results = context.create_svm_vec::<cl_float>(ARRAY_SIZE);
+        let mut results = context.create_svm_vec::<cl_float>(svm_capability);
+        results.reserve(ARRAY_SIZE);
         for i in 0..ARRAY_SIZE {
             results.push(i as cl_float);
         }
