@@ -20,7 +20,7 @@ use opencl3::context::Context;
 use opencl3::device::Device;
 use opencl3::event;
 use opencl3::kernel::ExecuteKernel;
-use opencl3::memory::{CL_MAP_READ, CL_MAP_WRITE, CL_MEM_READ_ONLY, CL_MEM_WRITE_ONLY};
+use opencl3::memory::{Buffer, CL_MAP_READ, CL_MAP_WRITE, CL_MEM_READ_ONLY, CL_MEM_WRITE_ONLY};
 use opencl3::platform::get_platforms;
 use opencl3::types::{cl_event, cl_float, CL_FALSE, CL_TRUE};
 use std::ffi::CString;
@@ -88,14 +88,11 @@ fn test_opencl_1_2_example() {
     }
 
     // Create OpenCL device buffers
-    let x = context
-        .create_buffer::<cl_float>(CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())
+    let x = Buffer::create::<cl_float>(&context, CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())
         .unwrap();
-    let y = context
-        .create_buffer::<cl_float>(CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())
+    let y = Buffer::create::<cl_float>(&context, CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())
         .unwrap();
-    let z = context
-        .create_buffer::<cl_float>(CL_MEM_READ_ONLY, ARRAY_SIZE, ptr::null_mut())
+    let z = Buffer::create::<cl_float>(&context, CL_MEM_READ_ONLY, ARRAY_SIZE, ptr::null_mut())
         .unwrap();
 
     let queue = context.default_queue();
@@ -104,12 +101,12 @@ fn test_opencl_1_2_example() {
 
     // Blocking write
     let _x_write_event = queue
-        .enqueue_write_buffer(x, CL_TRUE, 0, &ones, &events)
+        .enqueue_write_buffer(x.get(), CL_TRUE, 0, &ones, &events)
         .unwrap();
 
     // Non-blocking write, wait for y_write_event
     let y_write_event = queue
-        .enqueue_write_buffer(y, CL_FALSE, 0, &sums, &events)
+        .enqueue_write_buffer(y.get(), CL_FALSE, 0, &sums, &events)
         .unwrap();
     events.push(y_write_event.get());
 
@@ -139,7 +136,7 @@ fn test_opencl_1_2_example() {
         // after the kernel event completes.
         let mut results: [cl_float; ARRAY_SIZE] = [0.0; ARRAY_SIZE];
         let _event = queue
-            .enqueue_read_buffer(z, CL_FALSE, 0, &mut results, &events)
+            .enqueue_read_buffer(z.get(), CL_FALSE, 0, &mut results, &events)
             .unwrap();
         events.clear();
 

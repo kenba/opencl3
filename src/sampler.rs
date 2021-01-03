@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use super::context::Context;
+
 use cl3::sampler;
 use cl3::types::{
-    cl_addressing_mode, cl_bool, cl_context, cl_filter_mode, cl_int, cl_sampler,
-    cl_sampler_properties,
+    cl_addressing_mode, cl_bool, cl_filter_mode, cl_int, cl_sampler, cl_sampler_properties,
 };
-use std::ptr;
 
 pub struct Sampler {
     sampler: cl_sampler,
@@ -26,8 +26,6 @@ pub struct Sampler {
 impl Drop for Sampler {
     fn drop(&mut self) {
         sampler::release_sampler(self.sampler).unwrap();
-        self.sampler = ptr::null_mut();
-        // println!("Sampler::drop");
     }
 }
 
@@ -37,21 +35,25 @@ impl Sampler {
     }
 
     pub fn create<T>(
-        context: cl_context,
+        context: &Context,
         normalize_coords: cl_bool,
         addressing_mode: cl_addressing_mode,
         filter_mode: cl_filter_mode,
     ) -> Result<Sampler, cl_int> {
-        let sampler =
-            sampler::create_sampler(context, normalize_coords, addressing_mode, filter_mode)?;
+        let sampler = sampler::create_sampler(
+            context.get(),
+            normalize_coords,
+            addressing_mode,
+            filter_mode,
+        )?;
         Ok(Sampler::new(sampler))
     }
 
     pub fn create_with_properties<T>(
-        context: cl_context,
+        context: &Context,
         properties: *const cl_sampler_properties,
     ) -> Result<Sampler, cl_int> {
-        let sampler = sampler::create_sampler_with_properties(context, properties)?;
+        let sampler = sampler::create_sampler_with_properties(context.get(), properties)?;
         Ok(Sampler::new(sampler))
     }
 

@@ -19,17 +19,15 @@ use super::device::{
     Device, SubDevice, CL_DEVICE_SVM_COARSE_GRAIN_BUFFER, CL_DEVICE_SVM_FINE_GRAIN_BUFFER,
 };
 use super::kernel::Kernel;
-use super::memory::{get_supported_image_formats, Buffer, Image, Pipe};
+use super::memory::get_supported_image_formats;
 use super::program::Program;
-use super::sampler::Sampler;
 use super::svm::SvmVec;
 
 use cl3::context;
 use cl3::types::{
-    cl_addressing_mode, cl_bool, cl_command_queue_properties, cl_context, cl_context_properties,
-    cl_device_id, cl_device_partition_property, cl_device_svm_capabilities, cl_filter_mode,
-    cl_image_desc, cl_image_format, cl_int, cl_mem, cl_mem_flags, cl_mem_object_type, cl_sampler,
-    cl_sampler_properties, cl_uint,
+    cl_command_queue_properties, cl_context, cl_context_properties, cl_device_id,
+    cl_device_partition_property, cl_device_svm_capabilities, cl_image_format, cl_int,
+    cl_mem_flags, cl_mem_object_type, cl_uint,
 };
 use libc::{c_char, c_void, intptr_t, size_t};
 use std::collections::HashMap;
@@ -37,15 +35,12 @@ use std::ffi::{CStr, CString};
 use std::ptr;
 
 /// An OpenCL context.  
-/// A Context manages all the OpenCL objects that are constructed from it, i.e.:
+/// A Context manages OpenCL objects that are constructed from it, i.e.:
 /// * [CommandQueue]s
 /// * [SubDevice]s
 /// * [Program]s
 /// * [Kernel]s
-/// * [Buffer]s
-/// * [Image]s
 /// * [Sampler]s
-/// * [Pipe]s
 ///
 /// It implements the Drop trait so that the OpenCL objects are released when
 /// the Context goes out of scope.
@@ -56,18 +51,10 @@ pub struct Context {
     queues: Vec<CommandQueue>,
     programs: Vec<Program>,
     kernels: HashMap<CString, Kernel>,
-    buffers: Vec<Buffer>,
-    images: Vec<Image>,
-    samplers: Vec<Sampler>,
-    pipes: Vec<Pipe>,
 }
 
 impl Drop for Context {
     fn drop(&mut self) {
-        self.pipes.clear();
-        self.samplers.clear();
-        self.images.clear();
-        self.buffers.clear();
         self.kernels.clear();
         self.programs.clear();
         self.queues.clear();
@@ -87,10 +74,6 @@ impl Context {
             queues: Vec::<CommandQueue>::default(),
             programs: Vec::<Program>::default(),
             kernels: HashMap::<CString, Kernel>::default(),
-            buffers: Vec::<Buffer>::default(),
-            images: Vec::<Image>::default(),
-            samplers: Vec::<Sampler>::default(),
-            pipes: Vec::<Pipe>::default(),
         }
     }
 
@@ -272,18 +255,6 @@ impl Context {
         self.kernels.get::<CStr>(&kernel_name)
     }
 
-    pub fn create_buffer<T>(
-        &mut self,
-        flags: cl_mem_flags,
-        count: size_t,
-        host_ptr: *mut c_void,
-    ) -> Result<cl_mem, cl_int> {
-        let buffer = Buffer::create::<T>(self.context, flags, count, host_ptr)?;
-        let mem = buffer.get();
-        self.buffers.push(buffer);
-        Ok(mem)
-    }
-
     pub fn get_svm_mem_capability(&self) -> cl_device_svm_capabilities {
         let device = Device::new(self.devices[0]);
         let mut svm_capability = device.svm_mem_capability();
@@ -311,55 +282,6 @@ impl Context {
         image_type: cl_mem_object_type,
     ) -> Result<Vec<cl_image_format>, cl_int> {
         get_supported_image_formats(self.context, flags, image_type)
-    }
-
-    pub fn create_image<T>(
-        &mut self,
-        flags: cl_mem_flags,
-        image_format: *const cl_image_format,
-        image_desc: *const cl_image_desc,
-        host_ptr: *mut c_void,
-    ) -> Result<cl_mem, cl_int> {
-        let image = Image::create::<T>(self.context, flags, image_format, image_desc, host_ptr)?;
-        let mem = image.get();
-        self.images.push(image);
-        Ok(mem)
-    }
-
-    pub fn create_sampler<T>(
-        &mut self,
-        normalize_coords: cl_bool,
-        addressing_mode: cl_addressing_mode,
-        filter_mode: cl_filter_mode,
-    ) -> Result<cl_sampler, cl_int> {
-        let sampler =
-            Sampler::create::<T>(self.context, normalize_coords, addressing_mode, filter_mode)?;
-        let smplr = sampler.get();
-        self.samplers.push(sampler);
-        Ok(smplr)
-    }
-
-    pub fn create_sampler_with_properties<T>(
-        &mut self,
-        properties: *const cl_sampler_properties,
-    ) -> Result<cl_sampler, cl_int> {
-        let sampler = Sampler::create_with_properties::<T>(self.context, properties)?;
-        let smplr = sampler.get();
-        self.samplers.push(sampler);
-        Ok(smplr)
-    }
-
-    #[cfg(feature = "CL_VERSION_2_0")]
-    pub fn create_pipe<T>(
-        &mut self,
-        flags: cl_mem_flags,
-        pipe_packet_size: cl_uint,
-        pipe_max_packets: cl_uint,
-    ) -> Result<cl_mem, cl_int> {
-        let pipe = Pipe::create::<T>(self.context, flags, pipe_packet_size, pipe_max_packets)?;
-        let mem = pipe.get();
-        self.pipes.push(pipe);
-        Ok(mem)
     }
 
     #[cfg(feature = "CL_VERSION_2_1")]
@@ -396,22 +318,6 @@ impl Context {
 
     pub fn kernels(&self) -> &HashMap<CString, Kernel> {
         &self.kernels
-    }
-
-    pub fn buffers(&self) -> &[Buffer] {
-        &self.buffers
-    }
-
-    pub fn images(&self) -> &[Image] {
-        &self.images
-    }
-
-    pub fn samplers(&self) -> &[Sampler] {
-        &self.samplers
-    }
-
-    pub fn pipes(&self) -> &[Pipe] {
-        &self.pipes
     }
 
     #[cfg(feature = "CL_VERSION_3_0")]

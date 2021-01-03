@@ -14,14 +14,15 @@
 
 pub use cl3::memory::*;
 
+use super::context::Context;
+
 use cl3::memory;
 use cl3::types::{
-    cl_buffer_create_type, cl_context, cl_image_desc, cl_image_format, cl_int, cl_mem,
-    cl_mem_flags, cl_uint, cl_ulong,
+    cl_buffer_create_type, cl_image_desc, cl_image_format, cl_int, cl_mem, cl_mem_flags, cl_uint,
+    cl_ulong,
 };
-use libc::{c_void, size_t, intptr_t};
+use libc::{c_void, intptr_t, size_t};
 use std::mem;
-use std::ptr;
 
 pub fn get_mem_type(memobj: cl_mem) -> Result<cl_uint, cl_int> {
     let value = memory::get_mem_object_info(memobj, MemInfo::CL_MEM_TYPE)?;
@@ -86,8 +87,6 @@ pub struct Buffer {
 impl Drop for Buffer {
     fn drop(&mut self) {
         memory::release_mem_object(self.buffer).unwrap();
-        self.buffer = ptr::null_mut();
-        // println!("Buffer::drop");
     }
 }
 
@@ -97,12 +96,13 @@ impl Buffer {
     }
 
     pub fn create<T>(
-        context: cl_context,
+        context: &Context,
         flags: cl_mem_flags,
         count: size_t,
         host_ptr: *mut c_void,
     ) -> Result<Buffer, cl_int> {
-        let buffer = memory::create_buffer(context, flags, count * mem::size_of::<T>(), host_ptr)?;
+        let buffer =
+            memory::create_buffer(context.get(), flags, count * mem::size_of::<T>(), host_ptr)?;
         Ok(Buffer::new(buffer))
     }
 
@@ -131,8 +131,6 @@ pub struct Image {
 impl Drop for Image {
     fn drop(&mut self) {
         memory::release_mem_object(self.image).unwrap();
-        self.image = ptr::null_mut();
-        // println!("Image::drop");
     }
 }
 
@@ -142,13 +140,13 @@ impl Image {
     }
 
     pub fn create<T>(
-        context: cl_context,
+        context: &Context,
         flags: cl_mem_flags,
         image_format: *const cl_image_format,
         image_desc: *const cl_image_desc,
         host_ptr: *mut c_void,
     ) -> Result<Image, cl_int> {
-        let image = memory::create_image(context, flags, image_format, image_desc, host_ptr)?;
+        let image = memory::create_image(context.get(), flags, image_format, image_desc, host_ptr)?;
         Ok(Image::new(image))
     }
 
@@ -192,7 +190,6 @@ impl Image {
         let value = memory::get_image_info(self.image, ImageInfo::CL_IMAGE_DEPTH)?;
         Ok(value.to_size())
     }
-    
     pub fn get_array_size(&self) -> Result<size_t, cl_int> {
         let value = memory::get_image_info(self.image, ImageInfo::CL_IMAGE_ARRAY_SIZE)?;
         Ok(value.to_size())
@@ -221,8 +218,6 @@ pub struct Pipe {
 impl Drop for Pipe {
     fn drop(&mut self) {
         memory::release_mem_object(self.pipe).unwrap();
-        self.pipe = ptr::null_mut();
-        // println!("Pipe::drop");
     }
 }
 
@@ -232,12 +227,12 @@ impl Pipe {
     }
 
     pub fn create<T>(
-        context: cl_context,
+        context: &Context,
         flags: cl_mem_flags,
         pipe_packet_size: cl_uint,
         pipe_max_packets: cl_uint,
     ) -> Result<Pipe, cl_int> {
-        let pipe = memory::create_pipe(context, flags, pipe_packet_size, pipe_max_packets)?;
+        let pipe = memory::create_pipe(context.get(), flags, pipe_packet_size, pipe_max_packets)?;
         Ok(Pipe::new(pipe))
     }
 
