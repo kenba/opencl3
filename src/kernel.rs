@@ -510,8 +510,8 @@ impl<'a> ExecuteKernel<'a> {
         queue: &CommandQueue,
         event_wait_list: &[cl_event],
     ) -> Result<Event, cl_int> {
-        // Could get max_work_item_dimensions from device via CommandQueue
-        let max_work_item_dimensions = 3;
+        // Get max_work_item_dimensions for the device CommandQueue
+        let max_work_item_dimensions = queue.max_work_item_dimensions() as usize;
         self.validate(max_work_item_dimensions);
 
         let event = queue.enqueue_nd_range_kernel(

@@ -14,6 +14,7 @@
 
 pub use cl3::command_queue::*;
 
+use super::device::Device;
 use super::event::Event;
 
 use cl3::types::{
@@ -30,6 +31,7 @@ use std::ptr;
 /// command-queue.
 pub struct CommandQueue {
     queue: cl_command_queue,
+    max_work_item_dimensions: cl_uint,
 }
 
 impl Drop for CommandQueue {
@@ -39,8 +41,11 @@ impl Drop for CommandQueue {
 }
 
 impl CommandQueue {
-    fn new(queue: cl_command_queue) -> CommandQueue {
-        CommandQueue { queue }
+    fn new(queue: cl_command_queue, max_work_item_dimensions: cl_uint) -> CommandQueue {
+        CommandQueue {
+            queue,
+            max_work_item_dimensions,
+        }
     }
 
     /// Get the underlying OpenCL cl_command_queue.
@@ -48,11 +53,18 @@ impl CommandQueue {
         self.queue
     }
 
-    /// Create an OpenCL host or device command-queue on a specific device.  
+    /// Get the max_work_item_dimensions for the device that the underlying OpenCL
+    /// device.
+    pub fn max_work_item_dimensions(&self) -> cl_uint {
+        self.max_work_item_dimensions
+    }
+
+    /// Create an OpenCL command-queue on a specific device.  
+    /// Queries the device the max_work_item_dimensions.  
     /// Deprecated in CL_VERSION_2_0 by create_command_queue_with_properties.
     ///
     /// * `context` - a valid OpenCL context.
-    /// * `device` - a device or sub-device associated with context.
+    /// * `device_id` - a device or sub-device associated with context.
     /// * `properties` - a list of properties for the command-queue, see
     /// [cl_command_queue_properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#legacy-queue-properties-table).
     ///
@@ -60,18 +72,21 @@ impl CommandQueue {
     /// or the error code from the OpenCL C API function.
     pub fn create(
         context: cl_context,
-        device: cl_device_id,
+        device_id: cl_device_id,
         properties: cl_command_queue_properties,
     ) -> Result<CommandQueue, cl_int> {
-        let queue = create_command_queue(context, device, properties)?;
-        Ok(CommandQueue::new(queue))
+        let queue = create_command_queue(context, device_id, properties)?;
+        let device = Device::new(device_id);
+        let max_work_item_dimensions = device.max_work_item_dimensions()?;
+        Ok(CommandQueue::new(queue, max_work_item_dimensions))
     }
 
-    /// Create an OpenCL host or device command-queue on a specific device.  
+    /// Create an OpenCL command-queue on a specific device.  
+    /// Queries the device the max_work_item_dimensions.  
     /// CL_VERSION_2_0 onwards.
     ///
     /// * `context` - a valid OpenCL context.
-    /// * `device` - a device or sub-device associated with context.
+    /// * `device_id` - a device or sub-device associated with context.
     /// * `properties` - a null terminated list of properties for the command-queue, see
     /// [cl_queue_properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#queue-properties-table).
     ///
@@ -79,7 +94,7 @@ impl CommandQueue {
     /// or the error code from the OpenCL C API function.
     pub fn create_with_properties(
         context: cl_context,
-        device: cl_device_id,
+        device_id: cl_device_id,
         properties: cl_command_queue_properties,
         queue_size: cl_uint,
     ) -> Result<CommandQueue, cl_int> {
@@ -97,12 +112,14 @@ impl CommandQueue {
                 props[index] = CommandQueueInfo::CL_QUEUE_SIZE as cl_queue_properties;
                 props[index + 1] = queue_size as cl_queue_properties;
             }
-            create_command_queue_with_properties(context, device, props.as_ptr())?
+            create_command_queue_with_properties(context, device_id, props.as_ptr())?
         } else {
-            create_command_queue_with_properties(context, device, ptr::null())?
+            create_command_queue_with_properties(context, device_id, ptr::null())?
         };
 
-        Ok(CommandQueue::new(queue))
+        let device = Device::new(device_id);
+        let max_work_item_dimensions = device.max_work_item_dimensions()?;
+        Ok(CommandQueue::new(queue, max_work_item_dimensions))
     }
 
     /// Flush commands to a device.  
