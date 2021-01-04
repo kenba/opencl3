@@ -18,8 +18,8 @@ use super::event::Event;
 
 use cl3::types::{
     cl_bool, cl_command_queue, cl_command_queue_properties, cl_context, cl_device_id, cl_event,
-    cl_int, cl_kernel, cl_map_flags, cl_mem, cl_queue_properties, cl_uint, cl_ulong,
-    cl_mem_migration_flags,
+    cl_int, cl_kernel, cl_map_flags, cl_mem, cl_mem_migration_flags, cl_queue_properties, cl_uint,
+    cl_ulong,
 };
 use libc::{c_void, intptr_t, size_t};
 use std::mem;
@@ -35,7 +35,6 @@ pub struct CommandQueue {
 impl Drop for CommandQueue {
     fn drop(&mut self) {
         release_command_queue(self.queue).unwrap();
-        // println!("CommandQueue::drop");
     }
 }
 
@@ -44,10 +43,21 @@ impl CommandQueue {
         CommandQueue { queue }
     }
 
+    /// Get the underlying OpenCL cl_command_queue.
     pub fn get(&self) -> cl_command_queue {
         self.queue
     }
 
+    /// Create an OpenCL host or device command-queue on a specific device.  
+    /// Deprecated in CL_VERSION_2_0 by create_command_queue_with_properties.
+    ///
+    /// * `context` - a valid OpenCL context.
+    /// * `device` - a device or sub-device associated with context.
+    /// * `properties` - a list of properties for the command-queue, see
+    /// [cl_command_queue_properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#legacy-queue-properties-table).
+    ///
+    /// returns a Result containing the new CommandQueue
+    /// or the error code from the OpenCL C API function.
     pub fn create(
         context: cl_context,
         device: cl_device_id,
@@ -57,6 +67,16 @@ impl CommandQueue {
         Ok(CommandQueue::new(queue))
     }
 
+    /// Create an OpenCL host or device command-queue on a specific device.  
+    /// CL_VERSION_2_0 onwards.
+    ///
+    /// * `context` - a valid OpenCL context.
+    /// * `device` - a device or sub-device associated with context.
+    /// * `properties` - a null terminated list of properties for the command-queue, see
+    /// [cl_queue_properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#queue-properties-table).
+    ///
+    /// returns a Result containing the new CommandQueue
+    /// or the error code from the OpenCL C API function.
     pub fn create_with_properties(
         context: cl_context,
         device: cl_device_id,
@@ -85,10 +105,14 @@ impl CommandQueue {
         Ok(CommandQueue::new(queue))
     }
 
+    /// Flush commands to a device.  
+    /// returns an empty Result or the error code from the OpenCL C API function.
     pub fn flush(&self) -> Result<(), cl_int> {
         flush(self.queue)
     }
 
+    /// Wait for completion of commands on a device.  
+    /// returns an empty Result or the error code from the OpenCL C API function.
     pub fn finish(&self) -> Result<(), cl_int> {
         finish(self.queue)
     }
@@ -265,7 +289,6 @@ impl CommandQueue {
         )?;
         Ok(Event::new(event))
     }
-    
     pub fn enqueue_copy_buffer_rect(
         &self,
         src_buffer: cl_mem,

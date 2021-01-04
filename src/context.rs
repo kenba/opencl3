@@ -34,12 +34,12 @@ use std::ptr;
 /// An OpenCL context.  
 /// A Context manages OpenCL objects that are constructed from it, i.e.:
 /// * [CommandQueue]s
-/// * [SubDevice]s
 /// * [Program]s
 /// * [Kernel]s
+/// * [SubDevice]s
 ///
-/// It implements the Drop trait so that the OpenCL objects are released when
-/// the Context goes out of scope.
+/// It implements the Drop trait which clears the collections of OpenCL objects
+/// so that they are released when the Context goes out of scope.
 pub struct Context {
     context: cl_context,
     devices: Vec<cl_device_id>,
@@ -109,29 +109,6 @@ impl Context {
         Context::from_devices(devices, ptr::null(), None, ptr::null_mut())
     }
 
-    /// Create sub-devices from the device.
-    /// Stores the sub-devices in the sub_devices vector.
-    ///
-    /// * `device` - the cl_device_id.
-    /// * `properties` - the slice of cl_device_partition_property, see
-    /// [Subdevice Partition](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#subdevice-partition-table).
-    ///
-    /// returns a Result containing the number of sub-devices created
-    /// or the error code from the OpenCL C API function.
-    pub fn create_sub_devices(
-        &mut self,
-        device: cl_device_id,
-        properties: &[cl_device_partition_property],
-    ) -> Result<usize, cl_int> {
-        let device = Device::new(device);
-        let sub_devs = device.create_sub_devices(properties)?;
-        let count = sub_devs.len();
-        for device_id in sub_devs {
-            self.sub_devices.push(SubDevice::new(device_id));
-        }
-        Ok(count)
-    }
-
     /// Add a [CommandQueue] to the Context for it to manage.
     ///
     /// * `queue` - a command queue on one of the devices or sub-devices
@@ -141,7 +118,7 @@ impl Context {
     }
 
     /// Create a [CommandQueue] for every device and append them to the queues
-    /// managed by this context.
+    /// managed by this context.  
     /// Deprecated in CL_VERSION_2_0 by create_command_queue_with_properties.
     ///
     /// * `properties` - a list of properties for the command-queue, see
@@ -163,7 +140,7 @@ impl Context {
     }
 
     /// Create a [CommandQueue] for every device and append them to the queues
-    /// managed by this context.
+    /// managed by this context.  
     /// CL_VERSION_2_0 onwards.
     ///
     /// * `properties` - a null terminated list of properties for the command-queue, see
@@ -186,10 +163,10 @@ impl Context {
         Ok(())
     }
 
-    /// Add a built [Program] to the Context for it to manage.
+    /// Add a built [Program] to the Context for it to manage.  
     /// It also creates and manages the [Kernel]s in the program.
     ///
-    /// * `program` - a [Program] and its [Kernel]s to be  managed by the Context.
+    /// * `program` - a [Program] to be managed by the Context.
     ///
     /// returns a Result containing the number of kernels in the Program.
     /// or the error code from the OpenCL C API function.
@@ -206,6 +183,7 @@ impl Context {
     }
 
     /// Create and build a Program from source code.  
+    /// It also creates and manages the [Kernel]s in the program.
     ///
     /// * `src` - a CStr containing the source code character string.
     /// * `options` - the build options in a null-terminated string.
@@ -223,7 +201,8 @@ impl Context {
         self.add_program(program)
     }
 
-    /// Create and build a Program from binaries.
+    /// Create and build a Program from binaries.  
+    /// It also creates and manages the [Kernel]s in the program.
     ///
     /// * `src` - a CStr containing the source code character string.
     /// * `binaries` - a slice of program binaries slices.
@@ -239,6 +218,29 @@ impl Context {
         let program = Program::create_from_binary(self.context, &self.devices, binaries)?;
         program.build(&self.devices, &options)?;
         self.add_program(program)
+    }
+
+    /// Create sub-devices from a device.
+    /// Stores the sub-devices in the sub_devices vector.
+    ///
+    /// * `device` - the cl_device_id.
+    /// * `properties` - the slice of cl_device_partition_property, see
+    /// [Subdevice Partition](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#subdevice-partition-table).
+    ///
+    /// returns a Result containing the number of sub-devices created
+    /// or the error code from the OpenCL C API function.
+    pub fn create_sub_devices(
+        &mut self,
+        device: cl_device_id,
+        properties: &[cl_device_partition_property],
+    ) -> Result<usize, cl_int> {
+        let device = Device::new(device);
+        let sub_devs = device.create_sub_devices(properties)?;
+        let count = sub_devs.len();
+        for device_id in sub_devs {
+            self.sub_devices.push(SubDevice::new(device_id));
+        }
+        Ok(count)
     }
 
     /// Get the kernel with the given name.
@@ -264,6 +266,17 @@ impl Context {
         svm_capability
     }
 
+    /// Get the list of image formats supported by the Context for an image type,
+    /// and allocation information.  
+    /// Calls clGetSupportedImageFormats to get the desired information about the program.
+    ///
+    /// * `flags` - a bit-field used to specify allocation and usage information
+    /// about the image memory object being created, see:
+    /// [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
+    /// * `image_type` - describes the image type.
+    ///
+    /// returns a Result containing the desired information in an InfoType enum
+    /// or the error code from the OpenCL C API function.
     pub fn get_supported_image_formats(
         &self,
         flags: cl_mem_flags,
@@ -272,17 +285,24 @@ impl Context {
         get_supported_image_formats(self.context, flags, image_type)
     }
 
+    /// Replace the default command queue on an OpenCL device.  
+    /// CL_VERSION_2_1
+    ///
+    /// * `device` - a valid OpenCL device associated with context.
+    /// * `command_queue` - a command queue object which replaces the default
+    /// device command queue.
+    ///
+    /// returns an empty Result or the error code from the OpenCL C API function.
     #[cfg(feature = "CL_VERSION_2_1")]
     #[inline]
     pub fn set_default_device_command_queue(
         &self,
         device: cl_device_id,
-        queue: CommandQueue,
+        queue: &CommandQueue,
     ) -> Result<(), cl_int> {
         set_default_device_command_queue(self.context, device, queue.get())
     }
 
-    // references devices
     pub fn devices(&self) -> &[cl_device_id] {
         &self.devices
     }
@@ -291,7 +311,6 @@ impl Context {
         &self.sub_devices
     }
 
-    // references queues
     pub fn queues(&self) -> &[CommandQueue] {
         &self.queues
     }

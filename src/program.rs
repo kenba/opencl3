@@ -16,7 +16,8 @@ pub use cl3::program::*;
 
 use cl3::kernel;
 use cl3::types::{cl_context, cl_device_id, cl_int, cl_kernel, cl_program, cl_uchar, cl_uint};
-use libc::{intptr_t, size_t};
+#[allow(unused_imports)]
+use libc::{c_char, c_void, intptr_t, size_t};
 use std::ffi::{CStr, CString};
 use std::ptr;
 
@@ -40,7 +41,7 @@ impl Program {
     /// Create a Program for a context and load source code into that object.  
     ///
     /// * `context` - a valid OpenCL context.
-    /// * `srcs` - a slice of CStr containing the source code character strings.
+    /// * `srcs` - a slice of CStrs containing the source code character strings.
     ///
     /// returns a Result containing the new Program
     /// or the error code from the OpenCL C API function.
@@ -114,6 +115,96 @@ impl Program {
     /// or the error code from the OpenCL C API function.
     pub fn build(&self, devices: &[cl_device_id], options: &CStr) -> Result<(), cl_int> {
         build_program(self.program, &devices, &options, None, ptr::null_mut())
+    }
+
+    /// Compile a program’s source for the devices the OpenCL context associated
+    /// with the program.  
+    /// * `devices` - a slice of devices that are in context.
+    /// * `options` - the compilation options in a null-terminated string.
+    /// * `input_headers` - a slice of programs that describe headers in the input_headers.
+    /// * `header_include_names` - an array that has a one to one correspondence with
+    /// input_headers.
+    ///
+    /// returns a null Result
+    /// or the error code from the OpenCL C API function.
+    pub fn compile(
+        &self,
+        devices: &[cl_device_id],
+        options: &CStr,
+        input_headers: &[cl_program],
+        header_include_names: &[*const c_char],
+    ) -> Result<(), cl_int> {
+        compile_program(
+            self.program,
+            &devices,
+            &options,
+            &input_headers,
+            &header_include_names,
+            None,
+            ptr::null_mut(),
+        )
+    }
+
+    /// Link a set of compiled program objects and libraries for the devices in the
+    /// OpenCL context associated with the program.  
+    ///
+    /// * `devices` - a slice of devices that are in context.
+    /// * `options` - the link options in a null-terminated string.
+    /// * `input_programs` - a slice of programs that describe headers in the input_headers.
+    ///
+    /// returns a null Result
+    /// or the error code from the OpenCL C API function.
+    pub fn link(
+        &mut self,
+        devices: &[cl_device_id],
+        options: &CStr,
+        input_programs: &[cl_program],
+    ) -> Result<(), cl_int> {
+        self.program = link_program(
+            self.program,
+            &devices,
+            &options,
+            &input_programs,
+            None,
+            ptr::null_mut(),
+        )?;
+        Ok(())
+    }
+
+    /// Register a callback function with a program object that is called when the
+    /// program object is destroyed.  
+    /// CL_VERSION_2_2
+    ///
+    /// * `pfn_notify` - function pointer to the notification routine.
+    /// * `user_data` - passed as an argument when pfn_notify is called, or ptr::null_mut().
+    ///
+    /// returns an empty Result or the error code from the OpenCL C API function.
+    #[cfg(feature = "CL_VERSION_2_2")]
+    pub fn set_release_callback(
+        &self,
+        pfn_notify: Option<extern "C" fn(program: cl_program, user_data: *mut c_void)>,
+        user_data: *mut c_void,
+    ) -> Result<(), cl_int> {
+        set_program_release_callback(self.program, pfn_notify, user_data)
+    }
+
+    /// Set the value of a specialization constant.  
+    /// CL_VERSION_2_2  
+    ///
+    /// * `spec_id` - the specialization constant whose value will be set.
+    /// * `spec_size` - size in bytes of the data pointed to by spec_value.
+    /// * `spec_value` - pointer to the memory location that contains the value
+    /// of the specialization constant.
+    ///
+    /// returns an empty Result or the error code from the OpenCL C API function.
+    #[cfg(feature = "CL_VERSION_2_2")]
+    pub fn set_specialization_constant(
+        &self,
+        spec_id: cl_uint,
+        spec_size: size_t,
+        spec_value: *const c_void,
+    ) -> Result<(), cl_int> {
+        set_program_specialization_constant(self.program, spec_id, spec_size, spec_value)
     }
 
     /// Create an OpenCL kernel object for a Program with a successfully built executable.  
