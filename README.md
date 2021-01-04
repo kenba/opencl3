@@ -66,7 +66,10 @@ version = "0.1"
 features = ["CL_VERSION_2_1", "CL_VERSION_2_2"]
 ```
 
-See [OpenCL Description](https://github.com/kenba/opencl3/blob/main/docs/opencl_description.md)
+For examples on how to use the library see the integration tests in
+[integration_test.rs](https://github.com/kenba/opencl3/blob/main/tests/integration_test.rs)
+
+See [OpenCL Description](https://github.com/kenba/opencl3/blob/main/docs/opencl_description.md) for background on using OpenCL.
 
 ## License
 
