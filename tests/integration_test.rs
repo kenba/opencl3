@@ -14,7 +14,9 @@
 
 extern crate opencl3;
 
-use cl3::device::{CL_DEVICE_SVM_FINE_GRAIN_BUFFER, CL_DEVICE_TYPE_GPU};
+use cl3::device::{
+    CL_DEVICE_SVM_COARSE_GRAIN_BUFFER, CL_DEVICE_SVM_FINE_GRAIN_BUFFER, CL_DEVICE_TYPE_GPU,
+};
 use opencl3::command_queue::{CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, CL_QUEUE_PROFILING_ENABLE};
 use opencl3::context::Context;
 use opencl3::device::Device;
@@ -53,12 +55,18 @@ fn test_opencl_1_2_example() {
         .expect("Platform::get_devices failed");
     assert!(0 < devices.len());
 
+    let platform_name = platform.name().unwrap();
+    println!("Platform Name: {:?}", platform_name);
+
     // Create OpenCL context from the first device
     let device = Device::new(devices[0]);
     let vendor = device.vendor().expect("Device.vendor failed");
     let vendor_id = device.vendor_id().expect("Device.vendor_id failed");
     println!("OpenCL device vendor name: {:?}", vendor);
     println!("OpenCL device vendor id: {:X}", vendor_id);
+
+    /////////////////////////////////////////////////////////////////////
+    // Initialise OpenCL compute environment
 
     // Create a Context and a queue on the device
     let mut context = Context::from_device(device).expect("Context::from_device failed");
@@ -79,6 +87,9 @@ fn test_opencl_1_2_example() {
     for kernel_name in context.kernels().keys() {
         println!("Kernel name: {:?}", kernel_name);
     }
+
+    /////////////////////////////////////////////////////////////////////
+    // Compute data
 
     // The input data
     const ARRAY_SIZE: usize = 1000;
@@ -146,20 +157,28 @@ fn test_opencl_1_2_example() {
 
         assert_eq!(1300.0, results[ARRAY_SIZE - 1]);
         println!("results back: {}", results[ARRAY_SIZE - 1]);
+
+        // Calculate the kernel duration, from the kernel_event
+        let start_time = kernel_event.profiling_command_start().unwrap();
+        let end_time = kernel_event.profiling_command_end().unwrap();
+        let duration = end_time - start_time;
+        println!("kernel execution duration (ns): {}", duration);
     }
 }
 
 #[test]
 #[ignore]
-fn test_opencl_2_0_example() {
+fn test_opencl_svm_example() {
     let platforms = get_platforms().unwrap();
     assert!(0 < platforms.len());
 
+    /////////////////////////////////////////////////////////////////////
+    // Query OpenCL compute environment
     let opencl_2: String = "OpenCL 2".to_string();
-    let mut device_id = ptr::null_mut();
 
-    // Find an OpenCL 2, platform and device
-    let mut is_opencl_2: bool = false;
+    // Find an OpenCL SVM, platform and device
+    let mut device_id = ptr::null_mut();
+    let mut is_svm_capable: bool = false;
     for p in platforms {
         let platform_version = p.version().unwrap().into_string().unwrap();
         if platform_version.contains(&opencl_2) {
@@ -167,32 +186,34 @@ fn test_opencl_2_0_example() {
                 .get_devices(CL_DEVICE_TYPE_GPU)
                 .expect("Platform::get_devices failed");
 
-            for d in devices {
-                let dev = Device::new(d);
-                let device_version = dev.version().unwrap().into_string().unwrap();
-                is_opencl_2 = device_version.contains(&opencl_2);
-                if is_opencl_2 {
-                    device_id = d;
+            for dev_id in devices {
+                let device = Device::new(dev_id);
+                let svm_mem_capability = device.svm_mem_capability();
+                is_svm_capable = 0 < svm_mem_capability
+                    & (CL_DEVICE_SVM_COARSE_GRAIN_BUFFER | CL_DEVICE_SVM_FINE_GRAIN_BUFFER);
+                if is_svm_capable {
+                    device_id = dev_id;
                     break;
                 }
             }
         }
     }
 
-    if !is_opencl_2 {
-        assert!(false, "OpenCL 2 device not found")
+    if !is_svm_capable {
+        assert!(false, "OpenCL SVM capable device not found")
     }
 
-    // Create OpenCL context from the OpenCL 2 device
+    // Create OpenCL context from the OpenCL svm device
     let device = Device::new(device_id);
     let vendor = device.vendor().expect("Device.vendor failed");
     let vendor_id = device.vendor_id().expect("Device.vendor_id failed");
-    let svm_mem_capability = device.svm_mem_capability();
-    let is_fine_grained_svm: bool = 0 < svm_mem_capability & CL_DEVICE_SVM_FINE_GRAIN_BUFFER;
     println!("OpenCL device vendor name: {:?}", vendor);
     println!("OpenCL device vendor id: {:X}", vendor_id);
-    println!("OpenCL SVM is fine grained: {}", is_fine_grained_svm);
 
+    /////////////////////////////////////////////////////////////////////
+    // Initialise OpenCL compute environment
+
+    // Create OpenCL context from the OpenCL svm device
     let mut context = Context::from_device(device).expect("Context::from_device failed");
     context
         .create_command_queues_with_properties(
@@ -213,8 +234,17 @@ fn test_opencl_2_0_example() {
         println!("Kernel name: {:?}", kernel_name);
     }
 
+    /////////////////////////////////////////////////////////////////////
+    // Compute data
+
+    // Get the svm capability of all the devices in the context.
     let svm_capability = context.get_svm_mem_capability();
     assert!(0 < svm_capability);
+
+    let is_fine_grained_svm: bool = 0 < svm_capability & CL_DEVICE_SVM_FINE_GRAIN_BUFFER;
+    println!("OpenCL SVM is fine grained: {}", is_fine_grained_svm);
+
+    // Create SVM vectors for the data
 
     // The input data
     const ARRAY_SIZE: usize = 1000;
@@ -245,6 +275,10 @@ fn test_opencl_2_0_example() {
         if is_fine_grained_svm {
             let a: cl_float = 300.0;
 
+            // Use the ExecuteKernel builder to set the kernel buffer and
+            // cl_float value arguments, before setting the one dimensional
+            // global_work_size for the call to enqueue_nd_range.
+            // Unwraps the Result to get the kernel execution event.
             let kernel_event = ExecuteKernel::new(kernel)
                 .set_arg_svm(results.as_mut_ptr())
                 .set_arg_svm(ones.as_ptr())
@@ -253,13 +287,19 @@ fn test_opencl_2_0_example() {
                 .set_global_work_size(ARRAY_SIZE)
                 .enqueue_nd_range(&queue, &events)
                 .unwrap();
-            events.clear();
+
+            // Add the kernel_event to the events list and wait for it to complete
             events.push(kernel_event.get());
             event::wait_for_events(&events).unwrap();
-            events.clear();
 
             assert_eq!(1300.0, results[ARRAY_SIZE - 1]);
             println!("results back: {}", results[ARRAY_SIZE - 1]);
+
+            // Calculate the kernel duration, from the kernel_event
+            let start_time = kernel_event.profiling_command_start().unwrap();
+            let end_time = kernel_event.profiling_command_end().unwrap();
+            let duration = end_time - start_time;
+            println!("kernel execution duration (ns): {}", duration);
         } else {
             // !is_fine_grained_svm
             // Map the SVM
@@ -275,6 +315,10 @@ fn test_opencl_2_0_example() {
 
             let a: cl_float = 300.0;
 
+            // Use the ExecuteKernel builder to set the kernel buffer and
+            // cl_float value arguments, before setting the one dimensional
+            // global_work_size for the call to enqueue_nd_range.
+            // Unwraps the Result to get the kernel execution event.
             let kernel_event = ExecuteKernel::new(kernel)
                 .set_arg_svm(results.as_mut_ptr())
                 .set_arg_svm(ones.as_ptr())
@@ -283,16 +327,29 @@ fn test_opencl_2_0_example() {
                 .set_global_work_size(ARRAY_SIZE)
                 .enqueue_nd_range(&queue, &events)
                 .unwrap();
-            events.clear();
 
+            events.clear();
             events.push(kernel_event.get());
             event::wait_for_events(&events).unwrap();
 
             events.clear();
 
+            // Blocking SVM map, no need to wait for _map_results_event
             let _map_results_event = queue
                 .enqueue_svm_map(CL_TRUE, CL_MAP_READ, &mut results, &events)
                 .unwrap();
+
+            assert_eq!(1300.0, results[ARRAY_SIZE - 1]);
+            println!("results back: {}", results[ARRAY_SIZE - 1]);
+
+            // Calculate the kernel duration from the kernel_event
+            let start_time = kernel_event.profiling_command_start().unwrap();
+            let end_time = kernel_event.profiling_command_end().unwrap();
+            let duration = end_time - start_time;
+            println!("kernel execution duration (ns): {}", duration);
+
+            /////////////////////////////////////////////////////////////////////
+            // Clean up
 
             let unmap_results_event = queue.enqueue_svm_unmap(&results, &events).unwrap();
             let unmap_sums_event = queue.enqueue_svm_unmap(&sums, &events).unwrap();
@@ -300,9 +357,6 @@ fn test_opencl_2_0_example() {
             events.push(unmap_results_event.get());
             events.push(unmap_sums_event.get());
             events.push(unmap_ones_event.get());
-
-            assert_eq!(1300.0, results[ARRAY_SIZE - 1]);
-            println!("results back: {}", results[ARRAY_SIZE - 1]);
 
             event::wait_for_events(&events).unwrap();
             println!("SVM buffers unmapped");
