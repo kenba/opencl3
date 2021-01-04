@@ -1,4 +1,4 @@
-// Copyright (c) 2020 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2020-2021 Via Technology Ltd. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,6 +26,10 @@ use std::ffi::CString;
 use std::mem;
 use std::ptr;
 
+/// An OpenCL kernel object.  
+/// It stores the number of arguments required by the kernel for the
+/// [ExecuteKernel] builder to verify kernel execution.  
+/// Implements the Drop trait to call release_kernel when the object is dropped.
 pub struct Kernel {
     kernel: cl_kernel,
     num_args: cl_uint,
@@ -34,20 +38,32 @@ pub struct Kernel {
 impl Drop for Kernel {
     fn drop(&mut self) {
         release_kernel(self.kernel).unwrap();
-        // println!("Kernel::drop");
     }
 }
 
 impl Kernel {
+    /// Create a Kernel from an OpenCL cl_kernel.
+    ///
+    /// * `kernel` - a valid OpenCL cl_kernel.
+    ///
+    /// returns a Result containing the new Kernel
+    /// or the error code from the OpenCL C API function to get the number
+    /// of kernel arguments.
     pub fn new(kernel: cl_kernel) -> Result<Kernel, cl_int> {
         let num_args = get_kernel_info(kernel, KernelInfo::CL_KERNEL_NUM_ARGS)?.to_uint();
         Ok(Kernel { kernel, num_args })
     }
 
+    /// Get the underlying OpenCL cl_kernel.
     pub fn get(&self) -> cl_kernel {
         self.kernel
     }
 
+    /// Clone an OpenCL kernel object.  
+    /// CL_VERSION_2_1 see: [Copying Kernel Objects](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#_copying_kernel_objects)
+    ///
+    /// returns a Result containing the new Kernel
+    /// or the error code from the OpenCL C API function.
     #[cfg(feature = "CL_VERSION_2_1")]
     pub fn clone(&self) -> Result<Kernel, cl_int> {
         let kernel = clone_kernel(self.kernel)?;
@@ -57,6 +73,12 @@ impl Kernel {
         })
     }
 
+    /// Set the argument value for a specific argument of a kernel.  
+    ///
+    /// * `arg_index` - the kernel argument index.
+    /// * `arg` - a reference to the data for the argument at arg_index.
+    ///
+    /// returns an empty Result or the error code from the OpenCL C API function.
     pub fn set_arg<T>(&self, arg_index: cl_uint, arg: &T) -> Result<(), cl_int> {
         set_kernel_arg(
             self.kernel,
@@ -66,10 +88,22 @@ impl Kernel {
         )
     }
 
+    /// Create a local memory buffer for a specific argument of a kernel.  
+    ///
+    /// * `arg_index` - the kernel argument index.
+    /// * `size` - the size of the local memory buffer in bytes.
+    ///
+    /// returns an empty Result or the error code from the OpenCL C API function.
     pub fn set_arg_local_buffer(&self, arg_index: cl_uint, size: size_t) -> Result<(), cl_int> {
         set_kernel_arg(self.kernel, arg_index, size, ptr::null())
     }
 
+    /// Set set a SVM pointer as the argument value for a specific argument of a kernel.  
+    ///
+    /// * `arg_index` - the kernel argument index.
+    /// * `arg_ptr` - the SVM pointer to the data for the argument at arg_index.
+    ///
+    /// returns an empty Result or the error code from the OpenCL C API function.
     pub fn set_arg_svm_pointer(
         &self,
         arg_index: cl_uint,
@@ -78,6 +112,13 @@ impl Kernel {
         set_kernel_arg_svm_pointer(self.kernel, arg_index, arg_ptr)
     }
 
+    /// Pass additional information other than argument values to a kernel.  
+    ///
+    /// * `param_name` - the information to be passed to kernel, see:
+    /// [Kernel Execution Properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#kernel-exec-info-table).
+    /// * `param_ptr` - pointer to the data for the param_name.
+    ///
+    /// returns an empty Result or the error code from the OpenCL C API function.
     pub fn set_exec_info<T>(
         &self,
         param_name: cl_kernel_exec_info,
@@ -214,6 +255,9 @@ impl Kernel {
     }
 }
 
+/// A struct that implements the [builder pattern](https://doc.rust-lang.org/1.0.0/style/ownership/builders.html)
+/// to simplify setting up [Kernel] arguments and the [NDRange](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#_mapping_work_items_onto_an_ndrange)
+/// when enqueueing a [Kernel] on a [CommandQueue].
 pub struct ExecuteKernel<'a> {
     pub kernel: &'a Kernel,
     pub global_work_offsets: Vec<size_t>,
@@ -235,19 +279,42 @@ impl<'a> ExecuteKernel<'a> {
         }
     }
 
+    /// Set the next argument of the kernel.  
+    /// Calls `self.kernel.set_arg` to set the next unset kernel argument.
+    ///
+    /// # Panics
+    ///
+    /// Panics if too many arguments have been set.
+    ///
+    /// * `arg` - a reference to the data for the kernel argument.
+    ///
+    /// returns a reference to self.
     pub fn set_arg<'b, T>(&'b mut self, arg: &T) -> &'b mut Self {
-        if self.kernel.num_args() <= self.arg_index {
-            panic!("ExecuteKernel::set_arg too many args");
-        }
+        assert!(
+            self.arg_index < self.kernel.num_args(),
+            "ExecuteKernel::set_arg too many args"
+        );
+
         self.kernel.set_arg(self.arg_index, arg).unwrap();
         self.arg_index += 1;
         self
     }
 
+    /// Set the next argument of the kernel as a local buffer
+    /// Calls `self.kernel.set_arg_local_buffer` to set the next unset kernel argument.
+    ///
+    /// # Panics
+    ///
+    /// Panics if too many arguments have been set.
+    ///
+    /// * `size` - the size of the local memory buffer in bytes.
+    ///
+    /// returns a reference to self.
     pub fn set_arg_local_buffer(&mut self, size: size_t) -> Result<(), cl_int> {
-        if self.kernel.num_args() <= self.arg_index {
-            panic!("ExecuteKernel::set_arg_local_buffer too many args");
-        }
+        assert!(
+            self.arg_index < self.kernel.num_args(),
+            "ExecuteKernel::set_arg_local_buffer too many args"
+        );
 
         self.kernel
             .set_arg_local_buffer(self.arg_index, size)
@@ -256,10 +323,21 @@ impl<'a> ExecuteKernel<'a> {
         Ok(())
     }
 
+    /// Set the next argument of the kernel.  
+    /// Calls `self.kernel.set_arg` to set the next unset kernel argument.
+    ///
+    /// # Panics
+    ///
+    /// Panics if too many arguments have been set.
+    ///
+    /// * `arg` - a reference to the data for the kernel argument.
+    ///
+    /// returns a reference to self.
     pub fn set_arg_svm<'b, T>(&'b mut self, arg_ptr: *const T) -> &'b mut Self {
-        if self.kernel.num_args() <= self.arg_index {
-            panic!("ExecuteKernel::set_arg_local_buffer too many args");
-        }
+        assert!(
+            self.arg_index < self.kernel.num_args(),
+            "ExecuteKernel::set_arg_svm too many args"
+        );
 
         self.kernel
             .set_arg_svm_pointer(self.arg_index, arg_ptr as *const c_void)
@@ -268,6 +346,13 @@ impl<'a> ExecuteKernel<'a> {
         self
     }
 
+    /// Pass additional information other than argument values to a kernel.  
+    ///
+    /// * `param_name` - the information to be passed to kernel, see:
+    /// [Kernel Execution Properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#kernel-exec-info-table).
+    /// * `param_ptr` - pointer to the data for the param_name.
+    ///
+    /// returns a reference to self.
     pub fn set_exec_info<'b, T>(
         &'b mut self,
         param_name: cl_kernel_exec_info,
@@ -277,79 +362,159 @@ impl<'a> ExecuteKernel<'a> {
         self
     }
 
+    /// Set a global work offset for a call to clEnqueueNDRangeKernel.  
+    ///
+    /// * `size` - the size of the global work offset.
+    ///
+    /// returns a reference to self.
     pub fn set_global_work_offset<'b>(&'b mut self, size: size_t) -> &'b mut Self {
         self.global_work_offsets.push(size);
         self
     }
 
+    /// Set the global work offsets for a call to clEnqueueNDRangeKernel.  
+    ///
+    /// # Panics
+    ///
+    /// Panics if global_work_offsets is already set.
+    ///
+    /// * `sizes` - the sizes of the global work offset.
+    ///
+    /// returns a reference to self.
     pub fn set_global_work_offsets<'b>(&'b mut self, sizes: &[size_t]) -> &'b mut Self {
-        if !self.global_work_offsets.is_empty() {
-            panic!("ExecuteKernel::set_global_work_offsets already set");
-        }
+        assert!(
+            self.global_work_offsets.is_empty(),
+            "ExecuteKernel::set_global_work_offsets already set"
+        );
         self.global_work_offsets.resize(sizes.len(), 0);
         self.global_work_offsets.copy_from_slice(sizes);
         self
     }
 
+    /// Set a global work size for a call to clEnqueueNDRangeKernel.  
+    ///
+    /// * `size` - the size of the global work size.
+    ///
+    /// returns a reference to self.
     pub fn set_global_work_size<'b>(&'b mut self, size: size_t) -> &'b mut Self {
         self.global_work_sizes.push(size);
         self
     }
+
+    /// Set the global work sizes for a call to clEnqueueNDRangeKernel.  
+    ///
+    /// # Panics
+    ///
+    /// Panics if global_work_sizes is already set.
+    ///
+    /// * `sizes` - the sizes of the global work sizes.
+    ///
+    /// returns a reference to self.
     pub fn set_global_work_sizes<'b>(&'b mut self, sizes: &[size_t]) -> &'b mut Self {
-        if !self.global_work_sizes.is_empty() {
-            panic!("ExecuteKernel::set_global_work_sizes already set");
-        }
+        assert!(
+            self.global_work_sizes.is_empty(),
+            "ExecuteKernel::global_work_sizes already set"
+        );
         self.global_work_sizes.resize(sizes.len(), 0);
         self.global_work_sizes.copy_from_slice(sizes);
         self
     }
 
+    /// Set a local work size for a call to clEnqueueNDRangeKernel.  
+    ///
+    /// * `size` - the size of the local work size.
+    ///
+    /// returns a reference to self.
     pub fn set_local_work_size<'b>(&'b mut self, size: size_t) -> &'b mut Self {
         self.local_work_sizes.push(size);
         self
     }
 
+    /// Set the local work sizes for a call to clEnqueueNDRangeKernel.  
+    ///
+    /// # Panics
+    ///
+    /// Panics if local_work_sizes is already set.
+    ///
+    /// * `sizes` - the sizes of the local work sizes.
+    ///
+    /// returns a reference to self.
     pub fn set_local_work_sizes<'b>(&'b mut self, sizes: &[size_t]) -> &'b mut Self {
-        if !self.local_work_sizes.is_empty() {
-            panic!("ExecuteKernel::set_local_work_sizes already set");
-        }
+        assert!(
+            self.local_work_sizes.is_empty(),
+            "ExecuteKernel::local_work_sizes already set"
+        );
         self.local_work_sizes.resize(sizes.len(), 0);
         self.local_work_sizes.copy_from_slice(sizes);
         self
     }
 
-    pub fn validate(&self) {
-        if self.kernel.num_args() != self.arg_index {
-            panic!("ExecuteKernel too few args");
-        }
+    fn validate(&self, max_work_item_dimensions: usize) {
+        assert!(
+            self.kernel.num_args() == self.arg_index,
+            "ExecuteKernel too few args"
+        );
 
         let work_dim = self.global_work_sizes.len();
-        if 0 == work_dim {
-            panic!("ExecuteKernel not enough global_work_sizes");
-        }
+        assert!(0 < work_dim, "ExecuteKernel not enough global_work_sizes");
 
-        if 3 < work_dim {
-            panic!("ExecuteKernel too many global_work_sizes");
-        }
+        assert!(
+            work_dim <= max_work_item_dimensions,
+            "ExecuteKernel too many global_work_sizes"
+        );
 
         let offsets_dim = self.global_work_offsets.len();
-        if (0 != offsets_dim) && (offsets_dim != work_dim) {
-            panic!("ExecuteKernel global_work_offsets != global_work_sizes");
-        }
+        assert!(
+            (0 == offsets_dim) || (offsets_dim == work_dim),
+            "ExecuteKernel global_work_offsets dimensions != global_work_sizes"
+        );
 
         let locals_dim = self.local_work_sizes.len();
-        if (0 != locals_dim) && (locals_dim != work_dim) {
-            panic!("ExecuteKernel local_work_sizes != global_work_sizes");
-        }
+        assert!(
+            (0 == locals_dim) || (locals_dim == work_dim),
+            "ExecuteKernel local_work_sizes dimensions != global_work_sizes"
+        );
     }
 
+    fn clear(&mut self) {
+        self.global_work_offsets.clear();
+        self.global_work_sizes.clear();
+        self.local_work_sizes.clear();
+
+        self.arg_index = 0;
+    }
+
+    /// Calls clEnqueueNDRangeKernel on the given with [CommandQueue] with the
+    /// global and local work sizes and the global work offsets together with
+    /// an events wait list.
+    ///
+    /// # Panics
+    ///
+    /// Panics if:
+    /// * too few kernel arguments have been set
+    /// * no global_work_sizes have been set
+    /// * too many global_work_sizes have been set
+    /// * global_work_offsets have been set and their dimensions do not match
+    /// global_work_sizes
+    /// * local_work_sizes have been set and their dimensions do not match
+    /// global_work_sizes
+    ///
+    /// * `queue` - the [CommandQueue] to enqueue the [Kernel] on.
+    /// * `event_wait_list` - the events to wait for before the kernel is executed,
+    /// may be empty.
+    ///
+    /// return the [Event] for this command
+    /// or the error code from the OpenCL C API function.
     pub fn enqueue_nd_range(
-        &self,
+        &mut self,
         queue: &CommandQueue,
         event_wait_list: &[cl_event],
     ) -> Result<Event, cl_int> {
-        self.validate();
-        queue.enqueue_nd_range_kernel(
+        // Could get max_work_item_dimensions from device via CommandQueue
+        let max_work_item_dimensions = 3;
+        self.validate(max_work_item_dimensions);
+
+        let event = queue.enqueue_nd_range_kernel(
             self.kernel.get(),
             self.global_work_sizes.len() as cl_uint,
             if self.global_work_offsets.is_empty() {
@@ -364,6 +529,9 @@ impl<'a> ExecuteKernel<'a> {
                 self.local_work_sizes.as_ptr()
             },
             event_wait_list,
-        )
+        )?;
+
+        self.clear();
+        Ok(event)
     }
 }

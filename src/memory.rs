@@ -1,4 +1,4 @@
-// Copyright (c) 2020 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2020-2021 Via Technology Ltd. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,10 +18,11 @@ use super::context::Context;
 
 use cl3::memory;
 use cl3::sampler;
+#[allow(unused_imports)]
 use cl3::types::{
     cl_addressing_mode, cl_bool, cl_buffer_create_type, cl_filter_mode, cl_image_desc,
-    cl_image_format, cl_int, cl_mem, cl_mem_flags, cl_sampler, cl_sampler_properties, cl_uint,
-    cl_ulong,
+    cl_image_format, cl_int, cl_mem, cl_mem_flags, cl_mem_properties, cl_sampler,
+    cl_sampler_properties, cl_uint, cl_ulong,
 };
 use libc::{c_void, intptr_t, size_t};
 use std::mem;
@@ -82,6 +83,8 @@ pub fn get_mem_properties(memobj: cl_mem) -> Result<Vec<cl_ulong>, cl_int> {
     Ok(value.to_vec_ulong())
 }
 
+/// An OpenCL buffer.  
+/// Implements the Drop trait to call release_mem_object when the object is dropped.
 pub struct Buffer {
     buffer: cl_mem,
 }
@@ -97,6 +100,18 @@ impl Buffer {
         Buffer { buffer }
     }
 
+    /// Create a Buffer for a context.  
+    ///
+    /// * `context` - a valid OpenCL context.
+    /// * `flags` - a bit-field used to specify allocation and usage information
+    /// about the image memory object being created, see:
+    /// [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
+    /// * `count` - the number of T objects to be allocated.
+    /// * `host_ptr` - a pointer to the buffer data that may already be allocated
+    /// by the application.
+    ///
+    /// returns a Result containing the new OpenCL buffer object
+    /// or the error code from the OpenCL C API function.
     pub fn create<T>(
         context: &Context,
         flags: cl_mem_flags,
@@ -108,8 +123,49 @@ impl Buffer {
         Ok(Buffer::new(buffer))
     }
 
-    // create_buffer_with_properties CL_VERSION_3_0
+    /// Create an OpenCL buffer object for a context.  
+    /// CL_VERSION_3_0
+    ///
+    /// * `context` - a valid OpenCL context.
+    /// * `properties` - an optional null terminated list of properties.
+    /// * `flags` - a bit-field used to specify allocation and usage information
+    /// about the image memory object being created, see:
+    /// [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
+    /// * `count` - the number of T objects to be allocated.
+    /// * `host_ptr` - a pointer to the buffer data that may already be allocated
+    /// by the application.
+    ///
+    /// returns a Result containing the new OpenCL buffer object
+    /// or the error code from the OpenCL C API function.
+    #[cfg(feature = "CL_VERSION_3_0")]
+    pub fn create_with_properties<T>(
+        context: &Context,
+        properties: *const cl_mem_properties,
+        flags: cl_mem_flags,
+        count: size_t,
+        host_ptr: *mut c_void,
+    ) -> Result<Buffer, cl_int> {
+        let buffer = memory::create_buffer_with_properties(
+            context.get(),
+            properties,
+            flags,
+            count * mem::size_of::<T>(),
+            host_ptr,
+        )?;
+        Ok(Buffer::new(buffer))
+    }
 
+    /// Create an new OpenCL buffer object from an existing buffer object.  
+    ///
+    /// * `flags` - a bit-field used to specify allocation and usage information
+    /// about the sub-buffer memory object being created, see:
+    /// [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
+    /// * `buffer_create_type`,`buffer_create_info` - describe the type of
+    /// buffer object to be created, see:
+    /// [SubBuffer Attributes](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#subbuffer-create-info-table).
+    ///
+    /// returns a Result containing the new OpenCL buffer object
+    /// or the error code from the OpenCL C API function.
     pub fn create_sub_buffer(
         &self,
         flags: cl_mem_flags,
@@ -126,6 +182,10 @@ impl Buffer {
     }
 }
 
+/// An OpenCL image.  
+/// Has methods to return information from calls to clGetImageInfo with the
+/// appropriate parameters.  
+/// Implements the Drop trait to call release_mem_object when the object is dropped.
 pub struct Image {
     image: cl_mem,
 }
@@ -141,6 +201,21 @@ impl Image {
         Image { image }
     }
 
+    /// Create an OpenCL image object for a context.  
+    ///
+    /// * `context` - a valid OpenCL context.
+    /// * `flags` - a bit-field used to specify allocation and usage information
+    /// about the image memory object being created, see:
+    /// [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
+    /// * `image_format` - a pointer to a structure that describes format properties
+    /// of the image to be allocated.
+    /// * `image_desc` - a pointer to a structure that describes type and dimensions
+    /// of the image to be allocated.
+    /// * `host_ptr` - a pointer to the image data that may already be allocated
+    /// by the application.
+    ///
+    /// returns a Result containing the new OpenCL image object
+    /// or the error code from the OpenCL C API function.
     pub fn create<T>(
         context: &Context,
         flags: cl_mem_flags,
@@ -152,7 +227,42 @@ impl Image {
         Ok(Image::new(image))
     }
 
-    // create_image_with_properties CL_VERSION_3_0
+    /// Create an OpenCL image object for a context.  
+    /// CL_VERSION_3_0
+    ///
+    /// * `context` - a valid OpenCL context.
+    /// * `properties` - an optional null terminated list of properties.
+    /// * `flags` - a bit-field used to specify allocation and usage information
+    /// about the image memory object being created, see:
+    /// [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
+    /// * `image_format` - a pointer to a structure that describes format properties
+    /// of the image to be allocated.
+    /// * `image_desc` - a pointer to a structure that describes type and dimensions
+    /// of the image to be allocated.
+    /// * `host_ptr` - a pointer to the image data that may already be allocated
+    /// by the application.
+    ///
+    /// returns a Result containing the new OpenCL image object
+    /// or the error code from the OpenCL C API function.
+    #[cfg(feature = "CL_VERSION_3_0")]
+    pub fn create_with_properties<T>(
+        context: &Context,
+        properties: *const cl_mem_properties,
+        flags: cl_mem_flags,
+        image_format: *const cl_image_format,
+        image_desc: *const cl_image_desc,
+        host_ptr: *mut c_void,
+    ) -> Result<Image, cl_int> {
+        let image = memory::create_image_with_properties(
+            context.get(),
+            properties,
+            flags,
+            image_format,
+            image_desc,
+            host_ptr,
+        )?;
+        Ok(Image::new(image))
+    }
 
     pub fn get(&self) -> cl_mem {
         self.image
@@ -213,6 +323,10 @@ impl Image {
     }
 }
 
+/// An OpenCL sampler.  
+/// Has methods to return information from calls to clGetSamplerInfo with the
+/// appropriate parameters.  
+/// Implements the Drop trait to call release_sampler when the object is dropped.
 pub struct Sampler {
     sampler: cl_sampler,
 }
@@ -256,6 +370,10 @@ impl Sampler {
     }
 }
 
+/// An OpenCL pipe.  
+/// Has methods to return information from calls to clGetPipeInfo with the
+/// appropriate parameters.  
+/// Implements the Drop trait to call release_mem_object when the object is dropped.
 pub struct Pipe {
     pipe: cl_mem,
 }

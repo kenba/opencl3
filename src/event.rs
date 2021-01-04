@@ -1,4 +1,4 @@
-// Copyright (c) 2020 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2020-2021 Via Technology Ltd. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,7 +16,11 @@ pub use cl3::event::*;
 
 use cl3::types::{cl_event, cl_int, cl_uint, cl_ulong};
 use libc::intptr_t;
-/// An OpenCL event.  
+
+/// An OpenCL event object.  
+/// Has methods to return information from calls to clGetEventInfo and
+/// clGetEventProfilingInfo with the appropriate parameters.  
+/// Implements the Drop trait to call release_event when the object is dropped.
 pub struct Event {
     event: cl_event,
 }
@@ -24,15 +28,20 @@ pub struct Event {
 impl Drop for Event {
     fn drop(&mut self) {
         release_event(self.event).unwrap();
-        // println!("Event::drop");
     }
 }
 
 impl Event {
+    /// Create an Event from an OpenCL cl_event.
+    ///
+    /// * `event` - a valid OpenCL cl_event.
+    ///
+    /// returns the new Event
     pub fn new(event: cl_event) -> Self {
         Self { event }
     }
 
+    /// Get the underlying OpenCL cl_event.
     pub fn get(&self) -> cl_event {
         self.event
     }
