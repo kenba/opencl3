@@ -1,0 +1,19 @@
+@startuml
+
+'Copyright (c) 2021 Via Technology Ltd. All Rights Reserved.
+
+' title via::opencl Context objects
+
+object cl_device_id
+
+Context o-- "1..*" cl_device_id
+cl_device_id o- "1..*" CommandQueue
+Context *-- "1..*" CommandQueue
+
+Context *-- "1..*" Program
+Program *- "1..*" Kernel
+Context *-- "1..*" Kernel
+
+Context *-- "0..*" SubDevice
+
+@enduml

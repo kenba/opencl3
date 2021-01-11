@@ -1,0 +1,13 @@
+@startuml
+
+'Copyright (c) 2021 Via Technology Ltd. All Rights Reserved.
+
+' title via::opencl Memory classes
+
+Buffer --|> Memory
+' Sampler --o Image
+Image --|> Memory
+Pipe --|> Memory
+Memory o- SVM
+
+@enduml

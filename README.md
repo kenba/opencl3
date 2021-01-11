@@ -46,7 +46,8 @@ See the crate [documentation](https://docs.rs/opencl3/).
 ## Use
 
 Ensure that an OpenCL Installable Client Driver (ICD) and the appropriate OpenCL
-hardware driver(s) are installed, see [cl3](https://crates.io/crates/cl3).
+hardware driver(s) are installed, see 
+[OpenCL Installation](https://github.com/kenba/cl3/tree/main/docs/opencl_installation.md).
 
 `opencl3` supports OpenCL 1.2 and 2.0 ICD loaders by default. If you have an
 OpenCL 2.0 ICD loader then add the following to your project's `Cargo.toml`:
@@ -67,9 +68,37 @@ features = ["CL_VERSION_2_1", "CL_VERSION_2_2"]
 ```
 
 For examples on how to use the library see the integration tests in
-[integration_test.rs](https://github.com/kenba/opencl3/blob/main/tests/integration_test.rs)
+[integration_test.rs](https://github.com/kenba/opencl3/tree/main/tests/integration_test.rs)
 
-See [OpenCL Description](https://github.com/kenba/opencl3/blob/main/docs/opencl_description.md) for background on using OpenCL.
+See [OpenCL Description](https://github.com/kenba/opencl3/tree/main/docs/opencl_description.md) for background on using OpenCL.
+
+## Tests
+
+The crate contains unit, documentation and integration tests.  
+The tests run the platform and device info functions (among others) so they
+can provide useful information about OpenCL capabilities of the system.
+
+It is recommended to run the tests in single-threaded mode, since some of
+them can interfere with each other when run multi-threaded, e.g.:
+
+```shell
+cargo test -- --test-threads=1 --show-output
+```
+
+The integration tests are marked `ignore` so use the following command to
+run them:
+
+```shell
+cargo test -- --test-threads=1 --show-output --ignored
+```
+
+## Examples
+
+The tests provide examples of how the crate may be used, e.g. see:
+[platform](https://github.com/kenba/opencl3/tree/main/src/platform.rs),
+[device](https://github.com/kenba/opencl3/tree/main/src/device.rs),
+[context](https://github.com/kenba/opencl3/tree/main/src/context.rs) and
+[integration_test](https://github.com/kenba/opencl3/tree/main/tests/integration_test.rs).
 
 ## License
 

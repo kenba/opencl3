@@ -172,7 +172,7 @@
 //! A [Sampler] describes how a [Kernel] is to sample an [Image], see
 //! [Sampler objects](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#_sampler_objects).  
 //!
-//! [Shared Virtual Memory](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#_shared_virtual_memory)
+//! [Shared Virtual Memory](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#shared-virtual-memory)
 //! enables the host and kernels executing on devices to directly share data
 //! without explicitly transferring it.
 //!
