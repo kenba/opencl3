@@ -1,4 +1,4 @@
-// Copyright (c) 2020 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2020-2021 Via Technology Ltd. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ use std::marker::PhantomData;
 use std::mem;
 use std::ops::{Deref, DerefMut};
 use std::ptr;
+use std::fmt;
+use std::fmt::Debug;
 
 struct SvmRawVec<'a, T> {
     ptr: *mut T,
@@ -99,7 +101,6 @@ impl<'a, T> Drop for SvmRawVec<'a, T> {
         if !self.ptr.is_null() {
             svm_free(self.context.get(), self.ptr as *mut c_void);
             self.ptr = ptr::null_mut();
-            // println!("SvmRawVec::drop");
         }
     }
 }
@@ -244,6 +245,16 @@ impl<'a, T> Deref for SvmVec<'a, T> {
 impl<'a, T> DerefMut for SvmVec<'a, T> {
     fn deref_mut(&mut self) -> &mut [T] {
         unsafe { std::slice::from_raw_parts_mut(self.ptr(), self.len) }
+    }
+}
+
+impl<'a, T: Debug> fmt::Debug for SvmVec<'a, T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt(&**self, f)
+        // for x in self.iter() {
+        //     write!(f, "{},", x);
+        // }
+        // write!(f, "len: {}", self.len)
     }
 }
 
