@@ -46,6 +46,12 @@ impl Event {
         self.event
     }
 
+    /// Wait for the event to complete.
+    pub fn wait(&self) -> Result<(), cl_int> {
+        let events = [self.event];
+        wait_for_events(&events)
+    }
+
     pub fn command_execution_status(&self) -> Result<cl_int, cl_int> {
         Ok(get_event_info(self.event, EventInfo::CL_EVENT_COMMAND_EXECUTION_STATUS)?.to_int())
     }
