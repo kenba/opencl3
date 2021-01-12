@@ -21,12 +21,12 @@ use cl3::device::{
 use cl3::memory::{svm_alloc, svm_free, CL_MEM_READ_WRITE, CL_MEM_SVM_FINE_GRAIN_BUFFER};
 use cl3::types::{cl_device_svm_capabilities, cl_svm_mem_flags, cl_uint};
 use libc::c_void;
+use std::fmt;
+use std::fmt::Debug;
 use std::marker::PhantomData;
 use std::mem;
 use std::ops::{Deref, DerefMut};
 use std::ptr;
-use std::fmt;
-use std::fmt::Debug;
 
 struct SvmRawVec<'a, T> {
     ptr: *mut T,
@@ -57,6 +57,28 @@ impl<'a, T> SvmRawVec<'a, T> {
         }
     }
 
+    fn with_capacity(
+        context: &'a Context,
+        svm_capabilities: cl_device_svm_capabilities,
+        capacity: usize,
+    ) -> Self {
+        let mut v = Self::new(context, svm_capabilities);
+        v.grow(capacity);
+
+        v
+    }
+
+    fn with_capacity_zeroed(
+        context: &'a Context,
+        svm_capabilities: cl_device_svm_capabilities,
+        capacity: usize,
+    ) -> Self {
+        let mut v = Self::with_capacity(context, svm_capabilities, capacity);
+        v.zero(capacity);
+
+        v
+    }
+
     fn grow(&mut self, count: usize) {
         let elem_size = mem::size_of::<T>();
 
@@ -66,15 +88,16 @@ impl<'a, T> SvmRawVec<'a, T> {
             new_cap = 2 * self.cap;
         }
 
-        // Ensure within capacity.
-        assert!(new_cap <= (isize::MAX as usize) / 2, "capacity overflow");
+        let size = elem_size * new_cap;
 
-        let svm_mem_flags: cl_svm_mem_flags = if true == self.fine_grain_buffer {
+        // Ensure within capacity.
+        assert!(size <= (isize::MAX as usize) / 2, "capacity overflow");
+
+        let svm_mem_flags: cl_svm_mem_flags = if self.fine_grain_buffer {
             CL_MEM_SVM_FINE_GRAIN_BUFFER | CL_MEM_READ_WRITE
         } else {
             CL_MEM_READ_WRITE
         };
-        let size = elem_size * count;
         let alignment = mem::align_of::<T>();
         let ptr = svm_alloc(
             self.context.get(),
@@ -93,6 +116,10 @@ impl<'a, T> SvmRawVec<'a, T> {
 
         self.ptr = ptr as *mut T;
         self.cap = new_cap;
+    }
+
+    fn zero(&mut self, count: usize) {
+        unsafe { ptr::write_bytes(self.ptr, 0u8, count) };
     }
 }
 
@@ -128,12 +155,41 @@ impl<'a, T> SvmVec<'a, T> {
         self.len
     }
 
+    pub unsafe fn set_len(&mut self, new_len: usize) {
+        if self.cap() < new_len {
+            self.buf.grow(new_len);
+        }
+        self.len = new_len;
+    }
+
     /// Construct an empty SvmVec from a [Context] and the svm_capabilities of
     /// the device (or devices) in the [Context].  
     /// The SvmVec has the lifetime of the [Context].
     pub fn new(context: &'a Context, svm_capabilities: cl_device_svm_capabilities) -> Self {
         SvmVec {
             buf: SvmRawVec::new(&context, svm_capabilities),
+            len: 0,
+        }
+    }
+
+    pub fn with_capacity(
+        context: &'a Context,
+        svm_capabilities: cl_device_svm_capabilities,
+        capacity: usize,
+    ) -> Self {
+        SvmVec {
+            buf: SvmRawVec::with_capacity(&context, svm_capabilities, capacity),
+            len: 0,
+        }
+    }
+
+    pub fn with_capacity_zeroed(
+        context: &'a Context,
+        svm_capabilities: cl_device_svm_capabilities,
+        capacity: usize,
+    ) -> Self {
+        SvmVec {
+            buf: SvmRawVec::with_capacity_zeroed(&context, svm_capabilities, capacity),
             len: 0,
         }
     }
@@ -251,10 +307,6 @@ impl<'a, T> DerefMut for SvmVec<'a, T> {
 impl<'a, T: Debug> fmt::Debug for SvmVec<'a, T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Debug::fmt(&**self, f)
-        // for x in self.iter() {
-        //     write!(f, "{},", x);
-        // }
-        // write!(f, "len: {}", self.len)
     }
 }
 
