@@ -263,6 +263,7 @@ pub struct ExecuteKernel<'a> {
     pub global_work_offsets: Vec<size_t>,
     pub global_work_sizes: Vec<size_t>,
     pub local_work_sizes: Vec<size_t>,
+    pub event_wait_list: Vec<cl_event>,
 
     arg_index: cl_uint,
 }
@@ -274,6 +275,7 @@ impl<'a> ExecuteKernel<'a> {
             global_work_offsets: Vec::new(),
             global_work_sizes: Vec::new(),
             local_work_sizes: Vec::new(),
+            event_wait_list: Vec::new(),
 
             arg_index: 0,
         }
@@ -449,6 +451,35 @@ impl<'a> ExecuteKernel<'a> {
         self
     }
 
+    /// Set an event for the event_wait_list in a call to clEnqueueNDRangeKernel.  
+    ///
+    /// * `event` - the cl_event to add to the event_wait_list.
+    ///
+    /// returns a reference to self.
+    pub fn set_wait_event<'b>(&'b mut self, event: cl_event) -> &'b mut Self {
+        self.event_wait_list.push(event);
+        self
+    }
+
+    /// Set the event_wait_list in a call to clEnqueueNDRangeKernel.  
+    ///
+    /// # Panics
+    ///
+    /// Panics if event_wait_list is already set.
+    ///
+    /// * `events` - the cl_events in the call to clEnqueueNDRangeKernel.
+    ///
+    /// returns a reference to self.
+    pub fn set_event_wait_list<'b>(&'b mut self, events: &[cl_event]) -> &'b mut Self {
+        assert!(
+            self.event_wait_list.is_empty(),
+            "ExecuteKernel::event_wait_list already set"
+        );
+        self.event_wait_list.resize(events.len(), ptr::null_mut());
+        self.event_wait_list.copy_from_slice(events);
+        self
+    }
+
     fn validate(&self, max_work_item_dimensions: usize) {
         assert!(
             self.kernel.num_args() == self.arg_index,
@@ -480,6 +511,7 @@ impl<'a> ExecuteKernel<'a> {
         self.global_work_offsets.clear();
         self.global_work_sizes.clear();
         self.local_work_sizes.clear();
+        self.event_wait_list.clear();
 
         self.arg_index = 0;
     }
@@ -500,16 +532,10 @@ impl<'a> ExecuteKernel<'a> {
     /// global_work_sizes
     ///
     /// * `queue` - the [CommandQueue] to enqueue the [Kernel] on.
-    /// * `event_wait_list` - the events to wait for before the kernel is executed,
-    /// may be empty.
     ///
     /// return the [Event] for this command
     /// or the error code from the OpenCL C API function.
-    pub fn enqueue_nd_range(
-        &mut self,
-        queue: &CommandQueue,
-        event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    pub fn enqueue_nd_range(&mut self, queue: &CommandQueue) -> Result<Event, cl_int> {
         // Get max_work_item_dimensions for the device CommandQueue
         let max_work_item_dimensions = queue.max_work_item_dimensions() as usize;
         self.validate(max_work_item_dimensions);
@@ -528,7 +554,7 @@ impl<'a> ExecuteKernel<'a> {
             } else {
                 self.local_work_sizes.as_ptr()
             },
-            event_wait_list,
+            &self.event_wait_list,
         )?;
 
         self.clear();

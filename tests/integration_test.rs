@@ -120,7 +120,6 @@ fn test_opencl_1_2_example() {
     let y_write_event = queue
         .enqueue_write_buffer(y.get(), CL_FALSE, 0, &sums, &events)
         .unwrap();
-    events.push(y_write_event.get());
 
     // Convert to CString for get_kernel function
     let kernel_name = CString::new(KERNEL_NAME).unwrap();
@@ -138,9 +137,9 @@ fn test_opencl_1_2_example() {
             .set_arg(&y)
             .set_arg(&a)
             .set_global_work_size(ARRAY_SIZE)
-            .enqueue_nd_range(&queue, &events)
+            .set_wait_event(y_write_event.get())
+            .enqueue_nd_range(&queue)
             .unwrap();
-        events.clear();
         events.push(kernel_event.get());
 
         // Create a results array to hold the results from the OpenCL device
@@ -285,7 +284,7 @@ fn test_opencl_svm_example() {
                 .set_arg_svm(sums.as_ptr())
                 .set_arg(&a)
                 .set_global_work_size(ARRAY_SIZE)
-                .enqueue_nd_range(&queue, &events)
+                .enqueue_nd_range(&queue)
                 .unwrap();
 
             // Add the kernel_event to the events list and wait for it to complete
@@ -325,7 +324,8 @@ fn test_opencl_svm_example() {
                 .set_arg_svm(sums.as_ptr())
                 .set_arg(&a)
                 .set_global_work_size(ARRAY_SIZE)
-                .enqueue_nd_range(&queue, &events)
+                .set_event_wait_list(&events)
+                .enqueue_nd_range(&queue)
                 .unwrap();
 
             events.clear();
