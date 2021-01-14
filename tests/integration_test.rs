@@ -100,11 +100,11 @@ fn test_opencl_1_2_example() {
     }
 
     // Create OpenCL device buffers
-    let x = Buffer::create::<cl_float>(&context, CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())
+    let x = Buffer::<cl_float>::create(&context, CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())
         .unwrap();
-    let y = Buffer::create::<cl_float>(&context, CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())
+    let y = Buffer::<cl_float>::create(&context, CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())
         .unwrap();
-    let z = Buffer::create::<cl_float>(&context, CL_MEM_READ_ONLY, ARRAY_SIZE, ptr::null_mut())
+    let z = Buffer::<cl_float>::create(&context, CL_MEM_READ_ONLY, ARRAY_SIZE, ptr::null_mut())
         .unwrap();
 
     let queue = context.default_queue();
@@ -113,12 +113,12 @@ fn test_opencl_1_2_example() {
 
     // Blocking write
     let _x_write_event = queue
-        .enqueue_write_buffer(x.get(), CL_TRUE, 0, &ones, &events)
+        .enqueue_write_buffer(&x, CL_TRUE, 0, &ones, &events)
         .unwrap();
 
     // Non-blocking write, wait for y_write_event
     let y_write_event = queue
-        .enqueue_write_buffer(y.get(), CL_FALSE, 0, &sums, &events)
+        .enqueue_write_buffer(&y, CL_FALSE, 0, &sums, &events)
         .unwrap();
 
     // Convert to CString for get_kernel function
@@ -147,7 +147,7 @@ fn test_opencl_1_2_example() {
         // after the kernel event completes.
         let mut results: [cl_float; ARRAY_SIZE] = [0.0; ARRAY_SIZE];
         let _event = queue
-            .enqueue_read_buffer(z.get(), CL_FALSE, 0, &mut results, &events)
+            .enqueue_read_buffer(&z, CL_FALSE, 0, &mut results, &events)
             .unwrap();
         events.clear();
 
