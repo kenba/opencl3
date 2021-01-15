@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use core::marker::PhantomData;
+
 pub use cl3::memory::*;
 
 use super::context::Context;
@@ -85,19 +87,21 @@ pub fn get_mem_properties(memobj: cl_mem) -> Result<Vec<cl_ulong>, cl_int> {
 
 /// An OpenCL buffer.  
 /// Implements the Drop trait to call release_mem_object when the object is dropped.
-pub struct Buffer {
+pub struct Buffer<T> {
     buffer: cl_mem,
+    #[doc(hidden)]
+    pub _type: PhantomData<T>,
 }
 
-impl Drop for Buffer {
+impl<T> Drop for Buffer<T> {
     fn drop(&mut self) {
         memory::release_mem_object(self.buffer).unwrap();
     }
 }
 
-impl Buffer {
-    pub fn new(buffer: cl_mem) -> Buffer {
-        Buffer { buffer }
+impl<T> Buffer<T> {
+    pub fn new(buffer: cl_mem) -> Buffer<T> {
+        Buffer { buffer, _type: PhantomData }
     }
 
     /// Create a Buffer for a context.  
@@ -112,12 +116,12 @@ impl Buffer {
     ///
     /// returns a Result containing the new OpenCL buffer object
     /// or the error code from the OpenCL C API function.
-    pub fn create<T>(
+    pub fn create(
         context: &Context,
         flags: cl_mem_flags,
         count: size_t,
         host_ptr: *mut c_void,
-    ) -> Result<Buffer, cl_int> {
+    ) -> Result<Buffer<T>, cl_int> {
         let buffer =
             memory::create_buffer(context.get(), flags, count * mem::size_of::<T>(), host_ptr)?;
         Ok(Buffer::new(buffer))
@@ -144,7 +148,7 @@ impl Buffer {
         flags: cl_mem_flags,
         count: size_t,
         host_ptr: *mut c_void,
-    ) -> Result<Buffer, cl_int> {
+    ) -> Result<Buffer<T>, cl_int> {
         let buffer = memory::create_buffer_with_properties(
             context.get(),
             properties,
@@ -171,7 +175,7 @@ impl Buffer {
         flags: cl_mem_flags,
         buffer_create_type: cl_buffer_create_type,
         buffer_create_info: *const c_void,
-    ) -> Result<Buffer, cl_int> {
+    ) -> Result<Buffer<T>, cl_int> {
         let buffer =
             memory::create_sub_buffer(self.buffer, flags, buffer_create_type, buffer_create_info)?;
         Ok(Buffer::new(buffer))
@@ -179,6 +183,10 @@ impl Buffer {
 
     pub fn get(&self) -> cl_mem {
         self.buffer
+    }
+
+    pub fn cast<NewT>(&self) -> Buffer<NewT> {
+        Buffer::new(self.buffer)
     }
 }
 

@@ -16,6 +16,7 @@ pub use cl3::command_queue::*;
 
 use super::device::Device;
 use super::event::Event;
+use super::memory::Buffer;
 
 use cl3::types::{
     cl_bool, cl_command_queue, cl_command_queue_properties, cl_context, cl_device_id, cl_event,
@@ -136,7 +137,7 @@ impl CommandQueue {
 
     pub fn enqueue_read_buffer<T>(
         &self,
-        buffer: cl_mem,
+        buffer: &Buffer<T>,
         blocking_read: cl_bool,
         offset: size_t,
         data: &mut [T],
@@ -144,7 +145,7 @@ impl CommandQueue {
     ) -> Result<Event, cl_int> {
         let event = enqueue_read_buffer(
             self.queue,
-            buffer,
+            buffer.get(),
             blocking_read,
             offset,
             (data.len() * mem::size_of::<T>()) as size_t,
@@ -159,9 +160,9 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_read_buffer_rect(
+    pub fn enqueue_read_buffer_rect<T>(
         &self,
-        buffer: cl_mem,
+        buffer: &Buffer<T>,
         blocking_read: cl_bool,
         buffer_origin: *const size_t,
         host_origin: *const size_t,
@@ -175,7 +176,7 @@ impl CommandQueue {
     ) -> Result<Event, cl_int> {
         let event = enqueue_read_buffer_rect(
             self.queue,
-            buffer,
+            buffer.get(),
             blocking_read,
             buffer_origin,
             host_origin,
@@ -197,7 +198,7 @@ impl CommandQueue {
 
     pub fn enqueue_write_buffer<T>(
         &self,
-        buffer: cl_mem,
+        buffer: &Buffer<T>,
         blocking_write: cl_bool,
         offset: size_t,
         data: &[T],
@@ -205,7 +206,7 @@ impl CommandQueue {
     ) -> Result<Event, cl_int> {
         let event = enqueue_write_buffer(
             self.queue,
-            buffer,
+            buffer.get(),
             blocking_write,
             offset,
             (data.len() * mem::size_of::<T>()) as size_t,
@@ -220,9 +221,9 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_write_buffer_rect(
+    pub fn enqueue_write_buffer_rect<T>(
         &self,
-        buffer: cl_mem,
+        buffer: &Buffer<T>,
         blocking_write: cl_bool,
         buffer_origin: *const size_t,
         host_origin: *const size_t,
@@ -236,7 +237,7 @@ impl CommandQueue {
     ) -> Result<Event, cl_int> {
         let event = enqueue_write_buffer_rect(
             self.queue,
-            buffer,
+            buffer.get(),
             blocking_write,
             buffer_origin,
             host_origin,
@@ -258,7 +259,7 @@ impl CommandQueue {
 
     pub fn enqueue_fill_buffer<T>(
         &self,
-        buffer: cl_mem,
+        buffer: &Buffer<T>,
         pattern: &[T],
         offset: size_t,
         size: size_t,
@@ -266,7 +267,7 @@ impl CommandQueue {
     ) -> Result<Event, cl_int> {
         let event = enqueue_fill_buffer(
             self.queue,
-            buffer,
+            buffer.get(),
             pattern.as_ptr() as cl_mem,
             pattern.len() * mem::size_of::<T>(),
             offset,
@@ -281,10 +282,10 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_copy_buffer(
+    pub fn enqueue_copy_buffer<T>(
         &self,
-        src_buffer: cl_mem,
-        dst_buffer: cl_mem,
+        src_buffer: &Buffer<T>,
+        dst_buffer: &Buffer<T>,
         src_offset: size_t,
         dst_offset: size_t,
         size: size_t,
@@ -292,8 +293,8 @@ impl CommandQueue {
     ) -> Result<Event, cl_int> {
         let event = enqueue_copy_buffer(
             self.queue,
-            src_buffer,
-            dst_buffer,
+            src_buffer.get(),
+            dst_buffer.get(),
             src_offset,
             dst_offset,
             size,
@@ -306,10 +307,10 @@ impl CommandQueue {
         )?;
         Ok(Event::new(event))
     }
-    pub fn enqueue_copy_buffer_rect(
+    pub fn enqueue_copy_buffer_rect<T>(
         &self,
-        src_buffer: cl_mem,
-        dst_buffer: cl_mem,
+        src_buffer: &Buffer<T>,
+        dst_buffer: &Buffer<T>,
         src_origin: *const size_t,
         dst_origin: *const size_t,
         region: *const size_t,
@@ -321,8 +322,8 @@ impl CommandQueue {
     ) -> Result<Event, cl_int> {
         let event = enqueue_copy_buffer_rect(
             self.queue,
-            src_buffer,
-            dst_buffer,
+            src_buffer.get(),
+            dst_buffer.get(),
             src_origin,
             dst_origin,
             region,
