@@ -184,10 +184,6 @@ impl<T> Buffer<T> {
     pub fn get(&self) -> cl_mem {
         self.buffer
     }
-
-    pub fn cast<NewT>(&self) -> Buffer<NewT> {
-        Buffer::new(self.buffer)
-    }
 }
 
 /// An OpenCL image.  
