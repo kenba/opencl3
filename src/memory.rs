@@ -90,7 +90,7 @@ pub fn get_mem_properties(memobj: cl_mem) -> Result<Vec<cl_ulong>, cl_int> {
 pub struct Buffer<T> {
     buffer: cl_mem,
     #[doc(hidden)]
-    pub _type: PhantomData<T>,
+    _type: PhantomData<T>,
 }
 
 impl<T> Drop for Buffer<T> {
@@ -183,10 +183,6 @@ impl<T> Buffer<T> {
 
     pub fn get(&self) -> cl_mem {
         self.buffer
-    }
-
-    pub fn cast<NewT>(&self) -> Buffer<NewT> {
-        Buffer::new(self.buffer)
     }
 }
 
