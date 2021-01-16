@@ -142,7 +142,7 @@ impl<T> Buffer<T> {
     /// returns a Result containing the new OpenCL buffer object
     /// or the error code from the OpenCL C API function.
     #[cfg(feature = "CL_VERSION_3_0")]
-    pub fn create_with_properties<T>(
+    pub fn create_with_properties(
         context: &Context,
         properties: *const cl_mem_properties,
         flags: cl_mem_flags,
@@ -220,7 +220,7 @@ impl Image {
     ///
     /// returns a Result containing the new OpenCL image object
     /// or the error code from the OpenCL C API function.
-    pub fn create<T>(
+    pub fn create(
         context: &Context,
         flags: cl_mem_flags,
         image_format: *const cl_image_format,
@@ -249,7 +249,7 @@ impl Image {
     /// returns a Result containing the new OpenCL image object
     /// or the error code from the OpenCL C API function.
     #[cfg(feature = "CL_VERSION_3_0")]
-    pub fn create_with_properties<T>(
+    pub fn create_with_properties(
         context: &Context,
         properties: *const cl_mem_properties,
         flags: cl_mem_flags,
@@ -346,7 +346,7 @@ impl Sampler {
         Sampler { sampler }
     }
 
-    pub fn create<T>(
+    pub fn create(
         context: &Context,
         normalize_coords: cl_bool,
         addressing_mode: cl_addressing_mode,
@@ -361,7 +361,7 @@ impl Sampler {
         Ok(Sampler::new(sampler))
     }
 
-    pub fn create_with_properties<T>(
+    pub fn create_with_properties(
         context: &Context,
         properties: *const cl_sampler_properties,
     ) -> Result<Sampler, cl_int> {
@@ -393,7 +393,7 @@ impl Pipe {
         Pipe { pipe }
     }
 
-    pub fn create<T>(
+    pub fn create(
         context: &Context,
         flags: cl_mem_flags,
         pipe_packet_size: cl_uint,
