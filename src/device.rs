@@ -58,6 +58,9 @@ impl SubDevice {
     }
 }
 
+unsafe impl Send for SubDevice {}
+unsafe impl Sync for SubDevice {}
+
 /// An OpenCL device id and methods to query it.  
 /// The query methods calls clGetDeviceInfo with the relevant param_name, see:
 /// [Device Queries](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#device-queries-table).
@@ -608,6 +611,9 @@ impl Device {
         }
     }
 }
+
+unsafe impl Send for Device {}
+unsafe impl Sync for Device {}
 
 #[cfg(test)]
 mod tests {

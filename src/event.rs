@@ -107,3 +107,6 @@ impl Event {
         )
     }
 }
+
+unsafe impl Send for Event {}
+unsafe impl Sync for Event {}

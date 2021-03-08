@@ -132,6 +132,10 @@ impl<'a, T> Drop for SvmRawVec<'a, T> {
     }
 }
 
+// It is not `Sync` as `SvmRawVec` contains a `Context`, which isn't `Sync` itself due to
+// containing `Kernel`s
+unsafe impl<T: Send> Send for SvmRawVec<'_, T> {}
+
 /// An OpenCL Shared Virtual Memory (SVM) vector.  
 /// It has the lifetime of the [Context] that it was constructed from.  
 /// Note: T cannot be a "zero sized type" (ZST).
@@ -309,6 +313,9 @@ impl<'a, T: Debug> fmt::Debug for SvmVec<'a, T> {
         fmt::Debug::fmt(&**self, f)
     }
 }
+
+// It is not `Sync` as `SvmVec` contains a `SvmRawVec`, which isn't `Sync` itself
+unsafe impl<T: Send> Send for SvmVec<'_, T> {}
 
 struct RawValIter<T> {
     start: *const T,

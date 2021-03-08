@@ -325,3 +325,6 @@ impl Program {
         .to_size())
     }
 }
+
+unsafe impl Send for Program {}
+unsafe impl Sync for Program {}

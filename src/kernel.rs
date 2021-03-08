@@ -255,6 +255,10 @@ impl Kernel {
     }
 }
 
+// Some kernel operations are not safe from being accessed from multiple threads. Hence `Kernel`
+// only implements `Send` but not `Sync`. See: https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#_multiple_host_threads
+unsafe impl Send for Kernel {}
+
 /// A struct that implements the [builder pattern](https://doc.rust-lang.org/1.0.0/style/ownership/builders.html)
 /// to simplify setting up [Kernel] arguments and the [NDRange](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#_mapping_work_items_onto_an_ndrange)
 /// when enqueueing a [Kernel] on a [CommandQueue].

@@ -353,6 +353,9 @@ impl Context {
     }
 }
 
+// `Context` contains `Kernel`s, hence it's `Send` but not `Sync`
+unsafe impl Send for Context {}
+
 #[cfg(test)]
 mod tests {
     use super::*;

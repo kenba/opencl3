@@ -141,6 +141,9 @@ impl Platform {
     }
 }
 
+unsafe impl Send for Platform {}
+unsafe impl Sync for Platform {}
+
 /// Get the available OpenCL platforms.  
 /// # Examples
 /// ```
