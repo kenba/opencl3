@@ -23,6 +23,7 @@ use std::ffi::CString;
 /// An OpenCL platform id and methods to query it.  
 /// The query methods calls clGetPlatformInfo with the relevant param_name, see:
 /// [Platform Queries](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#platform-queries-table).
+#[derive(Clone, Copy)]
 pub struct Platform {
     id: cl_platform_id,
 }

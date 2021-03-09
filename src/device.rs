@@ -40,6 +40,13 @@ pub struct SubDevice {
     id: cl_device_id,
 }
 
+impl Clone for SubDevice {
+    fn clone(&self) -> SubDevice {
+        retain_device(self.id).unwrap();
+        SubDevice::new(self.id)
+    }
+}
+
 impl Drop for SubDevice {
     fn drop(&mut self) {
         release_device(self.id).unwrap();
@@ -61,6 +68,9 @@ impl SubDevice {
 /// An OpenCL device id and methods to query it.  
 /// The query methods calls clGetDeviceInfo with the relevant param_name, see:
 /// [Device Queries](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#device-queries-table).
+// Root devices don't need to be reference counted for cloning, see:
+// https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#clRetainDevice
+#[derive(Clone, Copy)]
 pub struct Device {
     id: cl_device_id,
 }

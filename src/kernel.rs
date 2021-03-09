@@ -35,6 +35,16 @@ pub struct Kernel {
     num_args: cl_uint,
 }
 
+impl Clone for Kernel {
+    fn clone(&self) -> Kernel {
+        retain_kernel(self.kernel).unwrap();
+        Kernel {
+            kernel: self.kernel,
+            num_args: self.num_args,
+        }
+    }
+}
+
 impl Drop for Kernel {
     fn drop(&mut self) {
         release_kernel(self.kernel).unwrap();
@@ -62,10 +72,13 @@ impl Kernel {
     /// Clone an OpenCL kernel object.  
     /// CL_VERSION_2_1 see: [Copying Kernel Objects](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#_copying_kernel_objects)
     ///
+    /// This method clones the actual kernel object. Its internal reference count will be reset.
+    /// The `Clone` implementation shares the instance and just increases the reference count.
+    ///
     /// returns a Result containing the new Kernel
     /// or the error code from the OpenCL C API function.
     #[cfg(feature = "CL_VERSION_2_1")]
-    pub fn clone(&self) -> Result<Kernel, cl_int> {
+    pub fn data_clone(&self) -> Result<Kernel, cl_int> {
         let kernel = clone_kernel(self.kernel)?;
         Ok(Kernel {
             kernel,

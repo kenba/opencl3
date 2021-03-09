@@ -25,6 +25,13 @@ pub struct Event {
     event: cl_event,
 }
 
+impl Clone for Event {
+    fn clone(&self) -> Event {
+        retain_event(self.event).unwrap();
+        Event::new(self.event)
+    }
+}
+
 impl Drop for Event {
     fn drop(&mut self) {
         release_event(self.event).unwrap();

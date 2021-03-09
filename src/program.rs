@@ -27,6 +27,13 @@ pub struct Program {
     program: cl_program,
 }
 
+impl Clone for Program {
+    fn clone(&self) -> Program {
+        retain_program(self.program).unwrap();
+        Program::new(self.program)
+    }
+}
+
 impl Drop for Program {
     fn drop(&mut self) {
         release_program(self.program).unwrap();
