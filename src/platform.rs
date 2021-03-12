@@ -1,4 +1,4 @@
-// Copyright (c) 2020 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2020-2021 Via Technology Ltd. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use cl3::device;
+use cl3::error_codes;
 use cl3::platform;
 use cl3::program;
 use cl3::types::{
@@ -59,48 +60,38 @@ impl Platform {
     /// The OpenCL profile supported by the Platform,
     /// it can be FULL_PROFILE or EMBEDDED_PROFILE.  
     pub fn profile(&self) -> Result<CString, cl_int> {
-        Ok(
-            platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_PROFILE)?
-                .to_str()
-                .unwrap(),
-        )
+        platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_PROFILE)?
+            .to_str()
+            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
     }
 
     /// The OpenCL profile version supported by the Platform,
     /// e.g. OpenCL 1.2, OpenCL 2.0, OpenCL 2.1, etc.  
     pub fn version(&self) -> Result<CString, cl_int> {
-        Ok(
-            platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_VERSION)?
-                .to_str()
-                .unwrap(),
-        )
+        platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_VERSION)?
+            .to_str()
+            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
     }
 
     /// The OpenCL Platform name string.  
     pub fn name(&self) -> Result<CString, cl_int> {
-        Ok(
-            platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_NAME)?
-                .to_str()
-                .unwrap(),
-        )
+        platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_NAME)?
+            .to_str()
+            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
     }
 
     /// The OpenCL Platform vendor string.  
     pub fn vendor(&self) -> Result<CString, cl_int> {
-        Ok(
-            platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_VENDOR)?
-                .to_str()
-                .unwrap(),
-        )
+        platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_VENDOR)?
+            .to_str()
+            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
     }
 
     /// A space separated list of extension names supported by the Platform.  
     pub fn extensions(&self) -> Result<CString, cl_int> {
-        Ok(
-            platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_EXTENSIONS)?
-                .to_str()
-                .unwrap(),
-        )
+        platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_EXTENSIONS)?
+            .to_str()
+            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
     }
 
     /// The resolution of the host timer in nanoseconds as used by

@@ -16,6 +16,7 @@ pub use cl3::kernel::*;
 
 use super::command_queue::CommandQueue;
 use super::event::Event;
+use cl3::error_codes;
 
 use cl3::types::{
     cl_device_id, cl_event, cl_int, cl_kernel, cl_kernel_exec_info, cl_uint, cl_ulong,
@@ -133,19 +134,15 @@ impl Kernel {
     }
 
     pub fn function_name(&self) -> Result<CString, cl_int> {
-        Ok(
-            get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_FUNCTION_NAME)?
-                .to_str()
-                .unwrap(),
-        )
+        get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_FUNCTION_NAME)?
+            .to_str()
+            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
     }
 
     pub fn attributes(&self) -> Result<CString, cl_int> {
-        Ok(
-            get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_ATTRIBUTES)?
-                .to_str()
-                .unwrap(),
-        )
+        get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_ATTRIBUTES)?
+            .to_str()
+            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
     }
 
     pub fn num_args(&self) -> cl_uint {
@@ -192,21 +189,19 @@ impl Kernel {
     }
 
     pub fn get_arg_type_name(&self, arg_indx: cl_uint) -> Result<CString, cl_int> {
-        Ok(get_kernel_arg_info(
+        get_kernel_arg_info(
             self.kernel,
             arg_indx,
             KernelArgInfo::CL_KERNEL_ARG_TYPE_NAME,
         )?
         .to_str()
-        .unwrap())
+        .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
     }
 
     pub fn get_arg_name(&self, arg_indx: cl_uint) -> Result<CString, cl_int> {
-        Ok(
-            get_kernel_arg_info(self.kernel, arg_indx, KernelArgInfo::CL_KERNEL_ARG_NAME)?
-                .to_str()
-                .unwrap(),
-        )
+        get_kernel_arg_info(self.kernel, arg_indx, KernelArgInfo::CL_KERNEL_ARG_NAME)?
+            .to_str()
+            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
     }
 
     pub fn get_work_group_size(&self, device: cl_device_id) -> Result<size_t, cl_int> {
@@ -312,7 +307,7 @@ impl<'a> ExecuteKernel<'a> {
     /// * `size` - the size of the local memory buffer in bytes.
     ///
     /// returns a reference to self.
-    pub fn set_arg_local_buffer(&mut self, size: size_t) -> Result<(), cl_int> {
+    pub fn set_arg_local_buffer<'b, T>(&'b mut self, size: size_t) -> &'b mut Self {
         assert!(
             self.arg_index < self.kernel.num_args(),
             "ExecuteKernel::set_arg_local_buffer too many args"
@@ -322,7 +317,7 @@ impl<'a> ExecuteKernel<'a> {
             .set_arg_local_buffer(self.arg_index, size)
             .unwrap();
         self.arg_index += 1;
-        Ok(())
+        self
     }
 
     /// Set the next argument of the kernel.  
