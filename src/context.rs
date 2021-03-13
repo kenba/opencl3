@@ -56,7 +56,7 @@ impl Drop for Context {
         self.queues.clear();
         self.sub_devices.clear();
         self.devices.clear();
-        context::release_context(self.context).unwrap();
+        context::release_context(self.context).expect("Error: clReleaseContext");
     }
 }
 

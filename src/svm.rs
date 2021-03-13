@@ -105,7 +105,7 @@ impl<'a, T> SvmRawVec<'a, T> {
             size,
             alignment as cl_uint,
         )
-        .unwrap();
+        .expect("Error: clSVMAlloc");
         assert!(!ptr.is_null(), "svm_alloc failed");
 
         // reallocation, copy old data to new pointer and free old memory

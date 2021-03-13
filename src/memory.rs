@@ -95,13 +95,16 @@ pub struct Buffer<T> {
 
 impl<T> Drop for Buffer<T> {
     fn drop(&mut self) {
-        memory::release_mem_object(self.buffer).unwrap();
+        memory::release_mem_object(self.buffer).expect("Error: clReleaseMemObject");
     }
 }
 
 impl<T> Buffer<T> {
     pub fn new(buffer: cl_mem) -> Buffer<T> {
-        Buffer { buffer, _type: PhantomData }
+        Buffer {
+            buffer,
+            _type: PhantomData,
+        }
     }
 
     /// Create a Buffer for a context.  
@@ -196,7 +199,7 @@ pub struct Image {
 
 impl Drop for Image {
     fn drop(&mut self) {
-        memory::release_mem_object(self.image).unwrap();
+        memory::release_mem_object(self.image).expect("Error: clReleaseMemObject");
     }
 }
 
@@ -337,7 +340,7 @@ pub struct Sampler {
 
 impl Drop for Sampler {
     fn drop(&mut self) {
-        sampler::release_sampler(self.sampler).unwrap();
+        sampler::release_sampler(self.sampler).expect("Error: clReleaseSampler");
     }
 }
 
@@ -384,7 +387,7 @@ pub struct Pipe {
 
 impl Drop for Pipe {
     fn drop(&mut self) {
-        memory::release_mem_object(self.pipe).unwrap();
+        memory::release_mem_object(self.pipe).expect("Error: clReleaseMemObject");
     }
 }
 

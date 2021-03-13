@@ -1,4 +1,4 @@
-// Copyright (c) 2020 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2020-2021 Via Technology Ltd. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,14 +37,14 @@ pub struct CommandQueue {
 
 impl Clone for CommandQueue {
     fn clone(&self) -> CommandQueue {
-        retain_command_queue(self.queue).unwrap();
+        retain_command_queue(self.queue).expect("Error: clRetainCommandQueue");
         CommandQueue::new(self.queue, self.max_work_item_dimensions)
     }
 }
 
 impl Drop for CommandQueue {
     fn drop(&mut self) {
-        release_command_queue(self.queue).unwrap();
+        release_command_queue(self.queue).expect("Error: clReleaseCommandQueue")
     }
 }
 

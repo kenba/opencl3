@@ -27,7 +27,7 @@ pub struct Event {
 
 impl Drop for Event {
     fn drop(&mut self) {
-        release_event(self.event).unwrap();
+        release_event(self.event).expect("Error: clReleaseEvent");
     }
 }
 

@@ -30,7 +30,7 @@ pub struct Program {
 
 impl Drop for Program {
     fn drop(&mut self) {
-        release_program(self.program).unwrap();
+        release_program(self.program).expect("Error: clReleaseProgram");
     }
 }
 

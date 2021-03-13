@@ -38,7 +38,7 @@ pub struct Kernel {
 
 impl Drop for Kernel {
     fn drop(&mut self) {
-        release_kernel(self.kernel).unwrap();
+        release_kernel(self.kernel).expect("Error: clReleaseKernel");
     }
 }
 

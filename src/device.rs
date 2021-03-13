@@ -43,8 +43,7 @@ pub struct SubDevice {
 
 impl Drop for SubDevice {
     fn drop(&mut self) {
-        release_device(self.id).unwrap();
-        println!("SubDevice::drop");
+        release_device(self.id).expect("Error: clReleaseDevice");
     }
 }
 
