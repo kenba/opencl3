@@ -299,13 +299,6 @@ impl Program {
             .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
     }
 
-    pub unsafe fn get_build_log_unchecked(&self, device: cl_device_id) -> Result<CString, cl_int> {
-        Ok(
-            get_program_build_info(self.program, device, ProgramBuildInfo::CL_PROGRAM_BUILD_LOG)?
-                .to_str_unchecked(),
-        )
-    }
-
     pub fn get_build_binary_type(&self, device: cl_device_id) -> Result<cl_uint, cl_int> {
         Ok(get_program_build_info(
             self.program,
