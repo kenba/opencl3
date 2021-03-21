@@ -16,14 +16,12 @@ pub use cl3::kernel::*;
 
 use super::command_queue::CommandQueue;
 use super::event::Event;
-use cl3::error_codes;
 
 use cl3::types::{
     cl_device_id, cl_event, cl_int, cl_kernel, cl_kernel_exec_info, cl_uint, cl_ulong,
 };
 
 use libc::{c_void, intptr_t, size_t};
-use std::ffi::CString;
 use std::mem;
 use std::ptr;
 
@@ -133,16 +131,12 @@ impl Kernel {
         )
     }
 
-    pub fn function_name(&self) -> Result<CString, cl_int> {
-        get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_FUNCTION_NAME)?
-            .to_str()
-            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
+    pub fn function_name(&self) -> Result<String, cl_int> {
+        Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_FUNCTION_NAME)?.to_string())
     }
 
-    pub fn attributes(&self) -> Result<CString, cl_int> {
-        get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_ATTRIBUTES)?
-            .to_str()
-            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
+    pub fn attributes(&self) -> Result<String, cl_int> {
+        Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_ATTRIBUTES)?.to_string())
     }
 
     pub fn num_args(&self) -> cl_uint {
@@ -188,20 +182,20 @@ impl Kernel {
         .to_uint())
     }
 
-    pub fn get_arg_type_name(&self, arg_indx: cl_uint) -> Result<CString, cl_int> {
-        get_kernel_arg_info(
+    pub fn get_arg_type_name(&self, arg_indx: cl_uint) -> Result<String, cl_int> {
+        Ok(get_kernel_arg_info(
             self.kernel,
             arg_indx,
             KernelArgInfo::CL_KERNEL_ARG_TYPE_NAME,
         )?
-        .to_str()
-        .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
+        .to_string())
     }
 
-    pub fn get_arg_name(&self, arg_indx: cl_uint) -> Result<CString, cl_int> {
-        get_kernel_arg_info(self.kernel, arg_indx, KernelArgInfo::CL_KERNEL_ARG_NAME)?
-            .to_str()
-            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
+    pub fn get_arg_name(&self, arg_indx: cl_uint) -> Result<String, cl_int> {
+        Ok(
+            get_kernel_arg_info(self.kernel, arg_indx, KernelArgInfo::CL_KERNEL_ARG_NAME)?
+                .to_string(),
+        )
     }
 
     pub fn get_work_group_size(&self, device: cl_device_id) -> Result<size_t, cl_int> {

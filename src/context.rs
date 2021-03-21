@@ -28,7 +28,7 @@ use cl3::types::{
 };
 use libc::{c_char, c_void, intptr_t, size_t};
 use std::collections::HashMap;
-use std::ffi::{CStr, CString};
+use std::ffi::CStr;
 use std::ptr;
 
 /// An OpenCL context.  
@@ -46,7 +46,7 @@ pub struct Context {
     sub_devices: Vec<SubDevice>,
     queues: Vec<CommandQueue>,
     programs: Vec<Program>,
-    kernels: HashMap<CString, Kernel>,
+    kernels: HashMap<String, Kernel>,
 }
 
 impl Drop for Context {
@@ -68,7 +68,7 @@ impl Context {
             sub_devices: Vec::<SubDevice>::default(),
             queues: Vec::<CommandQueue>::default(),
             programs: Vec::<Program>::default(),
-            kernels: HashMap::<CString, Kernel>::default(),
+            kernels: HashMap::<String, Kernel>::default(),
         }
     }
 
@@ -248,8 +248,8 @@ impl Context {
     /// * `kernel_name` -  the name of the [Kernel]
     ///
     /// returns an Option containing a reference to the [Kernel] on None.
-    pub fn get_kernel(&self, kernel_name: &CStr) -> Option<&Kernel> {
-        self.kernels.get::<CStr>(&kernel_name)
+    pub fn get_kernel(&self, kernel_name: &str) -> Option<&Kernel> {
+        self.kernels.get::<str>(&kernel_name)
     }
 
     /// Get the common Shared Virtual Memory (SVM) capabilities of the
@@ -323,7 +323,7 @@ impl Context {
         &self.programs
     }
 
-    pub fn kernels(&self) -> &HashMap<CString, Kernel> {
+    pub fn kernels(&self) -> &HashMap<String, Kernel> {
         &self.kernels
     }
 

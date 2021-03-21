@@ -13,13 +13,11 @@
 // limitations under the License.
 
 use cl3::device;
-use cl3::error_codes;
 use cl3::platform;
 use cl3::program;
 use cl3::types::{
     cl_device_id, cl_device_type, cl_int, cl_name_version, cl_platform_id, cl_ulong, cl_version,
 };
-use std::ffi::CString;
 
 /// An OpenCL platform id and methods to query it.  
 /// The query methods calls clGetPlatformInfo with the relevant param_name, see:
@@ -59,39 +57,44 @@ impl Platform {
 
     /// The OpenCL profile supported by the Platform,
     /// it can be FULL_PROFILE or EMBEDDED_PROFILE.  
-    pub fn profile(&self) -> Result<CString, cl_int> {
-        platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_PROFILE)?
-            .to_str()
-            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
+    pub fn profile(&self) -> Result<String, cl_int> {
+        Ok(
+            platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_PROFILE)?
+                .to_string(),
+        )
     }
 
     /// The OpenCL profile version supported by the Platform,
     /// e.g. OpenCL 1.2, OpenCL 2.0, OpenCL 2.1, etc.  
-    pub fn version(&self) -> Result<CString, cl_int> {
-        platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_VERSION)?
-            .to_str()
-            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
+    pub fn version(&self) -> Result<String, cl_int> {
+        Ok(
+            platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_VERSION)?
+                .to_string(),
+        )
     }
 
     /// The OpenCL Platform name string.  
-    pub fn name(&self) -> Result<CString, cl_int> {
-        platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_NAME)?
-            .to_str()
-            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
+    pub fn name(&self) -> Result<String, cl_int> {
+        Ok(
+            platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_NAME)?
+                .to_string(),
+        )
     }
 
     /// The OpenCL Platform vendor string.  
-    pub fn vendor(&self) -> Result<CString, cl_int> {
-        platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_VENDOR)?
-            .to_str()
-            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
+    pub fn vendor(&self) -> Result<String, cl_int> {
+        Ok(
+            platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_VENDOR)?
+                .to_string(),
+        )
     }
 
     /// A space separated list of extension names supported by the Platform.  
-    pub fn extensions(&self) -> Result<CString, cl_int> {
-        platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_EXTENSIONS)?
-            .to_str()
-            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
+    pub fn extensions(&self) -> Result<String, cl_int> {
+        Ok(
+            platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_EXTENSIONS)?
+                .to_string(),
+        )
     }
 
     /// The resolution of the host timer in nanoseconds as used by
@@ -166,13 +169,13 @@ mod tests {
         assert!(0 < platforms.len());
 
         for platform in platforms {
-            println!("CL_PLATFORM_NAME: {:?}", platform.name().unwrap());
-            println!("CL_PLATFORM_PROFILE: {:?}", platform.profile().unwrap());
+            println!("CL_PLATFORM_NAME: {}", platform.name().unwrap());
+            println!("CL_PLATFORM_PROFILE: {}", platform.profile().unwrap());
 
             let value = platform.version().unwrap();
             println!("CL_PLATFORM_VERSION: {:?}", value);
 
-            println!("CL_PLATFORM_VENDOR: {:?}", platform.vendor().unwrap());
+            println!("CL_PLATFORM_VENDOR: {}", platform.vendor().unwrap());
             println!(
                 "CL_PLATFORM_EXTENSIONS: {:?}",
                 platform.extensions().unwrap()

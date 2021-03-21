@@ -121,9 +121,7 @@ fn test_opencl_1_2_example() {
         .enqueue_write_buffer(&y, CL_FALSE, 0, &sums, &events)
         .unwrap();
 
-    // Convert to CString for get_kernel function
-    let kernel_name = CString::new(KERNEL_NAME).unwrap();
-    if let Some(kernel) = context.get_kernel(&kernel_name) {
+    if let Some(kernel) = context.get_kernel(KERNEL_NAME) {
         // a value for the kernel function
         let a: cl_float = 300.0;
 
@@ -179,7 +177,7 @@ fn test_opencl_svm_example() {
     let mut device_id = ptr::null_mut();
     let mut is_svm_capable: bool = false;
     for p in platforms {
-        let platform_version = p.version().unwrap().into_string().unwrap();
+        let platform_version = p.version().unwrap();
         if platform_version.contains(&opencl_2) {
             let devices = p
                 .get_devices(CL_DEVICE_TYPE_GPU)
@@ -258,9 +256,7 @@ fn test_opencl_svm_example() {
 
         let queue = context.default_queue();
 
-        // Convert to CString for get_kernel function
-        let kernel_name = CString::new(KERNEL_NAME).unwrap();
-        if let Some(kernel) = context.get_kernel(&kernel_name) {
+        if let Some(kernel) = context.get_kernel(&KERNEL_NAME) {
             let mut results = SvmVec::<cl_float>::new(&context, svm_capability);
             results.reserve(ARRAY_SIZE);
             for i in 0..ARRAY_SIZE {

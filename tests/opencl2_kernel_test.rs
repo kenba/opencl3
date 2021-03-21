@@ -73,7 +73,7 @@ fn test_opencl_2_kernel_example() {
     let mut device_id = ptr::null_mut();
     let mut is_fine_grained_svm: bool = false;
     for p in platforms {
-        let platform_version = p.version().unwrap().into_string().unwrap();
+        let platform_version = p.version().unwrap();
         if platform_version.contains(&opencl_2) {
             let devices = p
                 .get_devices(CL_DEVICE_TYPE_GPU)
@@ -142,8 +142,7 @@ fn test_opencl_2_kernel_example() {
         let queue = context.default_queue();
 
         // Run the sum kernel on the input data
-        let sum_kernel_name = CString::new(SUM_KERNEL_NAME).unwrap();
-        if let Some(sum_kernel) = context.get_kernel(&sum_kernel_name) {
+        if let Some(sum_kernel) = context.get_kernel(SUM_KERNEL_NAME) {
             let sum_kernel_event = ExecuteKernel::new(sum_kernel)
                 .set_arg_svm(results.as_mut_ptr())
                 .set_arg_svm(test_values.as_ptr())
@@ -161,8 +160,7 @@ fn test_opencl_2_kernel_example() {
         }
 
         // Run the inclusive scan kernel on the input data
-        let inclusive_scan_kernel_name = CString::new(INCLUSIVE_SCAN_KERNEL_NAME).unwrap();
-        if let Some(inclusive_scan_kernel) = context.get_kernel(&inclusive_scan_kernel_name) {
+        if let Some(inclusive_scan_kernel) = context.get_kernel(INCLUSIVE_SCAN_KERNEL_NAME) {
             let kernel_event = ExecuteKernel::new(inclusive_scan_kernel)
                 .set_arg_svm(results.as_mut_ptr())
                 .set_arg_svm(test_values.as_ptr())
