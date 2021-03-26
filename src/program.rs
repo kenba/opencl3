@@ -18,7 +18,7 @@ use cl3::kernel;
 use cl3::types::{cl_context, cl_device_id, cl_int, cl_kernel, cl_program, cl_uchar, cl_uint};
 #[allow(unused_imports)]
 use libc::{c_char, c_void, intptr_t, size_t};
-use std::ffi::CStr;
+use std::ffi::{CStr, CString};
 use std::ptr;
 
 /// An OpenCL program object.  
@@ -259,8 +259,11 @@ impl Program {
         Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_NUM_KERNELS)?.to_uint())
     }
 
-    pub fn get_kernel_names(&self) -> Result<String, cl_int> {
-        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_KERNEL_NAMES)?.to_string())
+    pub fn get_kernel_names(&self) -> Result<CString, cl_int> {
+        Ok(CString::new(
+            get_program_info(self.program, ProgramInfo::CL_PROGRAM_KERNEL_NAMES)?.to_string(),
+        )
+        .expect("String to CCString conversion error."))
     }
 
     pub fn get_program_il(&self) -> Result<String, cl_int> {

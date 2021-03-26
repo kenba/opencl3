@@ -22,6 +22,7 @@ use cl3::types::{
 };
 
 use libc::{c_void, intptr_t, size_t};
+use std::ffi::CString;
 use std::mem;
 use std::ptr;
 
@@ -131,8 +132,11 @@ impl Kernel {
         )
     }
 
-    pub fn function_name(&self) -> Result<String, cl_int> {
-        Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_FUNCTION_NAME)?.to_string())
+    pub fn function_name(&self) -> Result<CString, cl_int> {
+        Ok(CString::new(
+            get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_FUNCTION_NAME)?.to_string(),
+        )
+        .expect("String to CCString conversion error."))
     }
 
     pub fn attributes(&self) -> Result<String, cl_int> {

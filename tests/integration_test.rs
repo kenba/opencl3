@@ -121,7 +121,9 @@ fn test_opencl_1_2_example() {
         .enqueue_write_buffer(&y, CL_FALSE, 0, &sums, &events)
         .unwrap();
 
-    if let Some(kernel) = context.get_kernel(KERNEL_NAME) {
+    // Convert to CString for get_kernel function
+    let kernel_name = CString::new(KERNEL_NAME).unwrap();
+    if let Some(kernel) = context.get_kernel(&kernel_name) {
         // a value for the kernel function
         let a: cl_float = 300.0;
 
@@ -256,7 +258,9 @@ fn test_opencl_svm_example() {
 
         let queue = context.default_queue();
 
-        if let Some(kernel) = context.get_kernel(&KERNEL_NAME) {
+        // Convert to CString for get_kernel function
+        let kernel_name = CString::new(KERNEL_NAME).unwrap();
+        if let Some(kernel) = context.get_kernel(&kernel_name) {
             let mut results = SvmVec::<cl_float>::new(&context, svm_capability);
             results.reserve(ARRAY_SIZE);
             for i in 0..ARRAY_SIZE {
