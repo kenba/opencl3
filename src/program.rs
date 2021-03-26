@@ -14,7 +14,6 @@
 
 pub use cl3::program::*;
 
-use cl3::error_codes;
 use cl3::kernel;
 use cl3::types::{cl_context, cl_device_id, cl_int, cl_kernel, cl_program, cl_uchar, cl_uint};
 #[allow(unused_imports)]
@@ -244,10 +243,8 @@ impl Program {
         Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_DEVICES)?.to_vec_intptr())
     }
 
-    pub fn get_source(&self) -> Result<CString, cl_int> {
-        get_program_info(self.program, ProgramInfo::CL_PROGRAM_SOURCE)?
-            .to_str()
-            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
+    pub fn get_source(&self) -> Result<String, cl_int> {
+        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_SOURCE)?.to_string())
     }
 
     pub fn get_binary_sizes(&self) -> Result<Vec<size_t>, cl_int> {
@@ -263,15 +260,14 @@ impl Program {
     }
 
     pub fn get_kernel_names(&self) -> Result<CString, cl_int> {
-        get_program_info(self.program, ProgramInfo::CL_PROGRAM_KERNEL_NAMES)?
-            .to_str()
-            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
+        Ok(CString::new(
+            get_program_info(self.program, ProgramInfo::CL_PROGRAM_KERNEL_NAMES)?.to_string(),
+        )
+        .expect("String to CCString conversion error."))
     }
 
-    pub fn get_program_il(&self) -> Result<CString, cl_int> {
-        get_program_info(self.program, ProgramInfo::CL_PROGRAM_IL)?
-            .to_str()
-            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
+    pub fn get_program_il(&self) -> Result<String, cl_int> {
+        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_IL)?.to_string())
     }
 
     pub fn get_build_status(&self, device: cl_device_id) -> Result<cl_int, cl_int> {
@@ -283,20 +279,20 @@ impl Program {
         .to_int())
     }
 
-    pub fn get_build_options(&self, device: cl_device_id) -> Result<CString, cl_int> {
-        get_program_build_info(
+    pub fn get_build_options(&self, device: cl_device_id) -> Result<String, cl_int> {
+        Ok(get_program_build_info(
             self.program,
             device,
             ProgramBuildInfo::CL_PROGRAM_BUILD_OPTIONS,
         )?
-        .to_str()
-        .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
+        .to_string())
     }
 
-    pub fn get_build_log(&self, device: cl_device_id) -> Result<CString, cl_int> {
-        get_program_build_info(self.program, device, ProgramBuildInfo::CL_PROGRAM_BUILD_LOG)?
-            .to_str()
-            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
+    pub fn get_build_log(&self, device: cl_device_id) -> Result<String, cl_int> {
+        Ok(
+            get_program_build_info(self.program, device, ProgramBuildInfo::CL_PROGRAM_BUILD_LOG)?
+                .to_string(),
+        )
     }
 
     pub fn get_build_binary_type(&self, device: cl_device_id) -> Result<cl_uint, cl_int> {
