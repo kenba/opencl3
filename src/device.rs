@@ -13,14 +13,12 @@
 // limitations under the License.
 
 pub use cl3::device::*;
-use cl3::error_codes;
 
 use cl3::types::{
     cl_device_fp_config, cl_device_id, cl_device_partition_property, cl_device_svm_capabilities,
     cl_device_type, cl_int, cl_name_version, cl_uint, cl_ulong,
 };
 use libc::{intptr_t, size_t};
-use std::ffi::CString;
 
 /// A text representation of an OpenCL device type, see:
 /// [Device Types](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#device-types-table).
@@ -285,40 +283,28 @@ impl Device {
         Ok(get_device_info(self.id, DeviceInfo::CL_DEVICE_QUEUE_ON_HOST_PROPERTIES)?.to_ulong())
     }
 
-    pub fn name(&self) -> Result<CString, cl_int> {
-        get_device_info(self.id, DeviceInfo::CL_DEVICE_NAME)?
-            .to_str()
-            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
+    pub fn name(&self) -> Result<String, cl_int> {
+        Ok(get_device_info(self.id, DeviceInfo::CL_DEVICE_NAME)?.to_string())
     }
 
-    pub fn vendor(&self) -> Result<CString, cl_int> {
-        get_device_info(self.id, DeviceInfo::CL_DEVICE_VENDOR)?
-            .to_str()
-            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
+    pub fn vendor(&self) -> Result<String, cl_int> {
+        Ok(get_device_info(self.id, DeviceInfo::CL_DEVICE_VENDOR)?.to_string())
     }
 
-    pub fn driver_version(&self) -> Result<CString, cl_int> {
-        get_device_info(self.id, DeviceInfo::CL_DRIVER_VERSION)?
-            .to_str()
-            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
+    pub fn driver_version(&self) -> Result<String, cl_int> {
+        Ok(get_device_info(self.id, DeviceInfo::CL_DRIVER_VERSION)?.to_string())
     }
 
-    pub fn profile(&self) -> Result<CString, cl_int> {
-        get_device_info(self.id, DeviceInfo::CL_DEVICE_PROFILE)?
-            .to_str()
-            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
+    pub fn profile(&self) -> Result<String, cl_int> {
+        Ok(get_device_info(self.id, DeviceInfo::CL_DEVICE_PROFILE)?.to_string())
     }
 
-    pub fn version(&self) -> Result<CString, cl_int> {
-        get_device_info(self.id, DeviceInfo::CL_DEVICE_VERSION)?
-            .to_str()
-            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
+    pub fn version(&self) -> Result<String, cl_int> {
+        Ok(get_device_info(self.id, DeviceInfo::CL_DEVICE_VERSION)?.to_string())
     }
 
-    pub fn extensions(&self) -> Result<CString, cl_int> {
-        get_device_info(self.id, DeviceInfo::CL_DEVICE_EXTENSIONS)?
-            .to_str()
-            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
+    pub fn extensions(&self) -> Result<String, cl_int> {
+        Ok(get_device_info(self.id, DeviceInfo::CL_DEVICE_EXTENSIONS)?.to_string())
     }
 
     pub fn platform(&self) -> Result<intptr_t, cl_int> {
@@ -370,20 +356,16 @@ impl Device {
         Ok(get_device_info(self.id, DeviceInfo::CL_DEVICE_NATIVE_VECTOR_WIDTH_HALF)?.to_uint())
     }
 
-    pub fn opencl_c_version(&self) -> Result<CString, cl_int> {
-        get_device_info(self.id, DeviceInfo::CL_DEVICE_OPENCL_C_VERSION)?
-            .to_str()
-            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
+    pub fn opencl_c_version(&self) -> Result<String, cl_int> {
+        Ok(get_device_info(self.id, DeviceInfo::CL_DEVICE_OPENCL_C_VERSION)?.to_string())
     }
 
     pub fn linker_available(&self) -> Result<cl_uint, cl_int> {
         Ok(get_device_info(self.id, DeviceInfo::CL_DEVICE_LINKER_AVAILABLE)?.to_uint())
     }
 
-    pub fn built_in_kernels(&self) -> Result<CString, cl_int> {
-        get_device_info(self.id, DeviceInfo::CL_DEVICE_BUILT_IN_KERNELS)?
-            .to_str()
-            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
+    pub fn built_in_kernels(&self) -> Result<String, cl_int> {
+        Ok(get_device_info(self.id, DeviceInfo::CL_DEVICE_BUILT_IN_KERNELS)?.to_string())
     }
 
     pub fn image_max_buffer_size(&self) -> Result<size_t, cl_int> {
@@ -521,10 +503,8 @@ impl Device {
     }
 
     // CL_VERSION_2_1
-    pub fn il_version(&self) -> Result<CString, cl_int> {
-        get_device_info(self.id, DeviceInfo::CL_DEVICE_IL_VERSION)?
-            .to_str()
-            .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
+    pub fn il_version(&self) -> Result<String, cl_int> {
+        Ok(get_device_info(self.id, DeviceInfo::CL_DEVICE_IL_VERSION)?.to_string())
     }
 
     pub fn max_num_sub_groups(&self) -> Result<cl_uint, cl_int> {
@@ -623,13 +603,12 @@ impl Device {
         Ok(get_device_info(self.id, DeviceInfo::CL_DEVICE_PIPE_SUPPORT)?.to_uint())
     }
 
-    pub fn latest_conformance_version_passed(&self) -> Result<CString, cl_int> {
-        get_device_info(
+    pub fn latest_conformance_version_passed(&self) -> Result<String, cl_int> {
+        Ok(get_device_info(
             self.id,
             DeviceInfo::CL_DEVICE_LATEST_CONFORMANCE_VERSION_PASSED,
         )?
-        .to_str()
-        .map_err(|_| error_codes::CSTRING_UTF8_CONVERSION_ERROR)
+        .to_string())
     }
 
     /// Determine if the device supports the given half floating point capability.  
@@ -676,16 +655,16 @@ mod tests {
         assert!(0 < platforms.len());
 
         for platform in platforms {
-            println!("CL_PLATFORM_NAME: {:?}", platform.name().unwrap());
+            println!("CL_PLATFORM_NAME: {}", platform.name().unwrap());
 
             let devices = platform.get_devices(CL_DEVICE_TYPE_ALL).unwrap();
             for device_id in devices {
                 let device = Device::new(device_id);
 
-                println!("\tCL_DEVICE_NAME: {:?}", device.name().unwrap());
+                println!("\tCL_DEVICE_NAME: {}", device.name().unwrap());
                 println!("\tCL_DEVICE_TYPE: {:X}", device.dev_type().unwrap());
                 println!("\tCL_DEVICE_VENDOR_ID: {:X}", device.vendor_id().unwrap());
-                println!("\tCL_DEVICE_VENDOR: {:?}", device.vendor().unwrap());
+                println!("\tCL_DEVICE_VENDOR: {}", device.vendor().unwrap());
                 println!(
                     "\tCL_DEVICE_OPENCL_C_VERSION: {:?}",
                     device.opencl_c_version().unwrap()
@@ -896,28 +875,28 @@ mod tests {
         };
 
         let value = device.name().unwrap();
-        println!("CL_DEVICE_NAME: {:?}", value);
-        assert!(!value.to_bytes().is_empty());
+        println!("CL_DEVICE_NAME: {}", value);
+        assert!(!value.is_empty());
 
         let value = device.vendor().unwrap();
-        println!("CL_DEVICE_VENDOR: {:?}", value);
-        assert!(!value.to_bytes().is_empty());
+        println!("CL_DEVICE_VENDOR: {}", value);
+        assert!(!value.is_empty());
 
         let value = device.driver_version().unwrap();
-        println!("CL_DRIVER_VERSION: {:?}", value);
-        assert!(!value.to_bytes().is_empty());
+        println!("CL_DRIVER_VERSION: {}", value);
+        assert!(!value.is_empty());
 
         let value = device.profile().unwrap();
-        println!("CL_DEVICE_PROFILE: {:?}", value);
-        assert!(!value.to_bytes().is_empty());
+        println!("CL_DEVICE_PROFILE: {}", value);
+        assert!(!value.is_empty());
 
         let value = device.version().unwrap();
-        println!("CL_DEVICE_VERSION: {:?}", value);
-        assert!(!value.to_bytes().is_empty());
+        println!("CL_DEVICE_VERSION: {}", value);
+        assert!(!value.is_empty());
 
         let value = device.extensions().unwrap();
-        println!("CL_DEVICE_EXTENSIONS: {:?}", value);
-        assert!(!value.to_bytes().is_empty());
+        println!("CL_DEVICE_EXTENSIONS: {}", value);
+        assert!(!value.is_empty());
 
         let value = device.platform().unwrap();
         println!("CL_DEVICE_PLATFORM: {:X}", value);
@@ -975,8 +954,8 @@ mod tests {
         println!("CL_DEVICE_NATIVE_VECTOR_WIDTH_HALF: {}", value);
 
         let value = device.opencl_c_version().unwrap();
-        println!("CL_DEVICE_OPENCL_C_VERSION: {:?}", value);
-        assert!(!value.to_bytes().is_empty());
+        println!("CL_DEVICE_OPENCL_C_VERSION: {}", value);
+        assert!(!value.is_empty());
 
         let value = device.linker_available().unwrap();
         println!("CL_DEVICE_LINKER_AVAILABLE: {}", value);
