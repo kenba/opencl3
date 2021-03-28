@@ -25,4 +25,4 @@ default = ["CL_VERSION_1_2", "CL_VERSION_2_0"]
 
 [dependencies]
 libc = "0.2"
-cl3 = "0.1"
+cl3 = "0.2"
