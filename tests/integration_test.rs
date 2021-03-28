@@ -26,7 +26,6 @@ use opencl3::memory::{Buffer, CL_MAP_READ, CL_MAP_WRITE, CL_MEM_READ_ONLY, CL_ME
 use opencl3::platform::get_platforms;
 use opencl3::svm::SvmVec;
 use opencl3::types::{cl_event, cl_float, CL_FALSE, CL_TRUE};
-use std::ffi::CString;
 use std::ptr;
 
 const PROGRAM_SOURCE: &str = r#"
@@ -62,7 +61,7 @@ fn test_opencl_1_2_example() {
     let device = Device::new(devices[0]);
     let vendor = device.vendor().expect("Device.vendor failed");
     let vendor_id = device.vendor_id().expect("Device.vendor_id failed");
-    println!("OpenCL device vendor name: {:?}", vendor);
+    println!("OpenCL device vendor name: {}", vendor);
     println!("OpenCL device vendor id: {:X}", vendor_id);
 
     /////////////////////////////////////////////////////////////////////
@@ -77,10 +76,9 @@ fn test_opencl_1_2_example() {
         .expect("Context::create_command_queues failed");
 
     // Build the OpenCL program source and create the kernel.
-    let src = CString::new(PROGRAM_SOURCE).unwrap();
-    let options = CString::default();
+    let options = "";
     context
-        .build_program_from_source(&src, &options)
+        .build_program_from_source(&PROGRAM_SOURCE, &options)
         .expect("Context::build_program_from_source failed");
 
     assert!(!context.kernels().is_empty());
@@ -121,9 +119,7 @@ fn test_opencl_1_2_example() {
         .enqueue_write_buffer(&y, CL_FALSE, 0, &sums, &events)
         .unwrap();
 
-    // Convert to CString for get_kernel function
-    let kernel_name = CString::new(KERNEL_NAME).unwrap();
-    if let Some(kernel) = context.get_kernel(&kernel_name) {
+    if let Some(kernel) = context.get_kernel(&KERNEL_NAME) {
         // a value for the kernel function
         let a: cl_float = 300.0;
 
@@ -203,7 +199,7 @@ fn test_opencl_svm_example() {
         let device = Device::new(device_id);
         let vendor = device.vendor().expect("Device.vendor failed");
         let vendor_id = device.vendor_id().expect("Device.vendor_id failed");
-        println!("OpenCL device vendor name: {:?}", vendor);
+        println!("OpenCL device vendor name: {}", vendor);
         println!("OpenCL device vendor id: {:X}", vendor_id);
 
         /////////////////////////////////////////////////////////////////////
@@ -219,15 +215,14 @@ fn test_opencl_svm_example() {
             .expect("Context::create_command_queues_with_properties failed");
 
         // Build the OpenCL program source and create the kernel.
-        let src = CString::new(PROGRAM_SOURCE).unwrap();
-        let options = CString::default();
+        let options = "";
         context
-            .build_program_from_source(&src, &options)
+            .build_program_from_source(&PROGRAM_SOURCE, &options)
             .expect("Context::build_program_from_source failed");
 
         assert!(!context.kernels().is_empty());
         for kernel_name in context.kernels().keys() {
-            println!("Kernel name: {:?}", kernel_name);
+            println!("Kernel name: {}", kernel_name);
         }
 
         /////////////////////////////////////////////////////////////////////
@@ -258,9 +253,7 @@ fn test_opencl_svm_example() {
 
         let queue = context.default_queue();
 
-        // Convert to CString for get_kernel function
-        let kernel_name = CString::new(KERNEL_NAME).unwrap();
-        if let Some(kernel) = context.get_kernel(&kernel_name) {
+        if let Some(kernel) = context.get_kernel(&KERNEL_NAME) {
             let mut results = SvmVec::<cl_float>::new(&context, svm_capability);
             results.reserve(ARRAY_SIZE);
             for i in 0..ARRAY_SIZE {

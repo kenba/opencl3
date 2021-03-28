@@ -21,7 +21,6 @@ use opencl3::kernel::ExecuteKernel;
 use opencl3::platform::get_platforms;
 use opencl3::svm::SvmVec;
 use opencl3::types::cl_int;
-use std::ffi::CString;
 use std::ptr;
 
 // The OpenCL kernels in PROGRAM_SOURCE below use built-in work-group functions:
@@ -96,7 +95,7 @@ fn test_opencl_2_kernel_example() {
         let device = Device::new(device_id);
         let vendor = device.vendor().unwrap();
         let vendor_id = device.vendor_id().unwrap();
-        println!("OpenCL device vendor name: {:?}", vendor);
+        println!("OpenCL device vendor name: {}", vendor);
         println!("OpenCL device vendor id: {:X}", vendor_id);
 
         /////////////////////////////////////////////////////////////////////
@@ -108,13 +107,13 @@ fn test_opencl_2_kernel_example() {
         context.create_command_queues_with_properties(0, 0).unwrap();
 
         // Build the OpenCL 2.0 program source and create the kernels.
-        let src = CString::new(PROGRAM_SOURCE).unwrap();
-        let options = CString::new(PROGRAM_BUILD_OPTIONS).unwrap();
-        context.build_program_from_source(&src, &options).unwrap();
+        context
+            .build_program_from_source(&PROGRAM_SOURCE, &PROGRAM_BUILD_OPTIONS)
+            .unwrap();
 
         assert!(!context.kernels().is_empty());
         for kernel_name in context.kernels().keys() {
-            println!("Kernel name: {:?}", kernel_name);
+            println!("Kernel name: {}", kernel_name);
         }
 
         // Get the svm capability of all the devices in the context.
@@ -142,8 +141,7 @@ fn test_opencl_2_kernel_example() {
         let queue = context.default_queue();
 
         // Run the sum kernel on the input data
-        let sum_kernel_name = CString::new(SUM_KERNEL_NAME).unwrap();
-        if let Some(sum_kernel) = context.get_kernel(&sum_kernel_name) {
+        if let Some(sum_kernel) = context.get_kernel(&SUM_KERNEL_NAME) {
             let sum_kernel_event = ExecuteKernel::new(sum_kernel)
                 .set_arg_svm(results.as_mut_ptr())
                 .set_arg_svm(test_values.as_ptr())
@@ -161,8 +159,7 @@ fn test_opencl_2_kernel_example() {
         }
 
         // Run the inclusive scan kernel on the input data
-        let inclusive_scan_kernel_name = CString::new(INCLUSIVE_SCAN_KERNEL_NAME).unwrap();
-        if let Some(inclusive_scan_kernel) = context.get_kernel(&inclusive_scan_kernel_name) {
+        if let Some(inclusive_scan_kernel) = context.get_kernel(&INCLUSIVE_SCAN_KERNEL_NAME) {
             let kernel_event = ExecuteKernel::new(inclusive_scan_kernel)
                 .set_arg_svm(results.as_mut_ptr())
                 .set_arg_svm(test_values.as_ptr())

@@ -41,16 +41,12 @@ impl Program {
     /// Create a Program for a context and load source code into that object.  
     ///
     /// * `context` - a valid OpenCL context.
-    /// * `srcs` - a slice of CStrs containing the source code character strings.
+    /// * `sources` - an array of strs containing the source code strings.
     ///
     /// returns a Result containing the new Program
     /// or the error code from the OpenCL C API function.
-    pub fn create_from_source(context: cl_context, srcs: &[&CStr]) -> Result<Program, cl_int> {
-        let count = srcs.len() as cl_uint;
-        let src_ptrs = srcs.iter().map(|s| s.as_ptr()).collect::<Vec<_>>();
-        let src_lens = srcs.iter().map(|s| s.to_bytes().len()).collect::<Vec<_>>();
-        let program =
-            create_program_with_source(context, count, src_ptrs.as_ptr(), src_lens.as_ptr())?;
+    pub fn create_from_source(context: cl_context, sources: &[&str]) -> Result<Program, cl_int> {
+        let program = create_program_with_source(context, sources)?;
         Ok(Program::new(program))
     }
 
@@ -83,9 +79,12 @@ impl Program {
     pub fn create_from_builtin_kernels(
         context: cl_context,
         devices: &[cl_device_id],
-        kernel_names: &CStr,
+        kernel_names: &str,
     ) -> Result<Program, cl_int> {
-        let program = create_program_with_builtin_kernels(context, devices, kernel_names)?;
+        // Ensure options string is null terminated
+        let c_names = CString::new(kernel_names)
+            .expect("Program::create_from_builtin_kernels, invalid kernel_names");
+        let program = create_program_with_builtin_kernels(context, devices, &c_names)?;
         Ok(Program::new(program))
     }
 
@@ -113,8 +112,10 @@ impl Program {
     ///
     /// returns a null Result
     /// or the error code from the OpenCL C API function.
-    pub fn build(&self, devices: &[cl_device_id], options: &CStr) -> Result<(), cl_int> {
-        build_program(self.program, &devices, &options, None, ptr::null_mut())
+    pub fn build(&self, devices: &[cl_device_id], options: &str) -> Result<(), cl_int> {
+        // Ensure options string is null terminated
+        let c_options = CString::new(options).expect("Program::build, invalid options");
+        build_program(self.program, &devices, &c_options, None, ptr::null_mut())
     }
 
     /// Compile a program’s source for the devices the OpenCL context associated
@@ -130,14 +131,16 @@ impl Program {
     pub fn compile(
         &self,
         devices: &[cl_device_id],
-        options: &CStr,
+        options: &str,
         input_headers: &[cl_program],
-        header_include_names: &[*const c_char],
+        header_include_names: &[&CStr],
     ) -> Result<(), cl_int> {
+        // Ensure options string is null terminated
+        let c_options = CString::new(options).expect("Program::compile, invalid options");
         compile_program(
             self.program,
             &devices,
-            &options,
+            &c_options,
             &input_headers,
             &header_include_names,
             None,
@@ -157,13 +160,15 @@ impl Program {
     pub fn link(
         &mut self,
         devices: &[cl_device_id],
-        options: &CStr,
+        options: &str,
         input_programs: &[cl_program],
     ) -> Result<(), cl_int> {
+        // Ensure options string is null terminated
+        let c_options = CString::new(options).expect("Program::link, invalid options");
         self.program = link_program(
             self.program,
             &devices,
-            &options,
+            &c_options,
             &input_programs,
             None,
             ptr::null_mut(),
@@ -213,8 +218,11 @@ impl Program {
     ///
     /// returns a Result containing the new cl_kernel
     /// or the error code from the OpenCL C API function.
-    pub fn create_kernel(&self, kernel_name: &CStr) -> Result<cl_kernel, cl_int> {
-        kernel::create_kernel(self.program, kernel_name)
+    pub fn create_kernel(&self, kernel_name: &str) -> Result<cl_kernel, cl_int> {
+        // Ensure c_name string is null terminated
+        let c_name =
+            CString::new(kernel_name).expect("Program::create_kernel, invalid kernel_name");
+        kernel::create_kernel(self.program, &c_name)
     }
 
     /// Create OpenCL kernel objects for all kernel functions in a program.  
@@ -231,8 +239,8 @@ impl Program {
         Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_REFERENCE_COUNT)?.to_uint())
     }
 
-    pub fn get_context(&self) -> Result<intptr_t, cl_int> {
-        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_CONTEXT)?.to_ptr())
+    pub fn get_context(&self) -> Result<cl_context, cl_int> {
+        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_CONTEXT)?.to_ptr() as cl_context)
     }
 
     pub fn get_num_devices(&self) -> Result<cl_uint, cl_int> {
@@ -259,11 +267,8 @@ impl Program {
         Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_NUM_KERNELS)?.to_uint())
     }
 
-    pub fn get_kernel_names(&self) -> Result<CString, cl_int> {
-        Ok(CString::new(
-            get_program_info(self.program, ProgramInfo::CL_PROGRAM_KERNEL_NAMES)?.to_string(),
-        )
-        .expect("String to CCString conversion error."))
+    pub fn get_kernel_names(&self) -> Result<String, cl_int> {
+        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_KERNEL_NAMES)?.to_string())
     }
 
     pub fn get_program_il(&self) -> Result<String, cl_int> {

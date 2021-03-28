@@ -28,7 +28,6 @@ use cl3::types::{
 };
 use libc::{c_char, c_void, intptr_t, size_t};
 use std::collections::HashMap;
-use std::ffi::{CStr, CString};
 use std::ptr;
 
 /// An OpenCL context.  
@@ -46,7 +45,7 @@ pub struct Context {
     sub_devices: Vec<SubDevice>,
     queues: Vec<CommandQueue>,
     programs: Vec<Program>,
-    kernels: HashMap<CString, Kernel>,
+    kernels: HashMap<String, Kernel>,
 }
 
 impl Drop for Context {
@@ -68,7 +67,7 @@ impl Context {
             sub_devices: Vec::<SubDevice>::default(),
             queues: Vec::<CommandQueue>::default(),
             programs: Vec::<Program>::default(),
-            kernels: HashMap::<CString, Kernel>::default(),
+            kernels: HashMap::<String, Kernel>::default(),
         }
     }
 
@@ -170,7 +169,7 @@ impl Context {
     ///
     /// returns a Result containing the number of kernels in the Program.
     /// or the error code from the OpenCL C API function.
-    pub fn add_program(&mut self, program: Program) -> Result<usize, cl_int> {
+    fn add_program(&mut self, program: Program) -> Result<usize, cl_int> {
         let kernels = program.create_kernels_in_program()?;
         let count = kernels.len();
         for kernel in kernels {
@@ -182,29 +181,41 @@ impl Context {
         Ok(count)
     }
 
-    /// Create and build a Program from source code.  
+    /// Create and build a Program from an array of source code Strings.  
     /// It also creates and manages the [Kernel]s in the program.
     ///
-    /// * `src` - a CStr containing the source code character string.
+    /// * `src` - a str containing the source code character string.
     /// * `options` - the build options in a null-terminated string.
     ///
     /// returns a Result containing the number of kernels in the Program.
     /// or the error code from the OpenCL C API function.
-    pub fn build_program_from_source(
+    pub fn build_program_from_sources(
         &mut self,
-        src: &CStr,
-        options: &CStr,
+        sources: &[&str],
+        options: &str,
     ) -> Result<usize, cl_int> {
-        let src_array = [src];
-        let program = Program::create_from_source(self.context, &src_array)?;
+        let program = Program::create_from_source(self.context, sources)?;
         program.build(&self.devices, &options)?;
         self.add_program(program)
+    }
+
+    /// Create and build a Program from source code.  
+    /// It also creates and manages the [Kernel]s in the program.
+    ///
+    /// * `src` - a str containing the source code character string.
+    /// * `options` - the build options in a null-terminated string.
+    ///
+    /// returns a Result containing the number of kernels in the Program.
+    /// or the error code from the OpenCL C API function.
+    pub fn build_program_from_source(&mut self, src: &str, options: &str) -> Result<usize, cl_int> {
+        let src_array = [src];
+        self.build_program_from_sources(&src_array, options)
     }
 
     /// Create and build a Program from binaries.  
     /// It also creates and manages the [Kernel]s in the program.
     ///
-    /// * `src` - a CStr containing the source code character string.
+    /// * `src` - a str containing the source code character string.
     /// * `binaries` - a slice of program binaries slices.
     /// * `options` - the build options in a null-terminated string.
     ///
@@ -213,7 +224,7 @@ impl Context {
     pub fn build_program_from_binary(
         &mut self,
         binaries: &[&[u8]],
-        options: &CStr,
+        options: &str,
     ) -> Result<usize, cl_int> {
         let program = Program::create_from_binary(self.context, &self.devices, binaries)?;
         program.build(&self.devices, &options)?;
@@ -248,8 +259,8 @@ impl Context {
     /// * `kernel_name` -  the name of the [Kernel]
     ///
     /// returns an Option containing a reference to the [Kernel] on None.
-    pub fn get_kernel(&self, kernel_name: &CStr) -> Option<&Kernel> {
-        self.kernels.get::<CStr>(&kernel_name)
+    pub fn get_kernel(&self, kernel_name: &str) -> Option<&Kernel> {
+        self.kernels.get::<str>(&kernel_name)
     }
 
     /// Get the common Shared Virtual Memory (SVM) capabilities of the
@@ -323,7 +334,7 @@ impl Context {
         &self.programs
     }
 
-    pub fn kernels(&self) -> &HashMap<CString, Kernel> {
+    pub fn kernels(&self) -> &HashMap<String, Kernel> {
         &self.kernels
     }
 
