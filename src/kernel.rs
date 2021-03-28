@@ -34,6 +34,22 @@ pub struct Kernel {
     num_args: cl_uint,
 }
 
+#[cfg(feature = "CL_VERSION_2_1")]
+impl Clone for Kernel {
+    /// Clone an OpenCL kernel object.  
+    /// CL_VERSION_2_1 see: [Copying Kernel Objects](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#_copying_kernel_objects)
+    ///
+    /// returns a Result containing the new Kernel
+    /// or the error code from the OpenCL C API function.
+    fn clone(&self) -> Self {
+        let kernel = clone_kernel(self.kernel).expect("Error: clCloneKernel");
+        Kernel {
+            kernel,
+            num_args: self.num_args,
+        }
+    }
+}
+
 impl Drop for Kernel {
     fn drop(&mut self) {
         release_kernel(self.kernel).expect("Error: clReleaseKernel");
@@ -56,20 +72,6 @@ impl Kernel {
     /// Get the underlying OpenCL cl_kernel.
     pub fn get(&self) -> cl_kernel {
         self.kernel
-    }
-
-    /// Clone an OpenCL kernel object.  
-    /// CL_VERSION_2_1 see: [Copying Kernel Objects](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#_copying_kernel_objects)
-    ///
-    /// returns a Result containing the new Kernel
-    /// or the error code from the OpenCL C API function.
-    #[cfg(feature = "CL_VERSION_2_1")]
-    pub fn clone(&self) -> Result<Kernel, cl_int> {
-        let kernel = clone_kernel(self.kernel)?;
-        Ok(Kernel {
-            kernel,
-            num_args: self.num_args,
-        })
     }
 
     /// Set the argument value for a specific argument of a kernel.  
