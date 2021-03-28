@@ -18,22 +18,27 @@ use cl3::program;
 use cl3::types::{
     cl_device_id, cl_device_type, cl_int, cl_name_version, cl_platform_id, cl_ulong, cl_version,
 };
+use libc::intptr_t;
 
 /// An OpenCL platform id and methods to query it.  
 /// The query methods calls clGetPlatformInfo with the relevant param_name, see:
 /// [Platform Queries](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#platform-queries-table).
+#[derive(Copy, Clone, Debug)]
 pub struct Platform {
-    id: cl_platform_id,
+    id: intptr_t,
 }
+
+unsafe impl Send for Platform {}
+unsafe impl Sync for Platform {}
 
 impl Platform {
     pub fn new(id: cl_platform_id) -> Platform {
-        Platform { id }
+        Platform { id: id as intptr_t }
     }
 
     /// Accessor for the underlying platform id.
     pub fn id(&self) -> cl_platform_id {
-        self.id
+        self.id as cl_platform_id
     }
 
     /// Get the list of available devices of the given type on the Platform.
@@ -52,14 +57,14 @@ impl Platform {
     /// assert!(0 < device_ids.len());
     /// ```
     pub fn get_devices(&self, device_type: cl_device_type) -> Result<Vec<cl_device_id>, cl_int> {
-        device::get_device_ids(self.id, device_type)
+        device::get_device_ids(self.id(), device_type)
     }
 
     /// The OpenCL profile supported by the Platform,
     /// it can be FULL_PROFILE or EMBEDDED_PROFILE.  
     pub fn profile(&self) -> Result<String, cl_int> {
         Ok(
-            platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_PROFILE)?
+            platform::get_platform_info(self.id(), platform::PlatformInfo::CL_PLATFORM_PROFILE)?
                 .to_string(),
         )
     }
@@ -68,7 +73,7 @@ impl Platform {
     /// e.g. OpenCL 1.2, OpenCL 2.0, OpenCL 2.1, etc.  
     pub fn version(&self) -> Result<String, cl_int> {
         Ok(
-            platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_VERSION)?
+            platform::get_platform_info(self.id(), platform::PlatformInfo::CL_PLATFORM_VERSION)?
                 .to_string(),
         )
     }
@@ -76,7 +81,7 @@ impl Platform {
     /// The OpenCL Platform name string.  
     pub fn name(&self) -> Result<String, cl_int> {
         Ok(
-            platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_NAME)?
+            platform::get_platform_info(self.id(), platform::PlatformInfo::CL_PLATFORM_NAME)?
                 .to_string(),
         )
     }
@@ -84,7 +89,7 @@ impl Platform {
     /// The OpenCL Platform vendor string.  
     pub fn vendor(&self) -> Result<String, cl_int> {
         Ok(
-            platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_VENDOR)?
+            platform::get_platform_info(self.id(), platform::PlatformInfo::CL_PLATFORM_VENDOR)?
                 .to_string(),
         )
     }
@@ -92,7 +97,7 @@ impl Platform {
     /// A space separated list of extension names supported by the Platform.  
     pub fn extensions(&self) -> Result<String, cl_int> {
         Ok(
-            platform::get_platform_info(self.id, platform::PlatformInfo::CL_PLATFORM_EXTENSIONS)?
+            platform::get_platform_info(self.id(), platform::PlatformInfo::CL_PLATFORM_EXTENSIONS)?
                 .to_string(),
         )
     }
@@ -102,7 +107,7 @@ impl Platform {
     // CL_VERSION_2_1
     pub fn host_timer_resolution(&self) -> Result<cl_ulong, cl_int> {
         Ok(platform::get_platform_info(
-            self.id,
+            self.id(),
             platform::PlatformInfo::CL_PLATFORM_HOST_TIMER_RESOLUTION,
         )?
         .to_ulong())
@@ -112,7 +117,7 @@ impl Platform {
     // CL_VERSION_3_0
     pub fn numeric_version(&self) -> Result<cl_version, cl_int> {
         Ok(platform::get_platform_info(
-            self.id,
+            self.id(),
             platform::PlatformInfo::CL_PLATFORM_NUMERIC_VERSION,
         )?
         .to_uint())
@@ -123,7 +128,7 @@ impl Platform {
     // CL_VERSION_3_0
     pub fn extensions_with_version(&self) -> Result<Vec<cl_name_version>, cl_int> {
         Ok(platform::get_platform_info(
-            self.id,
+            self.id(),
             platform::PlatformInfo::CL_PLATFORM_EXTENSIONS_WITH_VERSION,
         )?
         .to_vec_name_version())
@@ -131,7 +136,7 @@ impl Platform {
 
     /// Unload an OpenCL compiler for a platform.
     pub fn unload_compiler(&self) -> Result<(), cl_int> {
-        program::unload_platform_compiler(self.id)
+        program::unload_platform_compiler(self.id())
     }
 }
 
@@ -169,6 +174,7 @@ mod tests {
         assert!(0 < platforms.len());
 
         for platform in platforms {
+            println!("Platform Debug Trait: {:?}", platform);
             println!("CL_PLATFORM_NAME: {}", platform.name().unwrap());
             println!("CL_PLATFORM_PROFILE: {}", platform.profile().unwrap());
 
