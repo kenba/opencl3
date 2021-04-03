@@ -38,6 +38,11 @@ impl Program {
         Program { program }
     }
 
+    /// Get the underlying OpenCL cl_program.
+    pub fn get(&self) -> cl_program {
+        self.program
+    }
+
     /// Create a Program for a context and load source code into that object.  
     ///
     /// * `context` - a valid OpenCL context.
