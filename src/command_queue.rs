@@ -35,13 +35,6 @@ pub struct CommandQueue {
     max_work_item_dimensions: cl_uint,
 }
 
-impl Clone for CommandQueue {
-    fn clone(&self) -> CommandQueue {
-        retain_command_queue(self.queue).expect("Error: clRetainCommandQueue");
-        CommandQueue::new(self.queue, self.max_work_item_dimensions)
-    }
-}
-
 impl Drop for CommandQueue {
     fn drop(&mut self) {
         release_command_queue(self.queue).expect("Error: clReleaseCommandQueue")
