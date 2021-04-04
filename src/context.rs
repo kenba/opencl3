@@ -19,12 +19,13 @@ use super::device::{Device, SubDevice};
 use super::kernel::Kernel;
 use super::memory::get_supported_image_formats;
 use super::program::Program;
+use super::Result;
 
 use cl3::context;
 use cl3::types::{
     cl_command_queue_properties, cl_context, cl_context_properties, cl_device_id,
-    cl_device_partition_property, cl_device_svm_capabilities, cl_image_format, cl_int,
-    cl_mem_flags, cl_mem_object_type, cl_uint,
+    cl_device_partition_property, cl_device_svm_capabilities, cl_image_format, cl_mem_flags,
+    cl_mem_object_type, cl_uint,
 };
 use libc::{c_char, c_void, intptr_t, size_t};
 use std::collections::HashMap;
@@ -92,7 +93,7 @@ impl Context {
         properties: *const cl_context_properties,
         pfn_notify: Option<extern "C" fn(*const c_char, *const c_void, size_t, *mut c_void)>,
         user_data: *mut c_void,
-    ) -> Result<Context, cl_int> {
+    ) -> Result<Context> {
         let context = context::create_context(&devices, properties, pfn_notify, user_data)?;
         Ok(Context::new(context, devices))
     }
@@ -103,7 +104,7 @@ impl Context {
     ///
     /// returns a Result containing the new OpenCL context
     /// or the error code from the OpenCL C API function.
-    pub fn from_device(device: Device) -> Result<Context, cl_int> {
+    pub fn from_device(device: Device) -> Result<Context> {
         let devices: Vec<cl_device_id> = vec![device.id()];
         Context::from_devices(devices, ptr::null(), None, ptr::null_mut())
     }
@@ -126,10 +127,7 @@ impl Context {
     /// returns an empty Result
     /// or the error code from the OpenCL C API function.
     #[cfg(feature = "CL_VERSION_1_2")]
-    pub fn create_command_queues(
-        &mut self,
-        properties: cl_command_queue_properties,
-    ) -> Result<(), cl_int> {
+    pub fn create_command_queues(&mut self, properties: cl_command_queue_properties) -> Result<()> {
         for index in 0..self.devices.len() {
             let device = self.devices[index];
             let queue = CommandQueue::create(self.context, device, properties)?;
@@ -152,7 +150,7 @@ impl Context {
         &mut self,
         properties: cl_command_queue_properties,
         queue_size: cl_uint,
-    ) -> Result<(), cl_int> {
+    ) -> Result<()> {
         for index in 0..self.devices.len() {
             let device = self.devices[index];
             let queue =
@@ -169,7 +167,7 @@ impl Context {
     ///
     /// returns a Result containing the number of kernels in the Program.
     /// or the error code from the OpenCL C API function.
-    fn add_program(&mut self, program: Program) -> Result<usize, cl_int> {
+    fn add_program(&mut self, program: Program) -> Result<usize> {
         let kernels = program.create_kernels_in_program()?;
         let count = kernels.len();
         for kernel in kernels {
@@ -189,11 +187,7 @@ impl Context {
     ///
     /// returns a Result containing the number of kernels in the Program.
     /// or the error code from the OpenCL C API function.
-    pub fn build_program_from_sources(
-        &mut self,
-        sources: &[&str],
-        options: &str,
-    ) -> Result<usize, cl_int> {
+    pub fn build_program_from_sources(&mut self, sources: &[&str], options: &str) -> Result<usize> {
         let program = Program::create_from_source(self.context, sources)?;
         program.build(&self.devices, &options)?;
         self.add_program(program)
@@ -207,7 +201,7 @@ impl Context {
     ///
     /// returns a Result containing the number of kernels in the Program.
     /// or the error code from the OpenCL C API function.
-    pub fn build_program_from_source(&mut self, src: &str, options: &str) -> Result<usize, cl_int> {
+    pub fn build_program_from_source(&mut self, src: &str, options: &str) -> Result<usize> {
         let src_array = [src];
         self.build_program_from_sources(&src_array, options)
     }
@@ -225,7 +219,7 @@ impl Context {
         &mut self,
         binaries: &[&[u8]],
         options: &str,
-    ) -> Result<usize, cl_int> {
+    ) -> Result<usize> {
         let program = Program::create_from_binary(self.context, &self.devices, binaries)?;
         program.build(&self.devices, &options)?;
         self.add_program(program)
@@ -244,7 +238,7 @@ impl Context {
         &mut self,
         device: cl_device_id,
         properties: &[cl_device_partition_property],
-    ) -> Result<usize, cl_int> {
+    ) -> Result<usize> {
         let device = Device::new(device);
         let sub_devs = device.create_sub_devices(properties)?;
         let count = sub_devs.len();
@@ -292,8 +286,12 @@ impl Context {
         &self,
         flags: cl_mem_flags,
         image_type: cl_mem_object_type,
-    ) -> Result<Vec<cl_image_format>, cl_int> {
-        get_supported_image_formats(self.context, flags, image_type)
+    ) -> Result<Vec<cl_image_format>> {
+        Ok(get_supported_image_formats(
+            self.context,
+            flags,
+            image_type,
+        )?)
     }
 
     /// Replace the default command queue on an OpenCL device.  
@@ -310,8 +308,12 @@ impl Context {
         &self,
         device: cl_device_id,
         queue: &CommandQueue,
-    ) -> Result<(), cl_int> {
-        set_default_device_command_queue(self.context, device, queue.get())
+    ) -> Result<()> {
+        Ok(set_default_device_command_queue(
+            self.context,
+            device,
+            queue.get(),
+        )?)
     }
 
     pub fn devices(&self) -> &[cl_device_id] {
@@ -344,11 +346,11 @@ impl Context {
         &self,
         pfn_notify: extern "C" fn(cl_context, *const c_void),
         user_data: *mut c_void,
-    ) -> Result<(), cl_int> {
+    ) -> Result<()> {
         set_context_destructor_callback(self.context, pfn_notify, user_data)
     }
 
-    pub fn reference_count(&self) -> Result<cl_uint, cl_int> {
+    pub fn reference_count(&self) -> Result<cl_uint> {
         Ok(context::get_context_info(
             self.context,
             context::ContextInfo::CL_CONTEXT_REFERENCE_COUNT,
@@ -356,7 +358,7 @@ impl Context {
         .to_uint())
     }
 
-    pub fn properties(&self) -> Result<Vec<intptr_t>, cl_int> {
+    pub fn properties(&self) -> Result<Vec<intptr_t>> {
         Ok(
             context::get_context_info(self.context, context::ContextInfo::CL_CONTEXT_PROPERTIES)?
                 .to_vec_intptr(),

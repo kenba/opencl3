@@ -14,6 +14,7 @@
 
 pub use cl3::event::*;
 
+use super::Result;
 use cl3::types::{cl_event, cl_int, cl_uint, cl_ulong};
 use libc::intptr_t;
 
@@ -47,60 +48,60 @@ impl Event {
     }
 
     /// Wait for the event to complete.
-    pub fn wait(&self) -> Result<(), cl_int> {
+    pub fn wait(&self) -> Result<()> {
         let events = [self.event];
-        wait_for_events(&events)
+        Ok(wait_for_events(&events)?)
     }
 
-    pub fn command_execution_status(&self) -> Result<cl_int, cl_int> {
+    pub fn command_execution_status(&self) -> Result<cl_int> {
         Ok(get_event_info(self.event, EventInfo::CL_EVENT_COMMAND_EXECUTION_STATUS)?.to_int())
     }
 
-    pub fn command_type(&self) -> Result<cl_uint, cl_int> {
+    pub fn command_type(&self) -> Result<cl_uint> {
         Ok(get_event_info(self.event, EventInfo::CL_EVENT_COMMAND_TYPE)?.to_uint())
     }
 
-    pub fn reference_count(&self) -> Result<cl_uint, cl_int> {
+    pub fn reference_count(&self) -> Result<cl_uint> {
         Ok(get_event_info(self.event, EventInfo::CL_EVENT_REFERENCE_COUNT)?.to_uint())
     }
 
-    pub fn command_queue(&self) -> Result<intptr_t, cl_int> {
+    pub fn command_queue(&self) -> Result<intptr_t> {
         Ok(get_event_info(self.event, EventInfo::CL_EVENT_COMMAND_QUEUE)?.to_ptr())
     }
 
-    pub fn context(&self) -> Result<intptr_t, cl_int> {
+    pub fn context(&self) -> Result<intptr_t> {
         Ok(get_event_info(self.event, EventInfo::CL_EVENT_CONTEXT)?.to_ptr())
     }
 
-    pub fn profiling_command_queued(&self) -> Result<cl_ulong, cl_int> {
+    pub fn profiling_command_queued(&self) -> Result<cl_ulong> {
         Ok(
             get_event_profiling_info(self.event, ProfilingInfo::CL_PROFILING_COMMAND_QUEUED)?
                 .to_ulong(),
         )
     }
 
-    pub fn profiling_command_submit(&self) -> Result<cl_ulong, cl_int> {
+    pub fn profiling_command_submit(&self) -> Result<cl_ulong> {
         Ok(
             get_event_profiling_info(self.event, ProfilingInfo::CL_PROFILING_COMMAND_SUBMIT)?
                 .to_ulong(),
         )
     }
 
-    pub fn profiling_command_start(&self) -> Result<cl_ulong, cl_int> {
+    pub fn profiling_command_start(&self) -> Result<cl_ulong> {
         Ok(
             get_event_profiling_info(self.event, ProfilingInfo::CL_PROFILING_COMMAND_START)?
                 .to_ulong(),
         )
     }
 
-    pub fn profiling_command_end(&self) -> Result<cl_ulong, cl_int> {
+    pub fn profiling_command_end(&self) -> Result<cl_ulong> {
         Ok(
             get_event_profiling_info(self.event, ProfilingInfo::CL_PROFILING_COMMAND_END)?
                 .to_ulong(),
         )
     }
 
-    pub fn profiling_command_complete(&self) -> Result<cl_ulong, cl_int> {
+    pub fn profiling_command_complete(&self) -> Result<cl_ulong> {
         Ok(
             get_event_profiling_info(self.event, ProfilingInfo::CL_PROFILING_COMMAND_COMPLETE)?
                 .to_ulong(),

@@ -17,10 +17,11 @@ pub use cl3::command_queue::*;
 use super::device::Device;
 use super::event::Event;
 use super::memory::Buffer;
+use super::Result;
 
 use cl3::types::{
     cl_bool, cl_command_queue, cl_command_queue_properties, cl_context, cl_device_id, cl_event,
-    cl_int, cl_kernel, cl_map_flags, cl_mem, cl_mem_migration_flags, cl_queue_properties, cl_uint,
+    cl_kernel, cl_map_flags, cl_mem, cl_mem_migration_flags, cl_queue_properties, cl_uint,
     cl_ulong,
 };
 use libc::{c_void, intptr_t, size_t};
@@ -75,7 +76,7 @@ impl CommandQueue {
         context: cl_context,
         device_id: cl_device_id,
         properties: cl_command_queue_properties,
-    ) -> Result<CommandQueue, cl_int> {
+    ) -> Result<CommandQueue> {
         let queue = create_command_queue(context, device_id, properties)?;
         let device = Device::new(device_id);
         let max_work_item_dimensions = device.max_work_item_dimensions()?;
@@ -98,7 +99,7 @@ impl CommandQueue {
         device_id: cl_device_id,
         properties: cl_command_queue_properties,
         queue_size: cl_uint,
-    ) -> Result<CommandQueue, cl_int> {
+    ) -> Result<CommandQueue> {
         let queue = if (0 < properties) || (0 < queue_size) {
             let mut props: [cl_queue_properties; 5] = [0; 5];
 
@@ -125,14 +126,14 @@ impl CommandQueue {
 
     /// Flush commands to a device.  
     /// returns an empty Result or the error code from the OpenCL C API function.
-    pub fn flush(&self) -> Result<(), cl_int> {
-        flush(self.queue)
+    pub fn flush(&self) -> Result<()> {
+        Ok(flush(self.queue)?)
     }
 
     /// Wait for completion of commands on a device.  
     /// returns an empty Result or the error code from the OpenCL C API function.
-    pub fn finish(&self) -> Result<(), cl_int> {
-        finish(self.queue)
+    pub fn finish(&self) -> Result<()> {
+        Ok(finish(self.queue)?)
     }
 
     pub fn enqueue_read_buffer<T>(
@@ -142,7 +143,7 @@ impl CommandQueue {
         offset: size_t,
         data: &mut [T],
         event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    ) -> Result<Event> {
         let event = enqueue_read_buffer(
             self.queue,
             buffer.get(),
@@ -173,7 +174,7 @@ impl CommandQueue {
         host_slice_pitch: size_t,
         ptr: *mut c_void,
         event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    ) -> Result<Event> {
         let event = enqueue_read_buffer_rect(
             self.queue,
             buffer.get(),
@@ -203,7 +204,7 @@ impl CommandQueue {
         offset: size_t,
         data: &[T],
         event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    ) -> Result<Event> {
         let event = enqueue_write_buffer(
             self.queue,
             buffer.get(),
@@ -234,7 +235,7 @@ impl CommandQueue {
         host_slice_pitch: size_t,
         ptr: *mut c_void,
         event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    ) -> Result<Event> {
         let event = enqueue_write_buffer_rect(
             self.queue,
             buffer.get(),
@@ -264,7 +265,7 @@ impl CommandQueue {
         offset: size_t,
         size: size_t,
         event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    ) -> Result<Event> {
         let event = enqueue_fill_buffer(
             self.queue,
             buffer.get(),
@@ -290,7 +291,7 @@ impl CommandQueue {
         dst_offset: size_t,
         size: size_t,
         event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    ) -> Result<Event> {
         let event = enqueue_copy_buffer(
             self.queue,
             src_buffer.get(),
@@ -319,7 +320,7 @@ impl CommandQueue {
         dst_row_pitch: size_t,
         dst_slice_pitch: size_t,
         event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    ) -> Result<Event> {
         let event = enqueue_copy_buffer_rect(
             self.queue,
             src_buffer.get(),
@@ -351,7 +352,7 @@ impl CommandQueue {
         slice_pitch: size_t,
         ptr: *mut c_void,
         event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    ) -> Result<Event> {
         let event = enqueue_read_image(
             self.queue,
             image,
@@ -381,7 +382,7 @@ impl CommandQueue {
         slice_pitch: size_t,
         ptr: *mut c_void,
         event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    ) -> Result<Event> {
         let event = enqueue_write_image(
             self.queue,
             image,
@@ -408,7 +409,7 @@ impl CommandQueue {
         origin: *const size_t,
         region: *const size_t,
         event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    ) -> Result<Event> {
         let event = enqueue_fill_image(
             self.queue,
             image,
@@ -433,7 +434,7 @@ impl CommandQueue {
         dst_origin: *const size_t,
         region: *const size_t,
         event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    ) -> Result<Event> {
         let event = enqueue_copy_image(
             self.queue,
             src_image,
@@ -459,7 +460,7 @@ impl CommandQueue {
         region: *const size_t,
         dst_offset: size_t,
         event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    ) -> Result<Event> {
         let event = enqueue_copy_image_to_buffer(
             self.queue,
             src_image,
@@ -485,7 +486,7 @@ impl CommandQueue {
         dst_origin: *const size_t,
         region: *const size_t,
         event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    ) -> Result<Event> {
         let event = enqueue_copy_buffer_to_image(
             self.queue,
             src_buffer,
@@ -512,7 +513,7 @@ impl CommandQueue {
         size: size_t,
         buffer_ptr: &mut cl_mem,
         event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    ) -> Result<Event> {
         let event = enqueue_map_buffer(
             self.queue,
             buffer,
@@ -542,7 +543,7 @@ impl CommandQueue {
         image_slice_pitch: *mut size_t,
         image_ptr: &mut cl_mem,
         event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    ) -> Result<Event> {
         let event = enqueue_map_image(
             self.queue,
             image,
@@ -568,7 +569,7 @@ impl CommandQueue {
         memobj: cl_mem,
         mapped_ptr: *mut c_void,
         event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    ) -> Result<Event> {
         let event = enqueue_unmap_mem_object(
             self.queue,
             memobj,
@@ -589,7 +590,7 @@ impl CommandQueue {
         mem_objects: *const cl_mem,
         flags: cl_mem_migration_flags,
         event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    ) -> Result<Event> {
         let event = enqueue_migrate_mem_object(
             self.queue,
             num_mem_objects,
@@ -613,7 +614,7 @@ impl CommandQueue {
         global_work_sizes: *const size_t,
         local_work_sizes: *const size_t,
         event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    ) -> Result<Event> {
         let event = enqueue_nd_range_kernel(
             self.queue,
             kernel,
@@ -631,11 +632,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_task(
-        &self,
-        kernel: cl_kernel,
-        event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    pub fn enqueue_task(&self, kernel: cl_kernel, event_wait_list: &[cl_event]) -> Result<Event> {
         let event = enqueue_task(
             self.queue,
             kernel,
@@ -656,7 +653,7 @@ impl CommandQueue {
         mem_list: &[cl_mem],
         args_mem_loc: &[*const c_void],
         event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    ) -> Result<Event> {
         let event = enqueue_native_kernel(
             self.queue,
             user_func,
@@ -679,10 +676,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_marker_with_wait_list(
-        &self,
-        event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    pub fn enqueue_marker_with_wait_list(&self, event_wait_list: &[cl_event]) -> Result<Event> {
         let event = enqueue_marker_with_wait_list(
             self.queue,
             event_wait_list.len() as cl_uint,
@@ -695,10 +689,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_barrier_with_wait_list(
-        &self,
-        event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    pub fn enqueue_barrier_with_wait_list(&self, event_wait_list: &[cl_event]) -> Result<Event> {
         let event = enqueue_barrier_with_wait_list(
             self.queue,
             event_wait_list.len() as cl_uint,
@@ -724,7 +715,7 @@ impl CommandQueue {
         >,
         user_data: *mut c_void,
         event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    ) -> Result<Event> {
         let event = enqueue_svm_free(
             self.queue,
             svm_pointers.len() as cl_uint,
@@ -748,7 +739,7 @@ impl CommandQueue {
         src_ptr: *const c_void,
         size: size_t,
         event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    ) -> Result<Event> {
         let event = enqueue_svm_mem_cpy(
             self.queue,
             blocking_copy,
@@ -771,7 +762,7 @@ impl CommandQueue {
         pattern: &[T],
         size: size_t,
         event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    ) -> Result<Event> {
         let event = enqueue_svm_mem_fill(
             self.queue,
             svm_ptr,
@@ -794,7 +785,7 @@ impl CommandQueue {
         flags: cl_map_flags,
         svm: &mut [T],
         event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    ) -> Result<Event> {
         let event = enqueue_svm_map(
             self.queue,
             blocking_map,
@@ -811,11 +802,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_svm_unmap<T>(
-        &self,
-        svm: &[T],
-        event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    pub fn enqueue_svm_unmap<T>(&self, svm: &[T], event_wait_list: &[cl_event]) -> Result<Event> {
         let event = enqueue_svm_unmap(
             self.queue,
             svm.as_ptr() as *mut c_void,
@@ -836,7 +823,7 @@ impl CommandQueue {
         sizes: *const size_t,
         flags: cl_mem_migration_flags,
         event_wait_list: &[cl_event],
-    ) -> Result<Event, cl_int> {
+    ) -> Result<Event> {
         let event = enqueue_svm_migrate_mem(
             self.queue,
             svm_pointers.len() as cl_uint,
@@ -853,36 +840,36 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn context(&self) -> Result<intptr_t, cl_int> {
+    pub fn context(&self) -> Result<intptr_t> {
         Ok(get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_CONTEXT)?.to_ptr())
     }
 
-    pub fn device(&self) -> Result<intptr_t, cl_int> {
+    pub fn device(&self) -> Result<intptr_t> {
         Ok(get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_DEVICE)?.to_ptr())
     }
 
-    pub fn reference_count(&self) -> Result<cl_uint, cl_int> {
+    pub fn reference_count(&self) -> Result<cl_uint> {
         Ok(
             get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_REFERENCE_COUNT)?
                 .to_uint(),
         )
     }
 
-    pub fn properties(&self) -> Result<cl_ulong, cl_int> {
+    pub fn properties(&self) -> Result<cl_ulong> {
         Ok(get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_PROPERTIES)?.to_ulong())
     }
 
-    pub fn size(&self) -> Result<cl_uint, cl_int> {
+    pub fn size(&self) -> Result<cl_uint> {
         Ok(get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_SIZE)?.to_uint())
     }
 
     // CL_VERSION_2_1
-    pub fn device_default(&self) -> Result<intptr_t, cl_int> {
+    pub fn device_default(&self) -> Result<intptr_t> {
         Ok(get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_DEVICE_DEFAULT)?.to_ptr())
     }
 
     // CL_VERSION_3_0
-    pub fn properties_array(&self) -> Result<Vec<cl_ulong>, cl_int> {
+    pub fn properties_array(&self) -> Result<Vec<cl_ulong>> {
         Ok(
             get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_PROPERTIES_ARRAY)?
                 .to_vec_ulong(),

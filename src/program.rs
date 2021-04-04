@@ -14,6 +14,7 @@
 
 pub use cl3::program::*;
 
+use super::Result;
 use cl3::kernel;
 use cl3::types::{cl_context, cl_device_id, cl_int, cl_kernel, cl_program, cl_uchar, cl_uint};
 #[allow(unused_imports)]
@@ -50,9 +51,8 @@ impl Program {
     ///
     /// returns a Result containing the new Program
     /// or the error code from the OpenCL C API function.
-    pub fn create_from_source(context: cl_context, sources: &[&str]) -> Result<Program, cl_int> {
-        let program = create_program_with_source(context, sources)?;
-        Ok(Program::new(program))
+    pub fn create_from_source(context: cl_context, sources: &[&str]) -> Result<Program> {
+        Ok(Program::new(create_program_with_source(context, sources)?))
     }
 
     /// Create a Program for a context and load binary bits into that object.  
@@ -67,9 +67,10 @@ impl Program {
         context: cl_context,
         devices: &[cl_device_id],
         binaries: &[&[u8]],
-    ) -> Result<Program, cl_int> {
-        let program = create_program_with_binary(context, devices, binaries)?;
-        Ok(Program::new(program))
+    ) -> Result<Program> {
+        Ok(Program::new(create_program_with_binary(
+            context, devices, binaries,
+        )?))
     }
 
     /// Create a Program for a context and  loads the information related to
@@ -85,12 +86,13 @@ impl Program {
         context: cl_context,
         devices: &[cl_device_id],
         kernel_names: &str,
-    ) -> Result<Program, cl_int> {
+    ) -> Result<Program> {
         // Ensure options string is null terminated
         let c_names = CString::new(kernel_names)
             .expect("Program::create_from_builtin_kernels, invalid kernel_names");
-        let program = create_program_with_builtin_kernels(context, devices, &c_names)?;
-        Ok(Program::new(program))
+        Ok(Program::new(create_program_with_builtin_kernels(
+            context, devices, &c_names,
+        )?))
     }
 
     /// Create a Program for a context and load code in an intermediate language
@@ -103,12 +105,11 @@ impl Program {
     /// returns a Result containing the new Program
     /// or the error code from the OpenCL C API function.
     #[cfg(feature = "CL_VERSION_2_1")]
-    pub fn create_from_il(context: cl_context, il: &[u8]) -> Result<Program, cl_int> {
-        let program = create_program_with_il(context, &il)?;
-        Ok(Program::new(program))
+    pub fn create_from_il(context: cl_context, il: &[u8]) -> Result<Program> {
+        Ok(Program::new(create_program_with_il(context, &il)?))
     }
 
-    /// Build (compile & link) a Program.  
+    /// Build (compile & link) a Program.
     ///
     /// * `devices` - a slice of devices that are in context.
     /// * `options` - the build options in a null-terminated string.
@@ -117,14 +118,20 @@ impl Program {
     ///
     /// returns a null Result
     /// or the error code from the OpenCL C API function.
-    pub fn build(&self, devices: &[cl_device_id], options: &str) -> Result<(), cl_int> {
+    pub fn build(&self, devices: &[cl_device_id], options: &str) -> Result<()> {
         // Ensure options string is null terminated
         let c_options = CString::new(options).expect("Program::build, invalid options");
-        build_program(self.program, &devices, &c_options, None, ptr::null_mut())
+        Ok(build_program(
+            self.program,
+            &devices,
+            &c_options,
+            None,
+            ptr::null_mut(),
+        )?)
     }
 
     /// Compile a program’s source for the devices the OpenCL context associated
-    /// with the program.  
+    /// with the program.
     /// * `devices` - a slice of devices that are in context.
     /// * `options` - the compilation options in a null-terminated string.
     /// * `input_headers` - a slice of programs that describe headers in the input_headers.
@@ -139,10 +146,10 @@ impl Program {
         options: &str,
         input_headers: &[cl_program],
         header_include_names: &[&CStr],
-    ) -> Result<(), cl_int> {
+    ) -> Result<()> {
         // Ensure options string is null terminated
         let c_options = CString::new(options).expect("Program::compile, invalid options");
-        compile_program(
+        Ok(compile_program(
             self.program,
             &devices,
             &c_options,
@@ -150,11 +157,11 @@ impl Program {
             &header_include_names,
             None,
             ptr::null_mut(),
-        )
+        )?)
     }
 
     /// Link a set of compiled program objects and libraries for the devices in the
-    /// OpenCL context associated with the program.  
+    /// OpenCL context associated with the program.
     ///
     /// * `devices` - a slice of devices that are in context.
     /// * `options` - the link options in a null-terminated string.
@@ -167,7 +174,7 @@ impl Program {
         devices: &[cl_device_id],
         options: &str,
         input_programs: &[cl_program],
-    ) -> Result<(), cl_int> {
+    ) -> Result<()> {
         // Ensure options string is null terminated
         let c_options = CString::new(options).expect("Program::link, invalid options");
         self.program = link_program(
@@ -182,7 +189,7 @@ impl Program {
     }
 
     /// Register a callback function with a program object that is called when the
-    /// program object is destroyed.  
+    /// program object is destroyed.
     /// CL_VERSION_2_2
     ///
     /// * `pfn_notify` - function pointer to the notification routine.
@@ -194,12 +201,16 @@ impl Program {
         &self,
         pfn_notify: Option<extern "C" fn(program: cl_program, user_data: *mut c_void)>,
         user_data: *mut c_void,
-    ) -> Result<(), cl_int> {
-        set_program_release_callback(self.program, pfn_notify, user_data)
+    ) -> Result<()> {
+        Ok(set_program_release_callback(
+            self.program,
+            pfn_notify,
+            user_data,
+        )?)
     }
 
-    /// Set the value of a specialization constant.  
-    /// CL_VERSION_2_2  
+    /// Set the value of a specialization constant.
+    /// CL_VERSION_2_2
     ///
     /// * `spec_id` - the specialization constant whose value will be set.
     /// * `spec_size` - size in bytes of the data pointed to by spec_value.
@@ -213,74 +224,79 @@ impl Program {
         spec_id: cl_uint,
         spec_size: size_t,
         spec_value: *const c_void,
-    ) -> Result<(), cl_int> {
-        set_program_specialization_constant(self.program, spec_id, spec_size, spec_value)
+    ) -> Result<()> {
+        Ok(set_program_specialization_constant(
+            self.program,
+            spec_id,
+            spec_size,
+            spec_value,
+        )?)
     }
 
-    /// Create an OpenCL kernel object for a Program with a successfully built executable.  
+    /// Create an OpenCL kernel object for a Program with a successfully built executable.
     ///
     /// * `kernel_name` - a kernel function name in the program.
     ///
     /// returns a Result containing the new cl_kernel
     /// or the error code from the OpenCL C API function.
-    pub fn create_kernel(&self, kernel_name: &str) -> Result<cl_kernel, cl_int> {
+    pub fn create_kernel(&self, kernel_name: &str) -> Result<cl_kernel> {
         // Ensure c_name string is null terminated
         let c_name =
             CString::new(kernel_name).expect("Program::create_kernel, invalid kernel_name");
-        kernel::create_kernel(self.program, &c_name)
+        Ok(kernel::create_kernel(self.program, &c_name)?)
     }
 
-    /// Create OpenCL kernel objects for all kernel functions in a program.  
+    /// Create OpenCL kernel objects for all kernel functions in a program.
     ///
     /// * `program` - a valid OpenCL program.
     ///
     /// returns a Result containing the new cl_kernels in a Vec
     /// or the error code from the OpenCL C API function.
-    pub fn create_kernels_in_program(&self) -> Result<Vec<cl_kernel>, cl_int> {
-        kernel::create_kernels_in_program(self.program)
+    pub fn create_kernels_in_program(&self) -> Result<Vec<cl_kernel>> {
+        Ok(kernel::create_kernels_in_program(self.program)?)
     }
 
-    pub fn get_reference_count(&self) -> Result<cl_uint, cl_int> {
+    pub fn get_reference_count(&self) -> Result<cl_uint> {
         Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_REFERENCE_COUNT)?.to_uint())
     }
 
-    pub fn get_context(&self) -> Result<cl_context, cl_int> {
+    pub fn get_context(&self) -> Result<cl_context> {
         Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_CONTEXT)?.to_ptr() as cl_context)
     }
 
-    pub fn get_num_devices(&self) -> Result<cl_uint, cl_int> {
+    pub fn get_num_devices(&self) -> Result<cl_uint> {
         Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_NUM_DEVICES)?.to_uint())
     }
 
-    pub fn get_devices(&self) -> Result<Vec<intptr_t>, cl_int> {
+    pub fn get_devices(&self) -> Result<Vec<intptr_t>> {
         Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_DEVICES)?.to_vec_intptr())
     }
 
-    pub fn get_source(&self) -> Result<String, cl_int> {
+    pub fn get_source(&self) -> Result<String> {
         Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_SOURCE)?.to_string())
     }
 
-    pub fn get_binary_sizes(&self) -> Result<Vec<size_t>, cl_int> {
+    pub fn get_binary_sizes(&self) -> Result<Vec<size_t>> {
         Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_BINARY_SIZES)?.to_vec_size())
     }
 
-    pub fn get_binaries(&self) -> Result<Vec<Vec<cl_uchar>>, cl_int> {
+    pub fn get_binaries(&self) -> Result<Vec<Vec<cl_uchar>>> {
         Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_BINARIES)?.to_vec_vec_uchar())
     }
 
-    pub fn get_num_kernels(&self) -> Result<cl_uint, cl_int> {
+    pub fn get_num_kernels(&self) -> Result<cl_uint> {
         Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_NUM_KERNELS)?.to_uint())
     }
 
-    pub fn get_kernel_names(&self) -> Result<String, cl_int> {
+    pub fn get_kernel_names(&self) -> Result<String> {
         Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_KERNEL_NAMES)?.to_string())
     }
 
-    pub fn get_program_il(&self) -> Result<String, cl_int> {
+    pub fn get_program_il(&self) -> Result<String> {
         Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_IL)?.to_string())
     }
 
-    pub fn get_build_status(&self, device: cl_device_id) -> Result<cl_int, cl_int> {
+    pub fn get_build_status(&self, device: cl_device_id) -> Result<cl_int> {
         Ok(get_program_build_info(
             self.program,
             device,
@@ -289,7 +305,7 @@ impl Program {
         .to_int())
     }
 
-    pub fn get_build_options(&self, device: cl_device_id) -> Result<String, cl_int> {
+    pub fn get_build_options(&self, device: cl_device_id) -> Result<String> {
         Ok(get_program_build_info(
             self.program,
             device,
@@ -298,14 +314,14 @@ impl Program {
         .to_string())
     }
 
-    pub fn get_build_log(&self, device: cl_device_id) -> Result<String, cl_int> {
+    pub fn get_build_log(&self, device: cl_device_id) -> Result<String> {
         Ok(
             get_program_build_info(self.program, device, ProgramBuildInfo::CL_PROGRAM_BUILD_LOG)?
                 .to_string(),
         )
     }
 
-    pub fn get_build_binary_type(&self, device: cl_device_id) -> Result<cl_uint, cl_int> {
+    pub fn get_build_binary_type(&self, device: cl_device_id) -> Result<cl_uint> {
         Ok(get_program_build_info(
             self.program,
             device,
@@ -314,10 +330,7 @@ impl Program {
         .to_uint())
     }
 
-    pub fn get_build_global_variable_total_size(
-        &self,
-        device: cl_device_id,
-    ) -> Result<size_t, cl_int> {
+    pub fn get_build_global_variable_total_size(&self, device: cl_device_id) -> Result<size_t> {
         Ok(get_program_build_info(
             self.program,
             device,

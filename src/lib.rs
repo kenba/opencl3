@@ -216,3 +216,7 @@ pub mod error_codes {
 pub mod types {
     pub use cl3::types::*;
 }
+
+use std::result;
+/// Custom Result type to output OpenCL error text.
+pub type Result<T> = result::Result<T, error_codes::ClError>;

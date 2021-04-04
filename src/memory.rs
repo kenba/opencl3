@@ -18,6 +18,7 @@ pub use cl3::memory::*;
 
 use super::context::Context;
 
+use super::Result;
 use cl3::memory;
 use cl3::sampler;
 #[allow(unused_imports)]
@@ -29,58 +30,58 @@ use cl3::types::{
 use libc::{c_void, intptr_t, size_t};
 use std::mem;
 
-pub fn get_mem_type(memobj: cl_mem) -> Result<cl_uint, cl_int> {
+pub fn get_mem_type(memobj: cl_mem) -> Result<cl_uint> {
     let value = memory::get_mem_object_info(memobj, MemInfo::CL_MEM_TYPE)?;
     Ok(value.to_uint())
 }
 
-pub fn get_mem_flags(memobj: cl_mem) -> Result<cl_uint, cl_int> {
+pub fn get_mem_flags(memobj: cl_mem) -> Result<cl_uint> {
     let value = memory::get_mem_object_info(memobj, MemInfo::CL_MEM_FLAGS)?;
     Ok(value.to_uint())
 }
 
-pub fn get_mem_size(memobj: cl_mem) -> Result<size_t, cl_int> {
+pub fn get_mem_size(memobj: cl_mem) -> Result<size_t> {
     let value = memory::get_mem_object_info(memobj, MemInfo::CL_MEM_SIZE)?;
     Ok(value.to_size())
 }
 
-pub fn get_mem_host_ptr(memobj: cl_mem) -> Result<intptr_t, cl_int> {
+pub fn get_mem_host_ptr(memobj: cl_mem) -> Result<intptr_t> {
     let value = memory::get_mem_object_info(memobj, MemInfo::CL_MEM_HOST_PTR)?;
     Ok(value.to_ptr())
 }
 
-pub fn get_mem_map_count(memobj: cl_mem) -> Result<cl_uint, cl_int> {
+pub fn get_mem_map_count(memobj: cl_mem) -> Result<cl_uint> {
     let value = memory::get_mem_object_info(memobj, MemInfo::CL_MEM_MAP_COUNT)?;
     Ok(value.to_uint())
 }
 
-pub fn get_mem_reference_count(memobj: cl_mem) -> Result<cl_uint, cl_int> {
+pub fn get_mem_reference_count(memobj: cl_mem) -> Result<cl_uint> {
     let value = memory::get_mem_object_info(memobj, MemInfo::CL_MEM_REFERENCE_COUNT)?;
     Ok(value.to_uint())
 }
 
-pub fn get_mem_context(memobj: cl_mem) -> Result<intptr_t, cl_int> {
+pub fn get_mem_context(memobj: cl_mem) -> Result<intptr_t> {
     let value = memory::get_mem_object_info(memobj, MemInfo::CL_MEM_CONTEXT)?;
     Ok(value.to_ptr())
 }
 
-pub fn get_mem_associated_memobject(memobj: cl_mem) -> Result<intptr_t, cl_int> {
+pub fn get_mem_associated_memobject(memobj: cl_mem) -> Result<intptr_t> {
     let value = memory::get_mem_object_info(memobj, MemInfo::CL_MEM_ASSOCIATED_MEMOBJECT)?;
     Ok(value.to_ptr())
 }
 
-pub fn get_mem_offset(memobj: cl_mem) -> Result<size_t, cl_int> {
+pub fn get_mem_offset(memobj: cl_mem) -> Result<size_t> {
     let value = memory::get_mem_object_info(memobj, MemInfo::CL_MEM_OFFSET)?;
     Ok(value.to_size())
 }
 
-pub fn get_mem_uses_svm_pointer(memobj: cl_mem) -> Result<cl_uint, cl_int> {
+pub fn get_mem_uses_svm_pointer(memobj: cl_mem) -> Result<cl_uint> {
     let value = memory::get_mem_object_info(memobj, MemInfo::CL_MEM_USES_SVM_POINTER)?;
     Ok(value.to_uint())
 }
 
 // CL_VERSION_3_0
-pub fn get_mem_properties(memobj: cl_mem) -> Result<Vec<cl_ulong>, cl_int> {
+pub fn get_mem_properties(memobj: cl_mem) -> Result<Vec<cl_ulong>> {
     let value = memory::get_mem_object_info(memobj, MemInfo::CL_MEM_PROPERTIES)?;
     Ok(value.to_vec_ulong())
 }
@@ -124,7 +125,7 @@ impl<T> Buffer<T> {
         flags: cl_mem_flags,
         count: size_t,
         host_ptr: *mut c_void,
-    ) -> Result<Buffer<T>, cl_int> {
+    ) -> Result<Buffer<T>> {
         let buffer =
             memory::create_buffer(context.get(), flags, count * mem::size_of::<T>(), host_ptr)?;
         Ok(Buffer::new(buffer))
@@ -151,7 +152,7 @@ impl<T> Buffer<T> {
         flags: cl_mem_flags,
         count: size_t,
         host_ptr: *mut c_void,
-    ) -> Result<Buffer<T>, cl_int> {
+    ) -> Result<Buffer<T>> {
         let buffer = memory::create_buffer_with_properties(
             context.get(),
             properties,
@@ -178,7 +179,7 @@ impl<T> Buffer<T> {
         flags: cl_mem_flags,
         buffer_create_type: cl_buffer_create_type,
         buffer_create_info: *const c_void,
-    ) -> Result<Buffer<T>, cl_int> {
+    ) -> Result<Buffer<T>> {
         let buffer =
             memory::create_sub_buffer(self.buffer, flags, buffer_create_type, buffer_create_info)?;
         Ok(Buffer::new(buffer))
@@ -229,7 +230,7 @@ impl Image {
         image_format: *const cl_image_format,
         image_desc: *const cl_image_desc,
         host_ptr: *mut c_void,
-    ) -> Result<Image, cl_int> {
+    ) -> Result<Image> {
         let image = memory::create_image(context.get(), flags, image_format, image_desc, host_ptr)?;
         Ok(Image::new(image))
     }
@@ -259,7 +260,7 @@ impl Image {
         image_format: *const cl_image_format,
         image_desc: *const cl_image_desc,
         host_ptr: *mut c_void,
-    ) -> Result<Image, cl_int> {
+    ) -> Result<Image> {
         let image = memory::create_image_with_properties(
             context.get(),
             properties,
@@ -275,56 +276,56 @@ impl Image {
         self.image
     }
 
-    pub fn get_format(&self) -> Result<Vec<cl_image_format>, cl_int> {
+    pub fn get_format(&self) -> Result<Vec<cl_image_format>> {
         let value = memory::get_image_info(self.image, ImageInfo::CL_IMAGE_FORMAT)?;
         Ok(value.to_vec_image_format())
     }
 
-    pub fn get_element_size(&self) -> Result<size_t, cl_int> {
+    pub fn get_element_size(&self) -> Result<size_t> {
         let value = memory::get_image_info(self.image, ImageInfo::CL_IMAGE_ELEMENT_SIZE)?;
         Ok(value.to_size())
     }
 
-    pub fn get_row_pitch(&self) -> Result<size_t, cl_int> {
+    pub fn get_row_pitch(&self) -> Result<size_t> {
         let value = memory::get_image_info(self.image, ImageInfo::CL_IMAGE_ROW_PITCH)?;
         Ok(value.to_size())
     }
 
-    pub fn get_slice_pitch(&self) -> Result<size_t, cl_int> {
+    pub fn get_slice_pitch(&self) -> Result<size_t> {
         let value = memory::get_image_info(self.image, ImageInfo::CL_IMAGE_SLICE_PITCH)?;
         Ok(value.to_size())
     }
 
-    pub fn get_width(&self) -> Result<size_t, cl_int> {
+    pub fn get_width(&self) -> Result<size_t> {
         let value = memory::get_image_info(self.image, ImageInfo::CL_IMAGE_WIDTH)?;
         Ok(value.to_size())
     }
 
-    pub fn get_height(&self) -> Result<size_t, cl_int> {
+    pub fn get_height(&self) -> Result<size_t> {
         let value = memory::get_image_info(self.image, ImageInfo::CL_IMAGE_HEIGHT)?;
         Ok(value.to_size())
     }
 
-    pub fn get_depth(&self) -> Result<size_t, cl_int> {
+    pub fn get_depth(&self) -> Result<size_t> {
         let value = memory::get_image_info(self.image, ImageInfo::CL_IMAGE_DEPTH)?;
         Ok(value.to_size())
     }
-    pub fn get_array_size(&self) -> Result<size_t, cl_int> {
+    pub fn get_array_size(&self) -> Result<size_t> {
         let value = memory::get_image_info(self.image, ImageInfo::CL_IMAGE_ARRAY_SIZE)?;
         Ok(value.to_size())
     }
 
-    pub fn get_buffer(&self) -> Result<intptr_t, cl_int> {
+    pub fn get_buffer(&self) -> Result<intptr_t> {
         let value = memory::get_image_info(self.image, ImageInfo::CL_IMAGE_BUFFER)?;
         Ok(value.to_ptr())
     }
 
-    pub fn get_num_mip_levels(&self) -> Result<cl_uint, cl_int> {
+    pub fn get_num_mip_levels(&self) -> Result<cl_uint> {
         let value = memory::get_image_info(self.image, ImageInfo::CL_IMAGE_NUM_MIP_LEVELS)?;
         Ok(value.to_uint())
     }
 
-    pub fn get_num_samples(&self) -> Result<cl_uint, cl_int> {
+    pub fn get_num_samples(&self) -> Result<cl_uint> {
         let value = memory::get_image_info(self.image, ImageInfo::CL_IMAGE_NUM_SAMPLES)?;
         Ok(value.to_uint())
     }
@@ -354,7 +355,7 @@ impl Sampler {
         normalize_coords: cl_bool,
         addressing_mode: cl_addressing_mode,
         filter_mode: cl_filter_mode,
-    ) -> Result<Sampler, cl_int> {
+    ) -> Result<Sampler> {
         let sampler = sampler::create_sampler(
             context.get(),
             normalize_coords,
@@ -367,7 +368,7 @@ impl Sampler {
     pub fn create_with_properties(
         context: &Context,
         properties: *const cl_sampler_properties,
-    ) -> Result<Sampler, cl_int> {
+    ) -> Result<Sampler> {
         let sampler = sampler::create_sampler_with_properties(context.get(), properties)?;
         Ok(Sampler::new(sampler))
     }
@@ -401,7 +402,7 @@ impl Pipe {
         flags: cl_mem_flags,
         pipe_packet_size: cl_uint,
         pipe_max_packets: cl_uint,
-    ) -> Result<Pipe, cl_int> {
+    ) -> Result<Pipe> {
         let pipe = memory::create_pipe(context.get(), flags, pipe_packet_size, pipe_max_packets)?;
         Ok(Pipe::new(pipe))
     }
@@ -410,17 +411,17 @@ impl Pipe {
         self.pipe
     }
 
-    pub fn get_packet_size(&self) -> Result<cl_uint, cl_int> {
+    pub fn get_packet_size(&self) -> Result<cl_uint> {
         let value = memory::get_pipe_info(self.pipe, PipeInfo::CL_PIPE_PACKET_SIZE)?;
         Ok(value.to_uint())
     }
 
-    pub fn get_max_packets(&self) -> Result<cl_uint, cl_int> {
+    pub fn get_max_packets(&self) -> Result<cl_uint> {
         let value = memory::get_pipe_info(self.pipe, PipeInfo::CL_PIPE_MAX_PACKETS)?;
         Ok(value.to_uint())
     }
 
-    pub fn get_properties(&self) -> Result<Vec<intptr_t>, cl_int> {
+    pub fn get_properties(&self) -> Result<Vec<intptr_t>> {
         let value = memory::get_pipe_info(self.pipe, PipeInfo::CL_PIPE_PROPERTIES)?;
         Ok(value.to_vec_intptr())
     }

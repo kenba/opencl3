@@ -16,10 +16,9 @@ pub use cl3::kernel::*;
 
 use super::command_queue::CommandQueue;
 use super::event::Event;
+use super::Result;
 
-use cl3::types::{
-    cl_device_id, cl_event, cl_int, cl_kernel, cl_kernel_exec_info, cl_uint, cl_ulong,
-};
+use cl3::types::{cl_device_id, cl_event, cl_kernel, cl_kernel_exec_info, cl_uint, cl_ulong};
 
 use libc::{c_void, intptr_t, size_t};
 use std::mem;
@@ -64,7 +63,7 @@ impl Kernel {
     /// returns a Result containing the new Kernel
     /// or the error code from the OpenCL C API function to get the number
     /// of kernel arguments.
-    pub fn new(kernel: cl_kernel) -> Result<Kernel, cl_int> {
+    pub fn new(kernel: cl_kernel) -> Result<Kernel> {
         let num_args = get_kernel_info(kernel, KernelInfo::CL_KERNEL_NUM_ARGS)?.to_uint();
         Ok(Kernel { kernel, num_args })
     }
@@ -80,13 +79,13 @@ impl Kernel {
     /// * `arg` - a reference to the data for the argument at arg_index.
     ///
     /// returns an empty Result or the error code from the OpenCL C API function.
-    pub fn set_arg<T>(&self, arg_index: cl_uint, arg: &T) -> Result<(), cl_int> {
-        set_kernel_arg(
+    pub fn set_arg<T>(&self, arg_index: cl_uint, arg: &T) -> Result<()> {
+        Ok(set_kernel_arg(
             self.kernel,
             arg_index,
             mem::size_of::<T>(),
             arg as *const _ as *const c_void,
-        )
+        )?)
     }
 
     /// Create a local memory buffer for a specific argument of a kernel.  
@@ -95,8 +94,8 @@ impl Kernel {
     /// * `size` - the size of the local memory buffer in bytes.
     ///
     /// returns an empty Result or the error code from the OpenCL C API function.
-    pub fn set_arg_local_buffer(&self, arg_index: cl_uint, size: size_t) -> Result<(), cl_int> {
-        set_kernel_arg(self.kernel, arg_index, size, ptr::null())
+    pub fn set_arg_local_buffer(&self, arg_index: cl_uint, size: size_t) -> Result<()> {
+        Ok(set_kernel_arg(self.kernel, arg_index, size, ptr::null())?)
     }
 
     /// Set set a SVM pointer as the argument value for a specific argument of a kernel.  
@@ -105,12 +104,8 @@ impl Kernel {
     /// * `arg_ptr` - the SVM pointer to the data for the argument at arg_index.
     ///
     /// returns an empty Result or the error code from the OpenCL C API function.
-    pub fn set_arg_svm_pointer(
-        &self,
-        arg_index: cl_uint,
-        arg_ptr: *const c_void,
-    ) -> Result<(), cl_int> {
-        set_kernel_arg_svm_pointer(self.kernel, arg_index, arg_ptr)
+    pub fn set_arg_svm_pointer(&self, arg_index: cl_uint, arg_ptr: *const c_void) -> Result<()> {
+        Ok(set_kernel_arg_svm_pointer(self.kernel, arg_index, arg_ptr)?)
     }
 
     /// Pass additional information other than argument values to a kernel.  
@@ -124,20 +119,20 @@ impl Kernel {
         &self,
         param_name: cl_kernel_exec_info,
         param_ptr: *const T,
-    ) -> Result<(), cl_int> {
-        set_kernel_exec_info(
+    ) -> Result<()> {
+        Ok(set_kernel_exec_info(
             self.kernel,
             param_name,
             mem::size_of::<T>(),
             param_ptr as *const c_void,
-        )
+        )?)
     }
 
-    pub fn function_name(&self) -> Result<String, cl_int> {
+    pub fn function_name(&self) -> Result<String> {
         Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_FUNCTION_NAME)?.to_string())
     }
 
-    pub fn attributes(&self) -> Result<String, cl_int> {
+    pub fn attributes(&self) -> Result<String> {
         Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_ATTRIBUTES)?.to_string())
     }
 
@@ -145,19 +140,19 @@ impl Kernel {
         self.num_args
     }
 
-    pub fn reference_count(&self) -> Result<cl_uint, cl_int> {
+    pub fn reference_count(&self) -> Result<cl_uint> {
         Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_REFERENCE_COUNT)?.to_uint())
     }
 
-    pub fn context(&self) -> Result<intptr_t, cl_int> {
+    pub fn context(&self) -> Result<intptr_t> {
         Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_CONTEXT)?.to_ptr())
     }
 
-    pub fn program(&self) -> Result<intptr_t, cl_int> {
+    pub fn program(&self) -> Result<intptr_t> {
         Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_PROGRAM)?.to_ptr())
     }
 
-    pub fn get_arg_address_qualifier(&self, arg_indx: cl_uint) -> Result<cl_uint, cl_int> {
+    pub fn get_arg_address_qualifier(&self, arg_indx: cl_uint) -> Result<cl_uint> {
         Ok(get_kernel_arg_info(
             self.kernel,
             arg_indx,
@@ -166,7 +161,7 @@ impl Kernel {
         .to_uint())
     }
 
-    pub fn get_arg_access_qualifier(&self, arg_indx: cl_uint) -> Result<cl_uint, cl_int> {
+    pub fn get_arg_access_qualifier(&self, arg_indx: cl_uint) -> Result<cl_uint> {
         Ok(get_kernel_arg_info(
             self.kernel,
             arg_indx,
@@ -175,7 +170,7 @@ impl Kernel {
         .to_uint())
     }
 
-    pub fn get_arg_type_qualifier(&self, arg_indx: cl_uint) -> Result<cl_uint, cl_int> {
+    pub fn get_arg_type_qualifier(&self, arg_indx: cl_uint) -> Result<cl_uint> {
         Ok(get_kernel_arg_info(
             self.kernel,
             arg_indx,
@@ -184,7 +179,7 @@ impl Kernel {
         .to_uint())
     }
 
-    pub fn get_arg_type_name(&self, arg_indx: cl_uint) -> Result<String, cl_int> {
+    pub fn get_arg_type_name(&self, arg_indx: cl_uint) -> Result<String> {
         Ok(get_kernel_arg_info(
             self.kernel,
             arg_indx,
@@ -193,14 +188,14 @@ impl Kernel {
         .to_string())
     }
 
-    pub fn get_arg_name(&self, arg_indx: cl_uint) -> Result<String, cl_int> {
+    pub fn get_arg_name(&self, arg_indx: cl_uint) -> Result<String> {
         Ok(
             get_kernel_arg_info(self.kernel, arg_indx, KernelArgInfo::CL_KERNEL_ARG_NAME)?
                 .to_string(),
         )
     }
 
-    pub fn get_work_group_size(&self, device: cl_device_id) -> Result<size_t, cl_int> {
+    pub fn get_work_group_size(&self, device: cl_device_id) -> Result<size_t> {
         Ok(get_kernel_work_group_info(
             self.kernel,
             device,
@@ -209,7 +204,7 @@ impl Kernel {
         .to_size())
     }
 
-    pub fn get_work_group_size_multiple(&self, device: cl_device_id) -> Result<size_t, cl_int> {
+    pub fn get_work_group_size_multiple(&self, device: cl_device_id) -> Result<size_t> {
         Ok(get_kernel_work_group_info(
             self.kernel,
             device,
@@ -218,7 +213,7 @@ impl Kernel {
         .to_size())
     }
 
-    pub fn get_compile_work_group_size(&self, device: cl_device_id) -> Result<Vec<size_t>, cl_int> {
+    pub fn get_compile_work_group_size(&self, device: cl_device_id) -> Result<Vec<size_t>> {
         Ok(get_kernel_work_group_info(
             self.kernel,
             device,
@@ -227,7 +222,7 @@ impl Kernel {
         .to_vec_size())
     }
 
-    pub fn get_local_mem_size(&self, device: cl_device_id) -> Result<cl_ulong, cl_int> {
+    pub fn get_local_mem_size(&self, device: cl_device_id) -> Result<cl_ulong> {
         Ok(get_kernel_work_group_info(
             self.kernel,
             device,
@@ -236,7 +231,7 @@ impl Kernel {
         .to_ulong())
     }
 
-    pub fn get_private_mem_size(&self, device: cl_device_id) -> Result<cl_ulong, cl_int> {
+    pub fn get_private_mem_size(&self, device: cl_device_id) -> Result<cl_ulong> {
         Ok(get_kernel_work_group_info(
             self.kernel,
             device,
@@ -526,7 +521,7 @@ impl<'a> ExecuteKernel<'a> {
     ///
     /// return the [Event] for this command
     /// or the error code from the OpenCL C API function.
-    pub fn enqueue_nd_range(&mut self, queue: &CommandQueue) -> Result<Event, cl_int> {
+    pub fn enqueue_nd_range(&mut self, queue: &CommandQueue) -> Result<Event> {
         // Get max_work_item_dimensions for the device CommandQueue
         let max_work_item_dimensions = queue.max_work_item_dimensions() as usize;
         self.validate(max_work_item_dimensions);
