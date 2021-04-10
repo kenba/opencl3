@@ -18,19 +18,19 @@ use super::command_queue::CommandQueue;
 use super::event::Event;
 use super::Result;
 
-use cl3::types::{cl_device_id, cl_event, cl_kernel, cl_kernel_exec_info, cl_uint, cl_ulong};
+use cl3::types::{
+    cl_device_id, cl_event, cl_kernel, cl_kernel_exec_info, cl_program, cl_uint, cl_ulong,
+};
 
 use libc::{c_void, intptr_t, size_t};
+use std::ffi::CString;
 use std::mem;
 use std::ptr;
 
 /// An OpenCL kernel object.  
-/// It stores the number of arguments required by the kernel for the
-/// [ExecuteKernel] builder to verify kernel execution.  
 /// Implements the Drop trait to call release_kernel when the object is dropped.
 pub struct Kernel {
     kernel: cl_kernel,
-    num_args: cl_uint,
 }
 
 #[cfg(feature = "CL_VERSION_2_1")]
@@ -42,10 +42,7 @@ impl Clone for Kernel {
     /// or the error code from the OpenCL C API function.
     fn clone(&self) -> Self {
         let kernel = clone_kernel(self.kernel).expect("Error: clCloneKernel");
-        Kernel {
-            kernel,
-            num_args: self.num_args,
-        }
+        Kernel { kernel }
     }
 }
 
@@ -63,14 +60,27 @@ impl Kernel {
     /// returns a Result containing the new Kernel
     /// or the error code from the OpenCL C API function to get the number
     /// of kernel arguments.
-    pub fn new(kernel: cl_kernel) -> Result<Kernel> {
-        let num_args = get_kernel_info(kernel, KernelInfo::CL_KERNEL_NUM_ARGS)?.to_uint();
-        Ok(Kernel { kernel, num_args })
+    pub fn new(kernel: cl_kernel) -> Kernel {
+        Kernel { kernel }
     }
 
     /// Get the underlying OpenCL cl_kernel.
     pub fn get(&self) -> cl_kernel {
         self.kernel
+    }
+
+    /// Create a Kernel from an OpenCL cl_program.
+    ///
+    /// * `program` - a built OpenCL cl_program.
+    /// * `name` - the name of the OpenCL kernel.
+    ///
+    /// returns a Result containing the new Kernel
+    /// or the error code from the OpenCL C API function to get the number
+    /// of kernel arguments.
+    pub fn create(program: cl_program, name: &str) -> Result<Kernel> {
+        // Ensure c_name string is null terminated
+        let c_name = CString::new(name).expect("Kernel::create, invalid name");
+        Ok(Self::new(create_kernel(program, &c_name)?))
     }
 
     /// Set the argument value for a specific argument of a kernel.  
@@ -136,8 +146,8 @@ impl Kernel {
         Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_ATTRIBUTES)?.to_string())
     }
 
-    pub fn num_args(&self) -> cl_uint {
-        self.num_args
+    pub fn num_args(&self) -> Result<cl_uint> {
+        Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_NUM_ARGS)?.to_uint())
     }
 
     pub fn reference_count(&self) -> Result<cl_uint> {
@@ -241,11 +251,26 @@ impl Kernel {
     }
 }
 
+/// Create OpenCL Kernel objects for all the kernel functions in a program.
+///
+/// * `program` - a valid OpenCL program.
+///
+/// returns a Result containing the new Kernels in a Vec
+/// or the error code from the OpenCL C API function.
+pub fn create_program_kernels(program: cl_program) -> Result<Vec<Kernel>> {
+    let kernels = create_kernels_in_program(program)?;
+    Ok(kernels
+        .iter()
+        .map(|kernel| Kernel::new(*kernel))
+        .collect::<Vec<Kernel>>())
+}
+
 /// A struct that implements the [builder pattern](https://doc.rust-lang.org/1.0.0/style/ownership/builders.html)
 /// to simplify setting up [Kernel] arguments and the [NDRange](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#_mapping_work_items_onto_an_ndrange)
 /// when enqueueing a [Kernel] on a [CommandQueue].
 pub struct ExecuteKernel<'a> {
     pub kernel: &'a Kernel,
+    pub num_args: cl_uint,
     pub global_work_offsets: Vec<size_t>,
     pub global_work_sizes: Vec<size_t>,
     pub local_work_sizes: Vec<size_t>,
@@ -258,6 +283,9 @@ impl<'a> ExecuteKernel<'a> {
     pub fn new(kernel: &'a Kernel) -> ExecuteKernel {
         ExecuteKernel {
             kernel,
+            num_args: kernel
+                .num_args()
+                .expect("ExecuteKernel: error reading kernel.num_args"),
             global_work_offsets: Vec::new(),
             global_work_sizes: Vec::new(),
             local_work_sizes: Vec::new(),
@@ -279,7 +307,7 @@ impl<'a> ExecuteKernel<'a> {
     /// returns a reference to self.
     pub fn set_arg<'b, T>(&'b mut self, arg: &T) -> &'b mut Self {
         assert!(
-            self.arg_index < self.kernel.num_args(),
+            self.arg_index < self.num_args,
             "ExecuteKernel::set_arg too many args"
         );
 
@@ -300,7 +328,7 @@ impl<'a> ExecuteKernel<'a> {
     /// returns a reference to self.
     pub fn set_arg_local_buffer<'b, T>(&'b mut self, size: size_t) -> &'b mut Self {
         assert!(
-            self.arg_index < self.kernel.num_args(),
+            self.arg_index < self.num_args,
             "ExecuteKernel::set_arg_local_buffer too many args"
         );
 
@@ -323,7 +351,7 @@ impl<'a> ExecuteKernel<'a> {
     /// returns a reference to self.
     pub fn set_arg_svm<'b, T>(&'b mut self, arg_ptr: *const T) -> &'b mut Self {
         assert!(
-            self.arg_index < self.kernel.num_args(),
+            self.arg_index < self.num_args,
             "ExecuteKernel::set_arg_svm too many args"
         );
 
@@ -468,7 +496,7 @@ impl<'a> ExecuteKernel<'a> {
 
     fn validate(&self, max_work_item_dimensions: usize) {
         assert!(
-            self.kernel.num_args() == self.arg_index,
+            self.num_args == self.arg_index,
             "ExecuteKernel too few args"
         );
 

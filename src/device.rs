@@ -83,13 +83,17 @@ impl Device {
     /// * `properties` - the slice of cl_device_partition_property, see
     /// [Subdevice Partition](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#subdevice-partition-table).
     ///
-    /// returns a Result containing a vector of available sub-device ids
+    /// returns a Result containing a vector of available SubDevices
     /// or the error code from the OpenCL C API function.
     pub fn create_sub_devices(
         &self,
         properties: &[cl_device_partition_property],
-    ) -> Result<Vec<cl_device_id>> {
-        Ok(create_sub_devices(self.id(), &properties)?)
+    ) -> Result<Vec<SubDevice>> {
+        let sub_device_ids = create_sub_devices(self.id(), &properties)?;
+        Ok(sub_device_ids
+            .iter()
+            .map(|id| SubDevice::new(*id))
+            .collect::<Vec<SubDevice>>())
     }
 
     #[cfg(feature = "CL_VERSION_2_1")]
@@ -692,6 +696,7 @@ impl Device {
 mod tests {
     use super::*;
     use crate::platform::get_platforms;
+    use std::ptr;
 
     #[test]
     fn test_get_devices() {
@@ -717,6 +722,43 @@ mod tests {
                 );
                 println!("");
             }
+        }
+    }
+
+    #[test]
+    fn test_get_sub_devices() {
+        let platforms = get_platforms().unwrap();
+        println!("Number of platforms: {}", platforms.len());
+        assert!(0 < platforms.len());
+
+        // Find an OpenCL device with sub devices
+        let mut device_id = ptr::null_mut();
+        let mut has_sub_devices: bool = false;
+
+        for platform in platforms {
+            let device_ids = platform.get_devices(CL_DEVICE_TYPE_CPU).unwrap();
+
+            for dev_id in device_ids {
+                let device = Device::new(dev_id);
+                let max_sub_devices = device.partition_max_sub_devices().unwrap();
+
+                has_sub_devices = 1 < max_sub_devices;
+                if has_sub_devices {
+                    device_id = dev_id;
+                    break;
+                }
+            }
+        }
+
+        if has_sub_devices {
+            let device = Device::new(device_id);
+            let properties: [cl_device_partition_property; 3] = [CL_DEVICE_PARTITION_EQUALLY, 2, 0];
+            let sub_devices = device.create_sub_devices(&properties).unwrap();
+
+            println!("sub_devices len: {}", sub_devices.len());
+            assert!(0 < sub_devices.len());
+        } else {
+            println!("OpenCL device capable of sub division not found");
         }
     }
 

@@ -15,8 +15,7 @@
 pub use cl3::program::*;
 
 use super::Result;
-use cl3::kernel;
-use cl3::types::{cl_context, cl_device_id, cl_int, cl_kernel, cl_program, cl_uchar, cl_uint};
+use cl3::types::{cl_context, cl_device_id, cl_int, cl_program, cl_uchar, cl_uint};
 #[allow(unused_imports)]
 use libc::{c_char, c_void, intptr_t, size_t};
 use std::ffi::{CStr, CString};
@@ -51,8 +50,20 @@ impl Program {
     ///
     /// returns a Result containing the new Program
     /// or the error code from the OpenCL C API function.
-    pub fn create_from_source(context: cl_context, sources: &[&str]) -> Result<Program> {
+    pub fn create_from_sources(context: cl_context, sources: &[&str]) -> Result<Program> {
         Ok(Program::new(create_program_with_source(context, sources)?))
+    }
+
+    /// Create a Program for a context and load a source code string into that object.  
+    ///
+    /// * `context` - a valid OpenCL context.
+    /// * `source` - a str containing a source code string.
+    ///
+    /// returns a Result containing the new Program
+    /// or the error code from the OpenCL C API function.
+    pub fn create_from_source(context: cl_context, src: &str) -> Result<Program> {
+        let sources = [src];
+        Ok(Program::new(create_program_with_source(context, &sources)?))
     }
 
     /// Create a Program for a context and load binary bits into that object.  
@@ -231,29 +242,6 @@ impl Program {
             spec_size,
             spec_value,
         )?)
-    }
-
-    /// Create an OpenCL kernel object for a Program with a successfully built executable.
-    ///
-    /// * `kernel_name` - a kernel function name in the program.
-    ///
-    /// returns a Result containing the new cl_kernel
-    /// or the error code from the OpenCL C API function.
-    pub fn create_kernel(&self, kernel_name: &str) -> Result<cl_kernel> {
-        // Ensure c_name string is null terminated
-        let c_name =
-            CString::new(kernel_name).expect("Program::create_kernel, invalid kernel_name");
-        Ok(kernel::create_kernel(self.program, &c_name)?)
-    }
-
-    /// Create OpenCL kernel objects for all kernel functions in a program.
-    ///
-    /// * `program` - a valid OpenCL program.
-    ///
-    /// returns a Result containing the new cl_kernels in a Vec
-    /// or the error code from the OpenCL C API function.
-    pub fn create_kernels_in_program(&self) -> Result<Vec<cl_kernel>> {
-        Ok(kernel::create_kernels_in_program(self.program)?)
     }
 
     pub fn get_reference_count(&self) -> Result<cl_uint> {

@@ -17,13 +17,16 @@ extern crate opencl3;
 use cl3::device::{
     CL_DEVICE_SVM_COARSE_GRAIN_BUFFER, CL_DEVICE_SVM_FINE_GRAIN_BUFFER, CL_DEVICE_TYPE_GPU,
 };
-use opencl3::command_queue::{CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, CL_QUEUE_PROFILING_ENABLE};
+use opencl3::command_queue::{
+    CommandQueue, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, CL_QUEUE_PROFILING_ENABLE,
+};
 use opencl3::context::Context;
 use opencl3::device::Device;
 use opencl3::event;
-use opencl3::kernel::ExecuteKernel;
+use opencl3::kernel::{ExecuteKernel, Kernel};
 use opencl3::memory::{Buffer, CL_MAP_READ, CL_MAP_WRITE, CL_MEM_READ_ONLY, CL_MEM_WRITE_ONLY};
 use opencl3::platform::get_platforms;
+use opencl3::program::Program;
 use opencl3::svm::SvmVec;
 use opencl3::types::{cl_event, cl_float, CL_FALSE, CL_TRUE};
 use std::ptr;
@@ -67,24 +70,30 @@ fn test_opencl_1_2_example() {
     /////////////////////////////////////////////////////////////////////
     // Initialise OpenCL compute environment
 
-    // Create a Context and a queue on the device
-    let mut context = Context::from_device(device).expect("Context::from_device failed");
-
-    // Create a command_queue on the the device
-    context
-        .create_command_queues(CL_QUEUE_PROFILING_ENABLE)
-        .expect("Context::create_command_queues failed");
+    // Create a Context on the OpenCL device
+    let context = Context::from_device(device).expect("Context::from_device failed");
 
     // Build the OpenCL program source and create the kernel.
-    let options = "";
-    context
-        .build_program_from_source(&PROGRAM_SOURCE, &options)
-        .expect("Context::build_program_from_source failed");
+    let program = Program::create_from_source(context.get(), PROGRAM_SOURCE)
+        .expect("Program::create_from_source failed");
+    program
+        .build(context.devices(), "")
+        .expect("Program::build failed");
 
-    assert!(!context.kernels().is_empty());
-    for kernel_name in context.kernels().keys() {
-        println!("Kernel name: {:?}", kernel_name);
-    }
+    let build_log = program
+        .get_build_log(device.id())
+        .expect("Program::get_build_log failed");
+    println!("OpenCL Program build log: {}", build_log);
+
+    let kernel = Kernel::create(program.get(), KERNEL_NAME).expect("Kernel::create failed");
+
+    // Create a command_queue on the Context's device
+    let queue = CommandQueue::create(
+        context.get(),
+        context.default_device(),
+        CL_QUEUE_PROFILING_ENABLE,
+    )
+    .expect("CommandQueue::create failed");
 
     /////////////////////////////////////////////////////////////////////
     // Compute data
@@ -105,8 +114,6 @@ fn test_opencl_1_2_example() {
     let z = Buffer::<cl_float>::create(&context, CL_MEM_READ_ONLY, ARRAY_SIZE, ptr::null_mut())
         .unwrap();
 
-    let queue = context.default_queue();
-
     let mut events: Vec<cl_event> = Vec::default();
 
     // Blocking write
@@ -119,46 +126,44 @@ fn test_opencl_1_2_example() {
         .enqueue_write_buffer(&y, CL_FALSE, 0, &sums, &events)
         .unwrap();
 
-    if let Some(kernel) = context.get_kernel(&KERNEL_NAME) {
-        // a value for the kernel function
-        let a: cl_float = 300.0;
+    // a value for the kernel function
+    let a: cl_float = 300.0;
 
-        // Use the ExecuteKernel builder to set the kernel buffer and
-        // cl_float value arguments, before setting the one dimensional
-        // global_work_size for the call to enqueue_nd_range.
-        // Unwraps the Result to get the kernel execution event.
-        let kernel_event = ExecuteKernel::new(kernel)
-            .set_arg(&z)
-            .set_arg(&x)
-            .set_arg(&y)
-            .set_arg(&a)
-            .set_global_work_size(ARRAY_SIZE)
-            .set_wait_event(y_write_event.get())
-            .enqueue_nd_range(&queue)
-            .unwrap();
-        events.push(kernel_event.get());
+    // Use the ExecuteKernel builder to set the kernel buffer and
+    // cl_float value arguments, before setting the one dimensional
+    // global_work_size for the call to enqueue_nd_range.
+    // Unwraps the Result to get the kernel execution event.
+    let kernel_event = ExecuteKernel::new(&kernel)
+        .set_arg(&z)
+        .set_arg(&x)
+        .set_arg(&y)
+        .set_arg(&a)
+        .set_global_work_size(ARRAY_SIZE)
+        .set_wait_event(y_write_event.get())
+        .enqueue_nd_range(&queue)
+        .unwrap();
+    events.push(kernel_event.get());
 
-        // Create a results array to hold the results from the OpenCL device
-        // and enqueue a read command to read the device buffer into the array
-        // after the kernel event completes.
-        let mut results: [cl_float; ARRAY_SIZE] = [0.0; ARRAY_SIZE];
-        let _event = queue
-            .enqueue_read_buffer(&z, CL_FALSE, 0, &mut results, &events)
-            .unwrap();
-        events.clear();
+    // Create a results array to hold the results from the OpenCL device
+    // and enqueue a read command to read the device buffer into the array
+    // after the kernel event completes.
+    let mut results: [cl_float; ARRAY_SIZE] = [0.0; ARRAY_SIZE];
+    let _event = queue
+        .enqueue_read_buffer(&z, CL_FALSE, 0, &mut results, &events)
+        .unwrap();
+    events.clear();
 
-        // Block until all commands on the queue have completed
-        queue.finish().unwrap();
+    // Block until all commands on the queue have completed
+    queue.finish().unwrap();
 
-        assert_eq!(1300.0, results[ARRAY_SIZE - 1]);
-        println!("results back: {}", results[ARRAY_SIZE - 1]);
+    assert_eq!(1300.0, results[ARRAY_SIZE - 1]);
+    println!("results back: {}", results[ARRAY_SIZE - 1]);
 
-        // Calculate the kernel duration, from the kernel_event
-        let start_time = kernel_event.profiling_command_start().unwrap();
-        let end_time = kernel_event.profiling_command_end().unwrap();
-        let duration = end_time - start_time;
-        println!("kernel execution duration (ns): {}", duration);
-    }
+    // Calculate the kernel duration, from the kernel_event
+    let start_time = kernel_event.profiling_command_start().unwrap();
+    let end_time = kernel_event.profiling_command_end().unwrap();
+    let duration = end_time - start_time;
+    println!("kernel execution duration (ns): {}", duration);
 }
 
 #[test]
@@ -205,25 +210,31 @@ fn test_opencl_svm_example() {
         /////////////////////////////////////////////////////////////////////
         // Initialise OpenCL compute environment
 
-        // Create OpenCL context from the OpenCL svm device
-        let mut context = Context::from_device(device).expect("Context::from_device failed");
-        context
-            .create_command_queues_with_properties(
-                CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE,
-                0,
-            )
-            .expect("Context::create_command_queues_with_properties failed");
+        // Create a Context on the OpenCL svm device
+        let context = Context::from_device(device).expect("Context::from_device failed");
 
         // Build the OpenCL program source and create the kernel.
-        let options = "";
-        context
-            .build_program_from_source(&PROGRAM_SOURCE, &options)
-            .expect("Context::build_program_from_source failed");
+        let program = Program::create_from_source(context.get(), PROGRAM_SOURCE)
+            .expect("Program::create_from_source failed");
+        program
+            .build(context.devices(), "")
+            .expect("Program::build failed");
 
-        assert!(!context.kernels().is_empty());
-        for kernel_name in context.kernels().keys() {
-            println!("Kernel name: {}", kernel_name);
-        }
+        let build_log = program
+            .get_build_log(device.id())
+            .expect("Program::get_build_log failed");
+        println!("OpenCL Program build log: {}", build_log);
+
+        let kernel = Kernel::create(program.get(), KERNEL_NAME).expect("Kernel::create failed");
+
+        // Create a command_queue on the Context's device
+        let queue = CommandQueue::create_with_properties(
+            context.get(),
+            context.default_device(),
+            CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE,
+            0,
+        )
+        .expect("CommandQueue::create_with_properties failed");
 
         /////////////////////////////////////////////////////////////////////
         // Compute data
@@ -251,106 +262,102 @@ fn test_opencl_svm_example() {
             sums.push(1.0 + 1.0 * i as cl_float);
         }
 
-        let queue = context.default_queue();
+        let mut results = SvmVec::<cl_float>::new(&context, svm_capability);
+        results.reserve(ARRAY_SIZE);
+        for i in 0..ARRAY_SIZE {
+            results.push(i as cl_float);
+        }
 
-        if let Some(kernel) = context.get_kernel(&KERNEL_NAME) {
-            let mut results = SvmVec::<cl_float>::new(&context, svm_capability);
-            results.reserve(ARRAY_SIZE);
-            for i in 0..ARRAY_SIZE {
-                results.push(i as cl_float);
-            }
+        let mut events: Vec<cl_event> = Vec::default();
+        if is_fine_grained_svm {
+            let a: cl_float = 300.0;
 
-            let mut events: Vec<cl_event> = Vec::default();
-            if is_fine_grained_svm {
-                let a: cl_float = 300.0;
+            // Use the ExecuteKernel builder to set the kernel buffer and
+            // cl_float value arguments, before setting the one dimensional
+            // global_work_size for the call to enqueue_nd_range.
+            // Unwraps the Result to get the kernel execution event.
+            let kernel_event = ExecuteKernel::new(&kernel)
+                .set_arg_svm(results.as_mut_ptr())
+                .set_arg_svm(ones.as_ptr())
+                .set_arg_svm(sums.as_ptr())
+                .set_arg(&a)
+                .set_global_work_size(ARRAY_SIZE)
+                .enqueue_nd_range(&queue)
+                .unwrap();
 
-                // Use the ExecuteKernel builder to set the kernel buffer and
-                // cl_float value arguments, before setting the one dimensional
-                // global_work_size for the call to enqueue_nd_range.
-                // Unwraps the Result to get the kernel execution event.
-                let kernel_event = ExecuteKernel::new(kernel)
-                    .set_arg_svm(results.as_mut_ptr())
-                    .set_arg_svm(ones.as_ptr())
-                    .set_arg_svm(sums.as_ptr())
-                    .set_arg(&a)
-                    .set_global_work_size(ARRAY_SIZE)
-                    .enqueue_nd_range(&queue)
-                    .unwrap();
+            // Add the kernel_event to the events list and wait for it to complete
+            events.push(kernel_event.get());
+            event::wait_for_events(&events).unwrap();
 
-                // Add the kernel_event to the events list and wait for it to complete
-                events.push(kernel_event.get());
-                event::wait_for_events(&events).unwrap();
+            assert_eq!(1300.0, results[ARRAY_SIZE - 1]);
+            println!("results back: {}", results[ARRAY_SIZE - 1]);
 
-                assert_eq!(1300.0, results[ARRAY_SIZE - 1]);
-                println!("results back: {}", results[ARRAY_SIZE - 1]);
+            // Calculate the kernel duration, from the kernel_event
+            let start_time = kernel_event.profiling_command_start().unwrap();
+            let end_time = kernel_event.profiling_command_end().unwrap();
+            let duration = end_time - start_time;
+            println!("kernel execution duration (ns): {}", duration);
+        } else {
+            // !is_fine_grained_svm
+            // Map the SVM
+            let map_ones_event = queue
+                .enqueue_svm_map(CL_FALSE, CL_MAP_WRITE, &mut ones, &events)
+                .unwrap();
+            let map_sums_event = queue
+                .enqueue_svm_map(CL_FALSE, CL_MAP_WRITE, &mut sums, &events)
+                .unwrap();
 
-                // Calculate the kernel duration, from the kernel_event
-                let start_time = kernel_event.profiling_command_start().unwrap();
-                let end_time = kernel_event.profiling_command_end().unwrap();
-                let duration = end_time - start_time;
-                println!("kernel execution duration (ns): {}", duration);
-            } else {
-                // !is_fine_grained_svm
-                // Map the SVM
-                let map_ones_event = queue
-                    .enqueue_svm_map(CL_FALSE, CL_MAP_WRITE, &mut ones, &events)
-                    .unwrap();
-                let map_sums_event = queue
-                    .enqueue_svm_map(CL_FALSE, CL_MAP_WRITE, &mut sums, &events)
-                    .unwrap();
+            events.push(map_ones_event.get());
+            events.push(map_sums_event.get());
 
-                events.push(map_ones_event.get());
-                events.push(map_sums_event.get());
+            let a: cl_float = 300.0;
 
-                let a: cl_float = 300.0;
+            // Use the ExecuteKernel builder to set the kernel buffer and
+            // cl_float value arguments, before setting the one dimensional
+            // global_work_size for the call to enqueue_nd_range.
+            // Unwraps the Result to get the kernel execution event.
+            let kernel_event = ExecuteKernel::new(&kernel)
+                .set_arg_svm(results.as_mut_ptr())
+                .set_arg_svm(ones.as_ptr())
+                .set_arg_svm(sums.as_ptr())
+                .set_arg(&a)
+                .set_global_work_size(ARRAY_SIZE)
+                .set_event_wait_list(&events)
+                .enqueue_nd_range(&queue)
+                .unwrap();
 
-                // Use the ExecuteKernel builder to set the kernel buffer and
-                // cl_float value arguments, before setting the one dimensional
-                // global_work_size for the call to enqueue_nd_range.
-                // Unwraps the Result to get the kernel execution event.
-                let kernel_event = ExecuteKernel::new(kernel)
-                    .set_arg_svm(results.as_mut_ptr())
-                    .set_arg_svm(ones.as_ptr())
-                    .set_arg_svm(sums.as_ptr())
-                    .set_arg(&a)
-                    .set_global_work_size(ARRAY_SIZE)
-                    .set_event_wait_list(&events)
-                    .enqueue_nd_range(&queue)
-                    .unwrap();
+            events.clear();
+            events.push(kernel_event.get());
+            event::wait_for_events(&events).unwrap();
 
-                events.clear();
-                events.push(kernel_event.get());
-                event::wait_for_events(&events).unwrap();
+            events.clear();
 
-                events.clear();
+            // Blocking SVM map, no need to wait for _map_results_event
+            let _map_results_event = queue
+                .enqueue_svm_map(CL_TRUE, CL_MAP_READ, &mut results, &events)
+                .unwrap();
 
-                // Blocking SVM map, no need to wait for _map_results_event
-                let _map_results_event = queue
-                    .enqueue_svm_map(CL_TRUE, CL_MAP_READ, &mut results, &events)
-                    .unwrap();
+            assert_eq!(1300.0, results[ARRAY_SIZE - 1]);
+            println!("results back: {}", results[ARRAY_SIZE - 1]);
 
-                assert_eq!(1300.0, results[ARRAY_SIZE - 1]);
-                println!("results back: {}", results[ARRAY_SIZE - 1]);
+            // Calculate the kernel duration from the kernel_event
+            let start_time = kernel_event.profiling_command_start().unwrap();
+            let end_time = kernel_event.profiling_command_end().unwrap();
+            let duration = end_time - start_time;
+            println!("kernel execution duration (ns): {}", duration);
 
-                // Calculate the kernel duration from the kernel_event
-                let start_time = kernel_event.profiling_command_start().unwrap();
-                let end_time = kernel_event.profiling_command_end().unwrap();
-                let duration = end_time - start_time;
-                println!("kernel execution duration (ns): {}", duration);
+            /////////////////////////////////////////////////////////////////////
+            // Clean up
 
-                /////////////////////////////////////////////////////////////////////
-                // Clean up
+            let unmap_results_event = queue.enqueue_svm_unmap(&results, &events).unwrap();
+            let unmap_sums_event = queue.enqueue_svm_unmap(&sums, &events).unwrap();
+            let unmap_ones_event = queue.enqueue_svm_unmap(&ones, &events).unwrap();
+            events.push(unmap_results_event.get());
+            events.push(unmap_sums_event.get());
+            events.push(unmap_ones_event.get());
 
-                let unmap_results_event = queue.enqueue_svm_unmap(&results, &events).unwrap();
-                let unmap_sums_event = queue.enqueue_svm_unmap(&sums, &events).unwrap();
-                let unmap_ones_event = queue.enqueue_svm_unmap(&ones, &events).unwrap();
-                events.push(unmap_results_event.get());
-                events.push(unmap_sums_event.get());
-                events.push(unmap_ones_event.get());
-
-                event::wait_for_events(&events).unwrap();
-                println!("SVM buffers unmapped");
-            }
+            event::wait_for_events(&events).unwrap();
+            println!("SVM buffers unmapped");
         }
     } else {
         println!("OpenCL SVM capable device not found")

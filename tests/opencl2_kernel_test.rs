@@ -15,10 +15,12 @@
 extern crate opencl3;
 
 use cl3::device::{CL_DEVICE_SVM_FINE_GRAIN_BUFFER, CL_DEVICE_TYPE_GPU};
+use opencl3::command_queue::CommandQueue;
 use opencl3::context::Context;
 use opencl3::device::Device;
-use opencl3::kernel::ExecuteKernel;
+use opencl3::kernel::{create_program_kernels, ExecuteKernel, Kernel};
 use opencl3::platform::get_platforms;
+use opencl3::program::Program;
 use opencl3::svm::SvmVec;
 use opencl3::types::cl_int;
 use std::ptr;
@@ -101,20 +103,44 @@ fn test_opencl_2_kernel_example() {
         /////////////////////////////////////////////////////////////////////
         // Initialise OpenCL compute environment
 
-        // Create OpenCL context from the OpenCL svm device
-        // and an OpenCL command queue for the device
-        let mut context = Context::from_device(device).unwrap();
-        context.create_command_queues_with_properties(0, 0).unwrap();
+        // Create a Context on the OpenCL device
+        let context = Context::from_device(device).expect("Context::from_device failed");
 
-        // Build the OpenCL 2.0 program source and create the kernels.
-        context
-            .build_program_from_source(&PROGRAM_SOURCE, &PROGRAM_BUILD_OPTIONS)
-            .unwrap();
+        // Build the OpenCL program source.
+        let program = Program::create_from_source(context.get(), PROGRAM_SOURCE)
+            .expect("Program::create_from_source failed");
+        program
+            .build(context.devices(), PROGRAM_BUILD_OPTIONS)
+            .expect("Program::build failed");
 
-        assert!(!context.kernels().is_empty());
-        for kernel_name in context.kernels().keys() {
-            println!("Kernel name: {}", kernel_name);
-        }
+        let build_log = program
+            .get_build_log(device.id())
+            .expect("Program::get_build_log failed");
+        println!("OpenCL Program build log: {}", build_log);
+
+        // Create the kernels from the OpenCL program source.
+        let kernels = create_program_kernels(program.get()).unwrap();
+        assert!(0 < kernels.len());
+
+        let kernel_0_name = kernels[0].function_name().unwrap();
+        println!("OpenCL kernel_0_name: {}", kernel_0_name);
+
+        let sum_kernel = if SUM_KERNEL_NAME == kernel_0_name {
+            &kernels[0]
+        } else {
+            &kernels[1]
+        };
+
+        let inclusive_scan_kernel = if INCLUSIVE_SCAN_KERNEL_NAME == kernel_0_name {
+            &kernels[0]
+        } else {
+            &kernels[1]
+        };
+
+        // Create a command_queue on the Context's device
+        let queue =
+            CommandQueue::create_with_properties(context.get(), context.default_device(), 0, 0)
+                .expect("CommandQueue::create_with_properties failed");
 
         // Get the svm capability of all the devices in the context.
         let svm_capability = context.get_svm_mem_capability();
@@ -137,42 +163,35 @@ fn test_opencl_2_kernel_example() {
             SvmVec::<cl_int>::with_capacity_zeroed(&context, svm_capability, ARRAY_SIZE);
         unsafe { results.set_len(ARRAY_SIZE) };
 
-        // Get the command queue for the device
-        let queue = context.default_queue();
-
         // Run the sum kernel on the input data
-        if let Some(sum_kernel) = context.get_kernel(&SUM_KERNEL_NAME) {
-            let sum_kernel_event = ExecuteKernel::new(sum_kernel)
-                .set_arg_svm(results.as_mut_ptr())
-                .set_arg_svm(test_values.as_ptr())
-                .set_global_work_size(ARRAY_SIZE)
-                .enqueue_nd_range(&queue)
-                .unwrap();
+        let sum_kernel_event = ExecuteKernel::new(sum_kernel)
+            .set_arg_svm(results.as_mut_ptr())
+            .set_arg_svm(test_values.as_ptr())
+            .set_global_work_size(ARRAY_SIZE)
+            .enqueue_nd_range(&queue)
+            .unwrap();
 
-            // Wait for the kernel to complete execution on the device
-            sum_kernel_event.wait().unwrap();
+        // Wait for the kernel to complete execution on the device
+        sum_kernel_event.wait().unwrap();
 
-            // Can access OpenCL SVM directly, no need to map or read the results
-            println!("sum results: {:?}", results);
-            assert_eq!(33, results[0]);
-            assert_eq!(0, results[ARRAY_SIZE - 1]);
-        }
+        // Can access OpenCL SVM directly, no need to map or read the results
+        println!("sum results: {:?}", results);
+        assert_eq!(33, results[0]);
+        assert_eq!(0, results[ARRAY_SIZE - 1]);
 
         // Run the inclusive scan kernel on the input data
-        if let Some(inclusive_scan_kernel) = context.get_kernel(&INCLUSIVE_SCAN_KERNEL_NAME) {
-            let kernel_event = ExecuteKernel::new(inclusive_scan_kernel)
-                .set_arg_svm(results.as_mut_ptr())
-                .set_arg_svm(test_values.as_ptr())
-                .set_global_work_size(ARRAY_SIZE)
-                .enqueue_nd_range(&queue)
-                .unwrap();
+        let kernel_event = ExecuteKernel::new(inclusive_scan_kernel)
+            .set_arg_svm(results.as_mut_ptr())
+            .set_arg_svm(test_values.as_ptr())
+            .set_global_work_size(ARRAY_SIZE)
+            .enqueue_nd_range(&queue)
+            .unwrap();
 
-            kernel_event.wait().unwrap();
+        kernel_event.wait().unwrap();
 
-            println!("inclusive_scan results: {:?}", results);
-            assert_eq!(value_array[0], results[0]);
-            assert_eq!(33, results[ARRAY_SIZE - 1]);
-        }
+        println!("inclusive_scan results: {:?}", results);
+        assert_eq!(value_array[0], results[0]);
+        assert_eq!(33, results[ARRAY_SIZE - 1]);
     } else {
         println!("OpenCL fine grained SVM capable device not found");
     }
