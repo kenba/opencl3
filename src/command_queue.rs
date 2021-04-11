@@ -14,15 +14,16 @@
 
 pub use cl3::command_queue::*;
 
+use super::context::Context;
+
 use super::device::Device;
 use super::event::Event;
 use super::memory::Buffer;
 use super::Result;
 
 use cl3::types::{
-    cl_bool, cl_command_queue, cl_command_queue_properties, cl_context, cl_device_id, cl_event,
-    cl_kernel, cl_map_flags, cl_mem, cl_mem_migration_flags, cl_queue_properties, cl_uint,
-    cl_ulong,
+    cl_bool, cl_command_queue, cl_command_queue_properties, cl_device_id, cl_event, cl_kernel,
+    cl_map_flags, cl_mem, cl_mem_migration_flags, cl_queue_properties, cl_uint, cl_ulong,
 };
 use libc::{c_void, intptr_t, size_t};
 use std::mem;
@@ -73,11 +74,11 @@ impl CommandQueue {
     /// returns a Result containing the new CommandQueue
     /// or the error code from the OpenCL C API function.
     pub fn create(
-        context: cl_context,
+        context: &Context,
         device_id: cl_device_id,
         properties: cl_command_queue_properties,
     ) -> Result<CommandQueue> {
-        let queue = create_command_queue(context, device_id, properties)?;
+        let queue = create_command_queue(context.get(), device_id, properties)?;
         let device = Device::new(device_id);
         let max_work_item_dimensions = device.max_work_item_dimensions()?;
         Ok(CommandQueue::new(queue, max_work_item_dimensions))
@@ -95,7 +96,7 @@ impl CommandQueue {
     /// returns a Result containing the new CommandQueue
     /// or the error code from the OpenCL C API function.
     pub fn create_with_properties(
-        context: cl_context,
+        context: &Context,
         device_id: cl_device_id,
         properties: cl_command_queue_properties,
         queue_size: cl_uint,
@@ -114,9 +115,9 @@ impl CommandQueue {
                 props[index] = CommandQueueInfo::CL_QUEUE_SIZE as cl_queue_properties;
                 props[index + 1] = queue_size as cl_queue_properties;
             }
-            create_command_queue_with_properties(context, device_id, props.as_ptr())?
+            create_command_queue_with_properties(context.get(), device_id, props.as_ptr())?
         } else {
-            create_command_queue_with_properties(context, device_id, ptr::null())?
+            create_command_queue_with_properties(context.get(), device_id, ptr::null())?
         };
 
         let device = Device::new(device_id);

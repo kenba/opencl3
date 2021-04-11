@@ -81,7 +81,7 @@ impl Context {
     ///
     /// returns a Result containing the new OpenCL context
     /// or the error code from the OpenCL C API function.
-    pub fn from_device(device: Device) -> Result<Context> {
+    pub fn from_device(device: &Device) -> Result<Context> {
         let devices: Vec<cl_device_id> = vec![device.id()];
         let properties = Vec::<cl_context_properties>::default();
         Context::from_devices(&devices, &properties, None, ptr::null_mut())
@@ -239,7 +239,7 @@ mod tests {
 
         // Get the first device
         let device = Device::new(devices[0]);
-        let context = Context::from_device(device).unwrap();
+        let context = Context::from_device(&device).unwrap();
 
         println!(
             "CL_DEVICE_SVM_CAPABILITIES: {:X}",

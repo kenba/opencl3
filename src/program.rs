@@ -14,6 +14,8 @@
 
 pub use cl3::program::*;
 
+use super::context::Context;
+
 use super::Result;
 use cl3::types::{cl_context, cl_device_id, cl_int, cl_program, cl_uchar, cl_uint};
 #[allow(unused_imports)]
@@ -50,8 +52,11 @@ impl Program {
     ///
     /// returns a Result containing the new Program
     /// or the error code from the OpenCL C API function.
-    pub fn create_from_sources(context: cl_context, sources: &[&str]) -> Result<Program> {
-        Ok(Program::new(create_program_with_source(context, sources)?))
+    pub fn create_from_sources(context: &Context, sources: &[&str]) -> Result<Program> {
+        Ok(Program::new(create_program_with_source(
+            context.get(),
+            sources,
+        )?))
     }
 
     /// Create a Program for a context and load a source code string into that object.  
@@ -61,9 +66,12 @@ impl Program {
     ///
     /// returns a Result containing the new Program
     /// or the error code from the OpenCL C API function.
-    pub fn create_from_source(context: cl_context, src: &str) -> Result<Program> {
+    pub fn create_from_source(context: &Context, src: &str) -> Result<Program> {
         let sources = [src];
-        Ok(Program::new(create_program_with_source(context, &sources)?))
+        Ok(Program::new(create_program_with_source(
+            context.get(),
+            &sources,
+        )?))
     }
 
     /// Create a Program for a context and load binary bits into that object.  
@@ -75,12 +83,14 @@ impl Program {
     /// returns a Result containing the new Program
     /// or the error code from the OpenCL C API function.
     pub fn create_from_binary(
-        context: cl_context,
+        context: &Context,
         devices: &[cl_device_id],
         binaries: &[&[u8]],
     ) -> Result<Program> {
         Ok(Program::new(create_program_with_binary(
-            context, devices, binaries,
+            context.get(),
+            devices,
+            binaries,
         )?))
     }
 
@@ -94,7 +104,7 @@ impl Program {
     /// returns a Result containing the new Program
     /// or the error code from the OpenCL C API function.
     pub fn create_from_builtin_kernels(
-        context: cl_context,
+        context: &Context,
         devices: &[cl_device_id],
         kernel_names: &str,
     ) -> Result<Program> {
@@ -102,7 +112,9 @@ impl Program {
         let c_names = CString::new(kernel_names)
             .expect("Program::create_from_builtin_kernels, invalid kernel_names");
         Ok(Program::new(create_program_with_builtin_kernels(
-            context, devices, &c_names,
+            context.get(),
+            devices,
+            &c_names,
         )?))
     }
 
@@ -116,8 +128,8 @@ impl Program {
     /// returns a Result containing the new Program
     /// or the error code from the OpenCL C API function.
     #[cfg(feature = "CL_VERSION_2_1")]
-    pub fn create_from_il(context: cl_context, il: &[u8]) -> Result<Program> {
-        Ok(Program::new(create_program_with_il(context, &il)?))
+    pub fn create_from_il(context: &Context, il: &[u8]) -> Result<Program> {
+        Ok(Program::new(create_program_with_il(context.get(), &il)?))
     }
 
     /// Build (compile & link) a Program.

@@ -104,10 +104,10 @@ fn test_opencl_2_kernel_example() {
         // Initialise OpenCL compute environment
 
         // Create a Context on the OpenCL device
-        let context = Context::from_device(device).expect("Context::from_device failed");
+        let context = Context::from_device(&device).expect("Context::from_device failed");
 
         // Build the OpenCL program source.
-        let program = Program::create_from_source(context.get(), PROGRAM_SOURCE)
+        let program = Program::create_from_source(&context, PROGRAM_SOURCE)
             .expect("Program::create_from_source failed");
         program
             .build(context.devices(), PROGRAM_BUILD_OPTIONS)
@@ -119,7 +119,7 @@ fn test_opencl_2_kernel_example() {
         println!("OpenCL Program build log: {}", build_log);
 
         // Create the kernels from the OpenCL program source.
-        let kernels = create_program_kernels(program.get()).unwrap();
+        let kernels = create_program_kernels(&program).unwrap();
         assert!(0 < kernels.len());
 
         let kernel_0_name = kernels[0].function_name().unwrap();
@@ -138,9 +138,8 @@ fn test_opencl_2_kernel_example() {
         };
 
         // Create a command_queue on the Context's device
-        let queue =
-            CommandQueue::create_with_properties(context.get(), context.default_device(), 0, 0)
-                .expect("CommandQueue::create_with_properties failed");
+        let queue = CommandQueue::create_with_properties(&context, context.default_device(), 0, 0)
+            .expect("CommandQueue::create_with_properties failed");
 
         // Get the svm capability of all the devices in the context.
         let svm_capability = context.get_svm_mem_capability();

@@ -71,10 +71,10 @@ fn test_opencl_1_2_example() {
     // Initialise OpenCL compute environment
 
     // Create a Context on the OpenCL device
-    let context = Context::from_device(device).expect("Context::from_device failed");
+    let context = Context::from_device(&device).expect("Context::from_device failed");
 
     // Build the OpenCL program source and create the kernel.
-    let program = Program::create_from_source(context.get(), PROGRAM_SOURCE)
+    let program = Program::create_from_source(&context, PROGRAM_SOURCE)
         .expect("Program::create_from_source failed");
     program
         .build(context.devices(), "")
@@ -85,11 +85,11 @@ fn test_opencl_1_2_example() {
         .expect("Program::get_build_log failed");
     println!("OpenCL Program build log: {}", build_log);
 
-    let kernel = Kernel::create(program.get(), KERNEL_NAME).expect("Kernel::create failed");
+    let kernel = Kernel::create(&program, KERNEL_NAME).expect("Kernel::create failed");
 
     // Create a command_queue on the Context's device
     let queue = CommandQueue::create(
-        context.get(),
+        &context,
         context.default_device(),
         CL_QUEUE_PROFILING_ENABLE,
     )
@@ -211,10 +211,10 @@ fn test_opencl_svm_example() {
         // Initialise OpenCL compute environment
 
         // Create a Context on the OpenCL svm device
-        let context = Context::from_device(device).expect("Context::from_device failed");
+        let context = Context::from_device(&device).expect("Context::from_device failed");
 
         // Build the OpenCL program source and create the kernel.
-        let program = Program::create_from_source(context.get(), PROGRAM_SOURCE)
+        let program = Program::create_from_source(&context, PROGRAM_SOURCE)
             .expect("Program::create_from_source failed");
         program
             .build(context.devices(), "")
@@ -225,11 +225,11 @@ fn test_opencl_svm_example() {
             .expect("Program::get_build_log failed");
         println!("OpenCL Program build log: {}", build_log);
 
-        let kernel = Kernel::create(program.get(), KERNEL_NAME).expect("Kernel::create failed");
+        let kernel = Kernel::create(&program, KERNEL_NAME).expect("Kernel::create failed");
 
         // Create a command_queue on the Context's device
         let queue = CommandQueue::create_with_properties(
-            context.get(),
+            &context,
             context.default_device(),
             CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE,
             0,

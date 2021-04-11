@@ -16,11 +16,10 @@ pub use cl3::kernel::*;
 
 use super::command_queue::CommandQueue;
 use super::event::Event;
+use super::program::Program;
 use super::Result;
 
-use cl3::types::{
-    cl_device_id, cl_event, cl_kernel, cl_kernel_exec_info, cl_program, cl_uint, cl_ulong,
-};
+use cl3::types::{cl_device_id, cl_event, cl_kernel, cl_kernel_exec_info, cl_uint, cl_ulong};
 
 use libc::{c_void, intptr_t, size_t};
 use std::ffi::CString;
@@ -69,18 +68,18 @@ impl Kernel {
         self.kernel
     }
 
-    /// Create a Kernel from an OpenCL cl_program.
+    /// Create a Kernel from an OpenCL Program.
     ///
-    /// * `program` - a built OpenCL cl_program.
+    /// * `program` - a built OpenCL Program.
     /// * `name` - the name of the OpenCL kernel.
     ///
     /// returns a Result containing the new Kernel
     /// or the error code from the OpenCL C API function to get the number
     /// of kernel arguments.
-    pub fn create(program: cl_program, name: &str) -> Result<Kernel> {
+    pub fn create(program: &Program, name: &str) -> Result<Kernel> {
         // Ensure c_name string is null terminated
         let c_name = CString::new(name).expect("Kernel::create, invalid name");
-        Ok(Self::new(create_kernel(program, &c_name)?))
+        Ok(Self::new(create_kernel(program.get(), &c_name)?))
     }
 
     /// Set the argument value for a specific argument of a kernel.  
@@ -257,8 +256,8 @@ impl Kernel {
 ///
 /// returns a Result containing the new Kernels in a Vec
 /// or the error code from the OpenCL C API function.
-pub fn create_program_kernels(program: cl_program) -> Result<Vec<Kernel>> {
-    let kernels = create_kernels_in_program(program)?;
+pub fn create_program_kernels(program: &Program) -> Result<Vec<Kernel>> {
+    let kernels = create_kernels_in_program(program.get())?;
     Ok(kernels
         .iter()
         .map(|kernel| Kernel::new(*kernel))
