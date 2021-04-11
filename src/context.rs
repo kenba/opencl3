@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub use cl3::context::{CL_CONTEXT_INTEROP_USER_SYNC, CL_CONTEXT_PLATFORM};
-
 use super::device::Device;
 use super::Result;
 
 use cl3::context;
 use cl3::types::{
-    cl_context, cl_context_properties, cl_device_id, cl_device_svm_capabilities, cl_image_format,
-    cl_mem_flags, cl_mem_object_type, cl_uint,
+    cl_context, cl_context_properties, cl_device_id, cl_device_svm_capabilities, cl_device_type,
+    cl_image_format, cl_mem_flags, cl_mem_object_type, cl_uint,
 };
 use libc::{c_char, c_void, intptr_t, size_t};
 use std::ptr;
@@ -90,7 +88,38 @@ impl Context {
         Context::from_devices(&devices, &properties, None, ptr::null_mut())
     }
 
-    // TODO from_device_type call create_context_from_type
+    /// Create a Context from a cl_device_type.  
+    ///
+    /// * `device_type` - the cl_device_type to create a Context for.
+    /// * `properties` - a null terminated list of cl_context_properties, see
+    /// [Context Properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#context-properties-table).
+    /// * `pfn_notify` - an optional callback function that can be registered by the application.
+    /// * `user_data` - passed as the user_data argument when pfn_notify is called.
+    ///
+    /// returns a Result containing the new OpenCL context
+    /// or the error code from the OpenCL C API function.
+    pub fn from_device_type(
+        device_type: cl_device_type,
+        properties: &[cl_context_properties],
+        pfn_notify: Option<extern "C" fn(*const c_char, *const c_void, size_t, *mut c_void)>,
+        user_data: *mut c_void,
+    ) -> Result<Context> {
+        let properties_ptr = if 0 < properties.len() {
+            properties.as_ptr()
+        } else {
+            ptr::null()
+        };
+        let context =
+            context::create_context_from_type(device_type, properties_ptr, pfn_notify, user_data)?;
+        let dev_ptrs =
+            context::get_context_info(context, context::ContextInfo::CL_CONTEXT_DEVICES)?
+                .to_vec_intptr();
+        let devices = dev_ptrs
+            .iter()
+            .map(|ptr| *ptr as cl_device_id)
+            .collect::<Vec<cl_device_id>>();
+        Ok(Context::new(context, &devices))
+    }
 
     /// Get the common Shared Virtual Memory (SVM) capabilities of the
     /// devices in the Context.
@@ -173,7 +202,7 @@ mod tests {
     use crate::device::Device;
     use crate::platform::get_platforms;
     use cl3::device::CL_DEVICE_TYPE_GPU;
-    // use cl3::memory::{CL_MEM_OBJECT_IMAGE2D, CL_MEM_READ_WRITE};
+    use cl3::memory::{CL_MEM_OBJECT_IMAGE2D, CL_MEM_READ_WRITE};
 
     #[test]
     fn test_context() {
@@ -195,12 +224,12 @@ mod tests {
             context.get_svm_mem_capability()
         );
 
-        // println!(
-        //     "clGetSupportedImageFormats: {:?}",
-        //     context
-        //         .get_supported_image_formats(CL_MEM_READ_WRITE, CL_MEM_OBJECT_IMAGE2D)
-        //         .unwrap()
-        // );
+        println!(
+            "clGetSupportedImageFormats: {:?}",
+            context
+                .get_supported_image_formats(CL_MEM_READ_WRITE, CL_MEM_OBJECT_IMAGE2D)
+                .unwrap()
+        );
 
         println!(
             "CL_CONTEXT_REFERENCE_COUNT: {}",
@@ -208,5 +237,19 @@ mod tests {
         );
 
         println!("CL_CONTEXT_PROPERTIES: {:?}", context.properties().unwrap());
+    }
+
+    #[test]
+    fn test_context_from_device_type() {
+        let properties = Vec::<cl_context_properties>::default();
+        let context =
+            Context::from_device_type(CL_DEVICE_TYPE_GPU, &properties, None, ptr::null_mut());
+
+        match context {
+            Ok(value) => {
+                println!("Context num devices: {}", value.num_devices())
+            }
+            Err(e) => println!("OpenCL error, Context::from_device_type: {}", e),
+        }
     }
 }
