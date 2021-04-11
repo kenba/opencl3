@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::device::Device;
+use super::device::{Device, SubDevice};
 use super::Result;
 
 use cl3::context;
@@ -50,10 +50,9 @@ impl Context {
         self.context
     }
 
-    /// Create a Context from a vector of cl_device_ids.  
-    /// Note: the vector of cl_device_ids are moved into Context
+    /// Create a Context from a slice of cl_device_ids.  
     ///
-    /// * `devices` - a vector of cl_device_ids for an OpenCL Platform.
+    /// * `devices` - a slice of cl_device_ids for an OpenCL Platform.
     /// * `properties` - a null terminated list of cl_context_properties, see
     /// [Context Properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#context-properties-table).
     /// * `pfn_notify` - an optional callback function that can be registered by the application.
@@ -86,6 +85,29 @@ impl Context {
         let devices: Vec<cl_device_id> = vec![device.id()];
         let properties = Vec::<cl_context_properties>::default();
         Context::from_devices(&devices, &properties, None, ptr::null_mut())
+    }
+
+    /// Create a Context from a slice of SubDevices.  
+    ///
+    /// * `devices` - a slice of SubDevices for an OpenCL Platform.
+    /// * `properties` - a null terminated list of cl_context_properties, see
+    /// [Context Properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#context-properties-table).
+    /// * `pfn_notify` - an optional callback function that can be registered by the application.
+    /// * `user_data` - passed as the user_data argument when pfn_notify is called.
+    ///
+    /// returns a Result containing the new OpenCL context
+    /// or the error code from the OpenCL C API function.
+    pub fn from_sub_devices(
+        sub_devices: &[SubDevice],
+        properties: &[cl_context_properties],
+        pfn_notify: Option<extern "C" fn(*const c_char, *const c_void, size_t, *mut c_void)>,
+        user_data: *mut c_void,
+    ) -> Result<Context> {
+        let devices = sub_devices
+            .iter()
+            .map(|dev| dev.id())
+            .collect::<Vec<cl_device_id>>();
+        Context::from_devices(&devices, properties, pfn_notify, user_data)
     }
 
     /// Create a Context from a cl_device_type.  
