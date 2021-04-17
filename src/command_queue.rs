@@ -22,10 +22,11 @@ use super::memory::Buffer;
 use super::Result;
 
 use cl3::types::{
-    cl_bool, cl_command_queue, cl_command_queue_properties, cl_device_id, cl_event, cl_kernel,
-    cl_map_flags, cl_mem, cl_mem_migration_flags, cl_queue_properties, cl_uint, cl_ulong,
+    cl_bool, cl_command_queue, cl_command_queue_properties, cl_context, cl_device_id, cl_event,
+    cl_kernel, cl_map_flags, cl_mem, cl_mem_migration_flags, cl_queue_properties, cl_uint,
+    cl_ulong,
 };
-use libc::{c_void, intptr_t, size_t};
+use libc::{c_void, size_t};
 use std::mem;
 use std::ptr;
 
@@ -841,12 +842,18 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn context(&self) -> Result<intptr_t> {
-        Ok(get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_CONTEXT)?.to_ptr())
+    pub fn context(&self) -> Result<cl_context> {
+        Ok(
+            get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_CONTEXT)?.to_ptr()
+                as cl_context,
+        )
     }
 
-    pub fn device(&self) -> Result<intptr_t> {
-        Ok(get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_DEVICE)?.to_ptr())
+    pub fn device(&self) -> Result<cl_device_id> {
+        Ok(
+            get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_DEVICE)?.to_ptr()
+                as cl_device_id,
+        )
     }
 
     pub fn reference_count(&self) -> Result<cl_uint> {
@@ -865,8 +872,11 @@ impl CommandQueue {
     }
 
     // CL_VERSION_2_1
-    pub fn device_default(&self) -> Result<intptr_t> {
-        Ok(get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_DEVICE_DEFAULT)?.to_ptr())
+    pub fn device_default(&self) -> Result<cl_device_id> {
+        Ok(
+            get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_DEVICE_DEFAULT)?.to_ptr()
+                as cl_device_id,
+        )
     }
 
     // CL_VERSION_3_0
@@ -875,5 +885,69 @@ impl CommandQueue {
             get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_PROPERTIES_ARRAY)?
                 .to_vec_ulong(),
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::context::Context;
+    use crate::device::Device;
+    use crate::platform::get_platforms;
+    use cl3::device::CL_DEVICE_TYPE_GPU;
+    use libc::intptr_t;
+
+    #[test]
+    fn test_command_queue() {
+        let platforms = get_platforms().unwrap();
+        assert!(0 < platforms.len());
+
+        // Get the first platform
+        let platform = &platforms[0];
+
+        let devices = platform.get_devices(CL_DEVICE_TYPE_GPU).unwrap();
+        assert!(0 < devices.len());
+
+        // Get the first device
+        let device = Device::new(devices[0]);
+        let context = Context::from_device(&device).unwrap();
+
+        // Create a command_queue on the Context's device
+        let queue = CommandQueue::create(
+            &context,
+            context.default_device(),
+            CL_QUEUE_PROFILING_ENABLE,
+        )
+        .expect("CommandQueue::create failed");
+
+        let value = queue.context().unwrap();
+        assert!(context.get() == value);
+
+        let value = queue.device().unwrap();
+        assert!(device.id() == value);
+
+        let value = queue.reference_count().unwrap();
+        println!("queue.reference_count(): {}", value);
+        assert_eq!(1, value);
+
+        let value = queue.properties().unwrap();
+        println!("queue.properties(): {:X}", value);
+        // assert_eq!(2, value);
+
+        let value = queue.size().unwrap();
+        println!("queue.size(): {}", value);
+        // assert_eq!(2, value);
+
+        // CL_VERSION_2_1 value
+        match queue.device_default() {
+            Ok(value) => println!("queue.device_default(): {:X}", value as intptr_t),
+            Err(e) => println!("OpenCL error, queue.device_default(): {}", e),
+        }
+
+        // CL_VERSION_3_0 value
+        match queue.properties_array() {
+            Ok(value) => println!("queue.properties_array(): {:?}", value),
+            Err(e) => println!("OpenCL error, queue.properties_array(): {}", e),
+        }
     }
 }
