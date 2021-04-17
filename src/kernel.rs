@@ -19,9 +19,12 @@ use super::event::Event;
 use super::program::Program;
 use super::Result;
 
-use cl3::types::{cl_device_id, cl_event, cl_kernel, cl_kernel_exec_info, cl_uint, cl_ulong};
+use cl3::types::{
+    cl_context, cl_device_id, cl_event, cl_kernel, cl_kernel_exec_info, cl_program, cl_uint,
+    cl_ulong,
+};
 
-use libc::{c_void, intptr_t, size_t};
+use libc::{c_void, size_t};
 use std::ffi::CString;
 use std::mem;
 use std::ptr;
@@ -141,10 +144,6 @@ impl Kernel {
         Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_FUNCTION_NAME)?.to_string())
     }
 
-    pub fn attributes(&self) -> Result<String> {
-        Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_ATTRIBUTES)?.to_string())
-    }
-
     pub fn num_args(&self) -> Result<cl_uint> {
         Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_NUM_ARGS)?.to_uint())
     }
@@ -153,12 +152,16 @@ impl Kernel {
         Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_REFERENCE_COUNT)?.to_uint())
     }
 
-    pub fn context(&self) -> Result<intptr_t> {
-        Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_CONTEXT)?.to_ptr())
+    pub fn context(&self) -> Result<cl_context> {
+        Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_CONTEXT)?.to_ptr() as cl_context)
     }
 
-    pub fn program(&self) -> Result<intptr_t> {
-        Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_PROGRAM)?.to_ptr())
+    pub fn program(&self) -> Result<cl_program> {
+        Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_PROGRAM)?.to_ptr() as cl_program)
+    }
+
+    pub fn attributes(&self) -> Result<String> {
+        Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_ATTRIBUTES)?.to_string())
     }
 
     pub fn get_arg_address_qualifier(&self, arg_indx: cl_uint) -> Result<cl_uint> {
@@ -179,13 +182,13 @@ impl Kernel {
         .to_uint())
     }
 
-    pub fn get_arg_type_qualifier(&self, arg_indx: cl_uint) -> Result<cl_uint> {
+    pub fn get_arg_type_qualifier(&self, arg_indx: cl_uint) -> Result<cl_ulong> {
         Ok(get_kernel_arg_info(
             self.kernel,
             arg_indx,
             KernelArgInfo::CL_KERNEL_ARG_TYPE_QUALIFIER,
         )?
-        .to_uint())
+        .to_ulong())
     }
 
     pub fn get_arg_type_name(&self, arg_indx: cl_uint) -> Result<String> {
@@ -213,15 +216,6 @@ impl Kernel {
         .to_size())
     }
 
-    pub fn get_work_group_size_multiple(&self, device: cl_device_id) -> Result<size_t> {
-        Ok(get_kernel_work_group_info(
-            self.kernel,
-            device,
-            KernelWorkGroupInfo::CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
-        )?
-        .to_size())
-    }
-
     pub fn get_compile_work_group_size(&self, device: cl_device_id) -> Result<Vec<size_t>> {
         Ok(get_kernel_work_group_info(
             self.kernel,
@@ -238,6 +232,15 @@ impl Kernel {
             KernelWorkGroupInfo::CL_KERNEL_LOCAL_MEM_SIZE,
         )?
         .to_ulong())
+    }
+
+    pub fn get_work_group_size_multiple(&self, device: cl_device_id) -> Result<size_t> {
+        Ok(get_kernel_work_group_info(
+            self.kernel,
+            device,
+            KernelWorkGroupInfo::CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
+        )?
+        .to_size())
     }
 
     pub fn get_private_mem_size(&self, device: cl_device_id) -> Result<cl_ulong> {
@@ -572,5 +575,135 @@ impl<'a> ExecuteKernel<'a> {
 
         self.clear();
         Ok(event)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::context::Context;
+    use crate::device::Device;
+    use crate::platform::get_platforms;
+    use crate::program::{Program, CL_KERNEL_ARG_INFO};
+    use cl3::device::CL_DEVICE_TYPE_GPU;
+    use std::collections::HashSet;
+
+    const PROGRAM_SOURCE: &str = r#"
+        kernel void add(global float* buffer, float scalar) {
+            buffer[get_global_id(0)] += scalar;
+        }
+
+        kernel void subtract(global float* buffer, float scalar) {
+            buffer[get_global_id(0)] -= scalar;
+        }
+    "#;
+
+    #[test]
+    fn test_create_program_kernels() {
+        let platforms = get_platforms().unwrap();
+        assert!(0 < platforms.len());
+
+        // Get the first platform
+        let platform = &platforms[0];
+
+        let devices = platform.get_devices(CL_DEVICE_TYPE_GPU).unwrap();
+        assert!(0 < devices.len());
+
+        // Get the first device
+        let device = Device::new(devices[0]);
+        let context = Context::from_device(&device).unwrap();
+
+        let program =
+            Program::create_and_build_from_source(&context, PROGRAM_SOURCE, CL_KERNEL_ARG_INFO)
+                .expect("Program::create_and_build_from_source failed");
+
+        // Create the kernels from the OpenCL program source.
+        let kernels = create_program_kernels(&program).unwrap();
+        assert!(2 == kernels.len());
+
+        let kernel_0_name = kernels[0].function_name().unwrap();
+        println!("OpenCL kernel_0_name: {}", kernel_0_name);
+
+        let kernel_1_name = kernels[1].function_name().unwrap();
+        println!("OpenCL kernel_1_name: {}", kernel_1_name);
+
+        let kernel_names: HashSet<&str> = program.kernel_names().split(';').collect();
+
+        assert!(kernel_names.contains(&kernel_0_name as &str));
+        assert!(kernel_names.contains(&kernel_1_name as &str));
+
+        let num_args_0 = kernels[0].num_args().expect("OpenCL kernel_0.num_args");
+        println!("OpenCL kernel_0 num args: {}", num_args_0);
+
+        let value = kernels[0].num_args().unwrap();
+        println!("kernel.num_args(): {}", value);
+        assert_eq!(2, value);
+
+        let value = kernels[0].reference_count().unwrap();
+        println!("kernel.reference_count(): {}", value);
+        assert_eq!(1, value);
+
+        let value = kernels[0].context().unwrap();
+        assert!(context.get() == value);
+
+        let value = kernels[0].program().unwrap();
+        assert!(program.get() == value);
+
+        let value = kernels[0].attributes().unwrap();
+        println!("kernel.attributes(): {}", value);
+        // assert!(value.is_empty());
+
+        let arg0_address = kernels[0]
+            .get_arg_address_qualifier(0)
+            .expect("OpenCL kernel_0.get_arg_address_qualifier");
+        println!(
+            "OpenCL kernel_0.get_arg_address_qualifier: {:X}",
+            arg0_address
+        );
+
+        let arg0_access = kernels[0]
+            .get_arg_access_qualifier(0)
+            .expect("OpenCL kernel_0.get_arg_access_qualifier");
+        println!(
+            "OpenCL kernel_0.get_arg_access_qualifier: {:X}",
+            arg0_access
+        );
+
+        let arg0_type_name = kernels[0]
+            .get_arg_type_name(0)
+            .expect("OpenCL kernel_0.get_arg_type_name");
+        println!("OpenCL kernel_0.get_arg_type_name: {}", arg0_type_name);
+
+        let arg0_type = kernels[0]
+            .get_arg_type_qualifier(0)
+            .expect("OpenCL kernel_0.get_arg_type_qualifier");
+        println!("OpenCL kernel_0.get_arg_type_qualifier: {}", arg0_type);
+
+        let arg0_name = kernels[0]
+            .get_arg_name(0)
+            .expect("OpenCL kernel_0.get_arg_name");
+        println!("OpenCL kernel_0.get_arg_name: {}", arg0_name);
+
+        let value = kernels[0].get_work_group_size(device.id()).unwrap();
+        println!("kernel.get_work_group_size(): {}", value);
+        // assert_eq!(256, value);
+
+        let value = kernels[0].get_compile_work_group_size(device.id()).unwrap();
+        println!("kernel.get_work_group_size(): {:?}", value);
+        assert_eq!(3, value.len());
+
+        let value = kernels[0].get_local_mem_size(device.id()).unwrap();
+        println!("kernel.get_local_mem_size(): {}", value);
+        // assert_eq!(1, value);
+
+        let value = kernels[0]
+            .get_work_group_size_multiple(device.id())
+            .unwrap();
+        println!("kernel.get_work_group_size_multiple(): {}", value);
+        // assert_eq!(32, value);
+
+        let value = kernels[0].get_private_mem_size(device.id()).unwrap();
+        println!("kernel.get_private_mem_size(): {}", value);
+        // assert_eq!(0, value);
     }
 }
