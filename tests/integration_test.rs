@@ -74,16 +74,8 @@ fn test_opencl_1_2_example() {
     let context = Context::from_device(&device).expect("Context::from_device failed");
 
     // Build the OpenCL program source and create the kernel.
-    let program = Program::create_from_source(&context, PROGRAM_SOURCE)
-        .expect("Program::create_from_source failed");
-    program
-        .build(context.devices(), "")
-        .expect("Program::build failed");
-
-    let build_log = program
-        .get_build_log(device.id())
-        .expect("Program::get_build_log failed");
-    println!("OpenCL Program build log: {}", build_log);
+    let program = Program::create_and_build_from_source(&context, PROGRAM_SOURCE, "")
+        .expect("Program::create_and_build_from_source failed");
 
     let kernel = Kernel::create(&program, KERNEL_NAME).expect("Kernel::create failed");
 
@@ -214,16 +206,8 @@ fn test_opencl_svm_example() {
         let context = Context::from_device(&device).expect("Context::from_device failed");
 
         // Build the OpenCL program source and create the kernel.
-        let program = Program::create_from_source(&context, PROGRAM_SOURCE)
-            .expect("Program::create_from_source failed");
-        program
-            .build(context.devices(), "")
-            .expect("Program::build failed");
-
-        let build_log = program
-            .get_build_log(device.id())
-            .expect("Program::get_build_log failed");
-        println!("OpenCL Program build log: {}", build_log);
+        let program = Program::create_and_build_from_source(&context, PROGRAM_SOURCE, "")
+            .expect("Program::create_and_build_from_source failed");
 
         let kernel = Kernel::create(&program, KERNEL_NAME).expect("Kernel::create failed");
 

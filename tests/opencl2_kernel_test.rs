@@ -20,7 +20,7 @@ use opencl3::context::Context;
 use opencl3::device::Device;
 use opencl3::kernel::{create_program_kernels, ExecuteKernel};
 use opencl3::platform::get_platforms;
-use opencl3::program::Program;
+use opencl3::program::{Program, CL_STD_2_0};
 use opencl3::svm::SvmVec;
 use opencl3::types::cl_int;
 use std::ptr;
@@ -56,7 +56,6 @@ kernel void inclusive_scan_int (global int* output,
     }
 }"#;
 
-const PROGRAM_BUILD_OPTIONS: &str = "-cl-std=CL2.0 ";
 const SUM_KERNEL_NAME: &str = "sum_int";
 const INCLUSIVE_SCAN_KERNEL_NAME: &str = "inclusive_scan_int";
 
@@ -107,16 +106,8 @@ fn test_opencl_2_kernel_example() {
         let context = Context::from_device(&device).expect("Context::from_device failed");
 
         // Build the OpenCL program source.
-        let program = Program::create_from_source(&context, PROGRAM_SOURCE)
-            .expect("Program::create_from_source failed");
-        program
-            .build(context.devices(), PROGRAM_BUILD_OPTIONS)
-            .expect("Program::build failed");
-
-        let build_log = program
-            .get_build_log(device.id())
-            .expect("Program::get_build_log failed");
-        println!("OpenCL Program build log: {}", build_log);
+        let program = Program::create_and_build_from_source(&context, PROGRAM_SOURCE, CL_STD_2_0)
+            .expect("Program::create_and_build_from_source failed");
 
         // Create the kernels from the OpenCL program source.
         let kernels = create_program_kernels(&program).unwrap();

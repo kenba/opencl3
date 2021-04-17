@@ -17,16 +17,68 @@ pub use cl3::program::*;
 use super::context::Context;
 
 use super::Result;
-use cl3::types::{cl_context, cl_device_id, cl_int, cl_program, cl_uchar, cl_uint};
 #[allow(unused_imports)]
-use libc::{c_char, c_void, intptr_t, size_t};
+use cl3::error_codes::CL_BUILD_PROGRAM_FAILURE;
+use cl3::types::{cl_context, cl_device_id, cl_int, cl_program, cl_uchar, cl_uint};
+use libc::{intptr_t, size_t};
 use std::ffi::{CStr, CString};
 use std::ptr;
+use std::result;
+
+// Compile, link and build options.
+// These options can be passed to Program::compile, Program::link or Program::build, see:
+// [Compiler Options](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#compiler-options)
+// [Linker Options](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#linker-options)
+// [Build Options](https://man.opencl.org/clBuildProgram.html)
+
+// Note: the options have a trailing space so that they can be concatenated.
+
+// Math Intrinsics Options
+pub const CL_SINGLE_RECISION_CONSTANT: &str = "-cl-single-precision-constant ";
+pub const CL_DENORMS_ARE_ZERO: &str = "-cl-denorms-are-zero ";
+pub const CL_FP_CORRECTLY_ROUNDED_DIVIDE_SQRT: &str = "-cl-fp32-correctly-rounded-divide-sqrt ";
+
+// Optimization Options
+pub const CL_OPT_DISABLE: &str = "-cl-opt-disable ";
+pub const CL_STRICT_ALIASING: &str = "-cl-strict-aliasing ";
+pub const CL_UNIFORM_WORK_GROUP_SIZE: &str = "-cl-uniform-work-group-size ";
+pub const CL_NO_SUBGROUP_INFO: &str = "-cl-no-subgroup-ifp ";
+pub const CL_MAD_ENABLE: &str = "-cl-mad-enable ";
+pub const CL_NO_SIGNED_ZEROS: &str = "-cl-no-signed-zeros ";
+pub const CL_UNSAFE_MATH_OPTIMIZATIONS: &str = "-cl-unsafe-math-optimizations ";
+pub const CL_FINITE_MATH_ONLY: &str = "-cl-finite-math-only ";
+pub const CL_FAST_RELAXED_MATH: &str = "-cl-fast-relaxed-math ";
+
+// OpenCL C version Options
+
+/// Applications are required to specify the -cl-std=CL2.0 build option to
+/// compile or build programs with OpenCL C 2.0.
+pub const CL_STD_2_0: &str = "-cl-std=CL2.0 ";
+
+/// Applications are required to specify the -cl-std=CL3.0 build option to
+/// compile or build programs with OpenCL C 3.0.
+pub const CL_STD_3_0: &str = "-cl-std=CL3.0 ";
+
+/// This option allows the compiler to store information about the
+/// arguments of kernels in the program executable.
+pub const CL_KERNEL_ARG_INFO: &str = "-cl-kernel-arg-info ";
+
+pub const DEBUG_OPTION: &str = "-g ";
+
+// Options enabled by the cl_khr_spir extension
+pub const BUILD_OPTION_X_SPIR: &str = "-x spir ";
+pub const BUILD_OPTION_SPIR_STD_1_2: &str = "-spir-std=1.2 ";
+
+// Link and build options.
+pub const CREATE_LIBRARY: &str = "-create-library ";
+pub const ENABLE_LINK_OPTIONS: &str = "-enable-link-options ";
 
 /// An OpenCL program object.  
+/// Stores the names of the OpenCL kernels in the program.
 /// Implements the Drop trait to call release_program when the object is dropped.
 pub struct Program {
     program: cl_program,
+    kernel_names: String,
 }
 
 impl Drop for Program {
@@ -36,13 +88,22 @@ impl Drop for Program {
 }
 
 impl Program {
-    fn new(program: cl_program) -> Program {
-        Program { program }
+    fn new(program: cl_program, kernel_names: &str) -> Program {
+        Program {
+            program,
+            kernel_names: kernel_names.to_owned(),
+        }
     }
 
     /// Get the underlying OpenCL cl_program.
     pub fn get(&self) -> cl_program {
         self.program
+    }
+
+    /// Get the names of the OpenCL kernels in the Program, in a string
+    /// separated by semicolons.
+    pub fn kernel_names(&self) -> &str {
+        &self.kernel_names
     }
 
     /// Create a Program for a context and load source code into that object.  
@@ -53,25 +114,25 @@ impl Program {
     /// returns a Result containing the new Program
     /// or the error code from the OpenCL C API function.
     pub fn create_from_sources(context: &Context, sources: &[&str]) -> Result<Program> {
-        Ok(Program::new(create_program_with_source(
-            context.get(),
-            sources,
-        )?))
+        Ok(Program::new(
+            create_program_with_source(context.get(), sources)?,
+            "",
+        ))
     }
 
     /// Create a Program for a context and load a source code string into that object.  
     ///
     /// * `context` - a valid OpenCL context.
-    /// * `source` - a str containing a source code string.
+    /// * `src` - a str containing a source code string.
     ///
     /// returns a Result containing the new Program
     /// or the error code from the OpenCL C API function.
     pub fn create_from_source(context: &Context, src: &str) -> Result<Program> {
         let sources = [src];
-        Ok(Program::new(create_program_with_source(
-            context.get(),
-            &sources,
-        )?))
+        Ok(Program::new(
+            create_program_with_source(context.get(), &sources)?,
+            "",
+        ))
     }
 
     /// Create a Program for a context and load binary bits into that object.  
@@ -87,11 +148,10 @@ impl Program {
         devices: &[cl_device_id],
         binaries: &[&[u8]],
     ) -> Result<Program> {
-        Ok(Program::new(create_program_with_binary(
-            context.get(),
-            devices,
-            binaries,
-        )?))
+        Ok(Program::new(
+            create_program_with_binary(context.get(), devices, binaries)?,
+            "",
+        ))
     }
 
     /// Create a Program for a context and  loads the information related to
@@ -111,11 +171,10 @@ impl Program {
         // Ensure options string is null terminated
         let c_names = CString::new(kernel_names)
             .expect("Program::create_from_builtin_kernels, invalid kernel_names");
-        Ok(Program::new(create_program_with_builtin_kernels(
-            context.get(),
-            devices,
-            &c_names,
-        )?))
+        Ok(Program::new(
+            create_program_with_builtin_kernels(context.get(), devices, &c_names)?,
+            kernel_names,
+        ))
     }
 
     /// Create a Program for a context and load code in an intermediate language
@@ -141,16 +200,101 @@ impl Program {
     ///
     /// returns a null Result
     /// or the error code from the OpenCL C API function.
-    pub fn build(&self, devices: &[cl_device_id], options: &str) -> Result<()> {
+    pub fn build(&mut self, devices: &[cl_device_id], options: &str) -> Result<()> {
         // Ensure options string is null terminated
         let c_options = CString::new(options).expect("Program::build, invalid options");
-        Ok(build_program(
-            self.program,
-            &devices,
-            &c_options,
-            None,
-            ptr::null_mut(),
+        build_program(self.program, &devices, &c_options, None, ptr::null_mut())?;
+        self.kernel_names = self.get_kernel_names()?;
+        Ok(())
+    }
+
+    /// Create and build an OpenCL Program from an array of source code strings
+    /// with the given options.  
+    ///
+    /// * `context` - a valid OpenCL context.
+    /// * `sources` - an array of strs containing the source code strings.
+    /// * `options` - the build options in a null-terminated string.
+    ///
+    /// returns a Result containing the new Program, the name of the error code
+    /// from the OpenCL C API function or the build log, if the build failed.
+    pub fn create_and_build_from_sources(
+        context: &Context,
+        sources: &[&str],
+        options: &str,
+    ) -> result::Result<Program, String> {
+        let mut program =
+            Program::create_from_sources(&context, sources).map_err(|e| e.to_string())?;
+        match program.build(context.devices(), options) {
+            Ok(_) => Ok(program),
+            Err(e) => {
+                if CL_BUILD_PROGRAM_FAILURE == e.0 {
+                    let log = program
+                        .get_build_log(context.devices()[0])
+                        .map_err(|e| e.to_string())?;
+                    Err(e.to_string() + ", build log: " + &log)
+                } else {
+                    Err(e.to_string())
+                }
+            }
+        }
+    }
+
+    /// Create and build an OpenCL Program from source code with the given options.  
+    ///
+    /// * `context` - a valid OpenCL context.
+    /// * `src` - a str containing a source code string.
+    /// * `options` - the build options in a null-terminated string.
+    ///
+    /// returns a Result containing the new Program, the name of the error code
+    /// from the OpenCL C API function or the build log, if the build failed.
+    pub fn create_and_build_from_source(
+        context: &Context,
+        src: &str,
+        options: &str,
+    ) -> result::Result<Program, String> {
+        let sources = [src];
+        Ok(Program::create_and_build_from_sources(
+            context, &sources, options,
         )?)
+    }
+
+    /// Create and build an OpenCL Program from binaries with the given options.  
+    ///
+    /// * `context` - a valid OpenCL context.
+    /// * `binaries` - a slice of program binaries slices.
+    /// * `options` - the build options in a null-terminated string.
+    ///
+    /// returns a Result containing the new Program
+    /// or the error code from the OpenCL C API function.
+    pub fn create_and_build_from_binary(
+        context: &Context,
+        binaries: &[&[u8]],
+        options: &str,
+    ) -> Result<Program> {
+        let mut program = Program::create_from_binary(&context, context.devices(), binaries)?;
+        program.build(context.devices(), options)?;
+        Ok(program)
+    }
+
+    /// Create and build an OpenCL Program from intermediate language with the
+    /// given options.  
+    /// CL_VERSION_2_1
+    ///
+    /// * `context` - a valid OpenCL context.
+    /// * `il` - a slice of program intermediate language code.
+    /// * `options` - the build options in a null-terminated string.
+    ///
+    /// returns a Result containing the new Program
+    /// or the error code from the OpenCL C API function.
+    #[cfg(feature = "CL_VERSION_2_1")]
+    pub fn create_and_build_from_il(
+        context: &Context,
+        il: &[u8],
+        options: &str,
+    ) -> Result<Program> {
+        let mut program = Program::create_from_il(&context, il)?;
+        program.build(context.devices(), options)?;
+        Ok(program)
     }
 
     /// Compile a program’s source for the devices the OpenCL context associated
@@ -164,7 +308,7 @@ impl Program {
     /// returns a null Result
     /// or the error code from the OpenCL C API function.
     pub fn compile(
-        &self,
+        &mut self,
         devices: &[cl_device_id],
         options: &str,
         input_headers: &[cl_program],
@@ -208,6 +352,7 @@ impl Program {
             None,
             ptr::null_mut(),
         )?;
+        self.kernel_names = self.get_kernel_names()?;
         Ok(())
     }
 
@@ -284,16 +429,35 @@ impl Program {
         Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_BINARIES)?.to_vec_vec_uchar())
     }
 
-    pub fn get_num_kernels(&self) -> Result<cl_uint> {
-        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_NUM_KERNELS)?.to_uint())
+    pub fn get_num_kernels(&self) -> Result<size_t> {
+        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_NUM_KERNELS)?.to_size())
     }
 
     pub fn get_kernel_names(&self) -> Result<String> {
         Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_KERNEL_NAMES)?.to_string())
     }
 
+    #[cfg(feature = "CL_VERSION_2_1")]
     pub fn get_program_il(&self) -> Result<String> {
         Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_IL)?.to_string())
+    }
+
+    #[cfg(feature = "CL_VERSION_2_2")]
+    pub fn get_program_scope_global_ctors_present(&self) -> Result<cl_uint> {
+        Ok(get_program_info(
+            self.program,
+            ProgramInfo::CL_PROGRAM_SCOPE_GLOBAL_CTORS_PRESENT,
+        )?
+        .to_uint())
+    }
+
+    #[cfg(feature = "CL_VERSION_2_2")]
+    pub fn get_program_scope_global_dtors_present(&self) -> Result<cl_uint> {
+        Ok(get_program_info(
+            self.program,
+            ProgramInfo::CL_PROGRAM_SCOPE_GLOBAL_DTORS_PRESENT,
+        )?
+        .to_uint())
     }
 
     pub fn get_build_status(&self, device: cl_device_id) -> Result<cl_int> {
@@ -330,6 +494,7 @@ impl Program {
         .to_uint())
     }
 
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn get_build_global_variable_total_size(&self, device: cl_device_id) -> Result<size_t> {
         Ok(get_program_build_info(
             self.program,
@@ -337,5 +502,108 @@ impl Program {
             ProgramBuildInfo::CL_PROGRAM_BUILD_GLOBAL_VARIABLE_TOTAL_SIZE,
         )?
         .to_size())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::context::Context;
+    use crate::device::Device;
+    use crate::platform::get_platforms;
+    use cl3::device::CL_DEVICE_TYPE_GPU;
+    use std::collections::HashSet;
+
+    const PROGRAM_SOURCE: &str = r#"
+        kernel void add(global float* buffer, float scalar) {
+            buffer[get_global_id(0)] += scalar;
+        }
+
+        kernel void subtract(global float* buffer, float scalar) {
+            buffer[get_global_id(0)] -= scalar;
+        }
+    "#;
+
+    #[test]
+    fn test_create_and_build_from_source() {
+        let platforms = get_platforms().unwrap();
+        assert!(0 < platforms.len());
+
+        // Get the first platform
+        let platform = &platforms[0];
+
+        let devices = platform.get_devices(CL_DEVICE_TYPE_GPU).unwrap();
+        assert!(0 < devices.len());
+
+        // Get the first device
+        let device = Device::new(devices[0]);
+        let context = Context::from_device(&device).unwrap();
+
+        let program =
+            Program::create_and_build_from_source(&context, PROGRAM_SOURCE, CL_DENORMS_ARE_ZERO)
+                .expect("Program::create_and_build_from_source failed");
+
+        let names: HashSet<&str> = program.kernel_names().split(';').collect();
+        println!("OpenCL Program kernel_names len: {}", names.len());
+        println!("OpenCL Program kernel_names: {:?}", names);
+
+        let value = program.get_reference_count().unwrap();
+        println!("program.get_reference_count(): {}", value);
+        assert_eq!(1, value);
+
+        let value = program.get_context().unwrap();
+        assert!(context.get() == value);
+
+        let value = program.get_num_devices().unwrap();
+        println!("program.get_num_devices(): {}", value);
+        assert_eq!(1, value);
+
+        let value = program.get_devices().unwrap();
+        assert!(device.id() == value[0] as cl_device_id);
+
+        let value = program.get_source().unwrap();
+        println!("program.get_source(): {}", value);
+        assert!(!value.is_empty());
+
+        let value = program.get_binary_sizes().unwrap();
+        println!("program.get_binary_sizes(): {:?}", value);
+        assert!(0 < value[0]);
+
+        let value = program.get_binaries().unwrap();
+        // println!("program.get_binaries(): {:?}", value);
+        assert!(!value[0].is_empty());
+
+        let value = program.get_num_kernels().unwrap();
+        println!("program.get_num_kernels(): {}", value);
+        assert_eq!(2, value);
+
+        // let value = program.get_program_il().unwrap();
+        // println!("program.get_program_il(): {:?}", value);
+        // assert!(!value.is_empty());
+
+        let value = program.get_build_status(device.id()).unwrap();
+        println!("program.get_build_status(): {}", value);
+        assert!(CL_BUILD_SUCCESS == value);
+
+        let value = program.get_build_options(device.id()).unwrap();
+        println!("program.get_build_options(): {}", value);
+        assert!(!value.is_empty());
+
+        let value = program.get_build_log(device.id()).unwrap();
+        println!("program.get_build_log(): {}", value);
+        assert!(!value.is_empty());
+
+        let value = program.get_build_binary_type(device.id()).unwrap();
+        println!("program.get_build_binary_type(): {}", value);
+        assert_eq!(CL_PROGRAM_BINARY_TYPE_EXECUTABLE as u32, value);
+
+        // CL_VERSION_2_0 value
+        match program.get_build_global_variable_total_size(device.id()) {
+            Ok(value) => println!("program.get_build_global_variable_total_size(): {}", value),
+            Err(e) => println!(
+                "OpenCL error, program.get_build_global_variable_total_size(): {}",
+                e
+            ),
+        };
     }
 }
