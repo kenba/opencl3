@@ -934,9 +934,11 @@ mod tests {
         println!("queue.properties(): {:X}", value);
         // assert_eq!(2, value);
 
-        let value = queue.size().unwrap();
-        println!("queue.size(): {}", value);
-        // assert_eq!(2, value);
+        // CL_VERSION_2_0 value
+        match queue.size() {
+            Ok(value) => println!("queue.size(): {:?}", value),
+            Err(e) => println!("OpenCL error, queue.size(): {}", e),
+        }
 
         // CL_VERSION_2_1 value
         match queue.device_default() {
