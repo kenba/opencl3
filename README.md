@@ -39,9 +39,85 @@ OpenCL 2.x and 3.0 optional features include:
 * atomics
 * and a generic address space,
 
-## Design
+## Example
 
-See the crate [documentation](https://docs.rs/opencl3/).
+The tests provide examples of how the crate may be used, e.g. see:
+[platform](https://github.com/kenba/opencl3/tree/main/src/platform.rs),
+[device](https://github.com/kenba/opencl3/tree/main/src/device.rs),
+[context](https://github.com/kenba/opencl3/tree/main/src/context.rs),
+[integration_test](https://github.com/kenba/opencl3/tree/main/tests/integration_test.rs) and
+[opencl2_kernel_test](https://github.com/kenba/opencl3/tree/main/tests/opencl2_kernel_test.rs).
+
+The library is designed to support events and OpenCL 2 features such as Shared Virtual Memory (SVM) and kernel built-in work-group functions, e.g.:
+
+```rust no-run
+const PROGRAM_SOURCE: &str = r#"
+kernel void inclusive_scan_int (global int* output,
+                                global int const* values)
+{
+    int sum = 0;
+    size_t lid = get_local_id(0);
+    size_t lsize = get_local_size(0);
+
+    size_t num_groups = get_num_groups(0);
+    for (size_t i = 0u; i < num_groups; ++i)
+    {
+        size_t lidx = i * lsize + lid;
+        int value = work_group_scan_inclusive_add(values[lidx]);
+        output[lidx] = sum + value;
+
+        sum += work_group_broadcast(value, lsize - 1);
+    }
+}"#;
+
+const KERNEL_NAME: &str = "inclusive_scan_int";
+
+// Create a Context on an OpenCL device
+let context = Context::from_device(&device).expect("Context::from_device failed");
+
+// Build the OpenCL program source and create the kernel.
+let program = Program::create_and_build_from_source(&context, PROGRAM_SOURCE, CL_STD_2_0)
+    .expect("Program::create_and_build_from_source failed");
+let kernel = Kernel::create(&program, KERNEL_NAME).expect("Kernel::create failed");
+
+// Create a command_queue on the Context's device
+let queue = CommandQueue::create_with_properties(
+    &context,
+    context.default_device(),
+    CL_QUEUE_PROFILING_ENABLE,
+    0,
+)
+.expect("CommandQueue::create_with_properties failed");
+
+// The input data
+const ARRAY_SIZE: usize = 8;
+let value_array: [cl_int; ARRAY_SIZE] = [3, 2, 5, 9, 7, 1, 4, 2];
+
+// Copy input data into an OpenCL SVM vector
+let mut test_values = SvmVec::<cl_int>::with_capacity(&context, svm_capability, ARRAY_SIZE);
+for &val in value_array.iter() {
+    test_values.push(val);
+}
+
+// The output data, an OpenCL SVM vector
+let mut results =
+    SvmVec::<cl_int>::with_capacity_zeroed(&context, svm_capability, ARRAY_SIZE);
+unsafe { results.set_len(ARRAY_SIZE) };
+
+// Run the kernel on the input data
+let kernel_event = ExecuteKernel::new(kernel)
+    .set_arg_svm(results.as_mut_ptr())
+    .set_arg_svm(test_values.as_ptr())
+    .set_global_work_size(ARRAY_SIZE)
+    .enqueue_nd_range(&queue)
+    .unwrap();
+
+// Wait for the kernel to complete execution on the device
+kernel_event.wait().unwrap();
+
+// Can access OpenCL SVM directly, no need to map or read the results
+println!("sum results: {:?}", results);
+```
 
 ## Use
 
@@ -54,7 +130,7 @@ OpenCL 2.0 ICD loader then add the following to your project's `Cargo.toml`:
 
 ```toml
 [dependencies]
-opencl3 = "0.1"
+opencl3 = "0.2"
 ```
 
 If your OpenCL ICD loader supports higher versions of OpenCL then add the
@@ -63,7 +139,7 @@ following to your project's `Cargo.toml` instead:
 
 ```toml
 [dependencies.opencl3]
-version = "0.1"
+version = "0.2"
 features = ["CL_VERSION_2_1", "CL_VERSION_2_2"]
 ```
 
@@ -71,6 +147,32 @@ For examples on how to use the library see the integration tests in
 [integration_test.rs](https://github.com/kenba/opencl3/tree/main/tests/integration_test.rs)
 
 See [OpenCL Description](https://github.com/kenba/opencl3/tree/main/docs/opencl_description.md) for background on using OpenCL.
+
+## Recent changes
+
+The API has changed considerably since version `0.1` of the library, with the
+aim of making the library more consistent and easier to use.
+
+The biggest change is that [Context](src/context.rs) no longer contains:
+Programs, Kernels and Command Queues.  
+They must now be built separately, as shown in the example above.
+
+Note; it is now recommended to call the `Program::create_and_build_from_*` methods
+to build programs since they will return the build log if there is a build failure.
+
+The OpenCL function calls now return an error type with a Display trait that
+shows the *name* of the OpenCL error, not just its number.
+
+The `Event` API now returns `CommandExecutionStatus` and `EventCommandType`
+which also use the Display trait to display their names.
+
+The API for `memory` structs: `Buffer`, `Image` and `Pipe` have been unified
+using the `ClMem` trait object.
+
+## Design
+
+Nearly all the structs implement the `Drop` trait to release their corresponding
+OpenCL objects, see the crate [documentation](https://docs.rs/opencl3/).
 
 ## Tests
 
@@ -90,68 +192,6 @@ run them:
 
 ```shell
 cargo test -- --test-threads=1 --show-output --ignored
-```
-
-## Examples
-
-The tests provide examples of how the crate may be used, e.g. see:
-[platform](https://github.com/kenba/opencl3/tree/main/src/platform.rs),
-[device](https://github.com/kenba/opencl3/tree/main/src/device.rs),
-[context](https://github.com/kenba/opencl3/tree/main/src/context.rs),
-[integration_test](https://github.com/kenba/opencl3/tree/main/tests/integration_test.rs) and
-[opencl2_kernel_test](https://github.com/kenba/opencl3/tree/main/tests/opencl2_kernel_test.rs).
-
-The library is designed to support events and OpenCL 2 features such as Shared Virtual Memory (SVM) and kernel built-in work-group functions, e.g.:
-
-```rust no-run
-// Create OpenCL context from the OpenCL 2 device
-// and an OpenCL command queue for the device
-let mut context = Context::from_device(device).unwrap();
-context.create_command_queues_with_properties(0, 0).unwrap();
-
-// Build the OpenCL 2.0 program source and create the kernels.
-let src = CString::new(PROGRAM_SOURCE).unwrap();
-let options = CString::new(PROGRAM_BUILD_OPTIONS).unwrap();
-context.build_program_from_source(&src, &options).unwrap();
-
-// Get the svm capability of all the devices in the context.
-let svm_capability = context.get_svm_mem_capability();
-
-// The input data
-const ARRAY_SIZE: usize = 8;
-let value_array: [cl_int; ARRAY_SIZE] = [3, 2, 5, 9, 7, 1, 4, 2];
-
-// Copy input data into an OpenCL SVM vector
-let mut test_values = SvmVec::<cl_int>::with_capacity(&context, svm_capability, ARRAY_SIZE);
-for &val in value_array.iter() {
-    test_values.push(val);
-}
-
-// The output data, an OpenCL SVM vector
-let mut results =
-    SvmVec::<cl_int>::with_capacity_zeroed(&context, svm_capability, ARRAY_SIZE);
-unsafe { results.set_len(ARRAY_SIZE) };
-
-// Get the command queue for the device
-let queue = context.default_queue();
-
-// Run the inclusive scan kernel on the input data
-let inclusive_scan_kernel_name = CString::new(INCLUSIVE_SCAN_KERNEL_NAME).unwrap();
-if let Some(inclusive_scan_kernel) = context.get_kernel(&inclusive_scan_kernel_name) {
-    // No need to write or map the data before enqueueing the kernel
-    let kernel_event = ExecuteKernel::new(inclusive_scan_kernel)
-        .set_arg_svm(results.as_mut_ptr())
-        .set_arg_svm(test_values.as_ptr())
-        .set_global_work_size(ARRAY_SIZE)
-        .enqueue_nd_range(&queue)
-        .unwrap();
-
-    // Wait for the kernel to complete execution on the device
-    kernel_event.wait().unwrap();
-
-    // Can access OpenCL SVM directly, no need to map or read the results
-    println!("sum results: {:?}", results);
-}
 ```
 
 ## License
