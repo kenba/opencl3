@@ -469,11 +469,11 @@ impl<'a> ExecuteKernel<'a> {
 
     /// Set an event for the event_wait_list in a call to clEnqueueNDRangeKernel.  
     ///
-    /// * `event` - the cl_event to add to the event_wait_list.
+    /// * `event` - the Event to add to the event_wait_list.
     ///
     /// returns a reference to self.
-    pub fn set_wait_event<'b>(&'b mut self, event: cl_event) -> &'b mut Self {
-        self.event_wait_list.push(event);
+    pub fn set_wait_event<'b>(&'b mut self, event: &Event) -> &'b mut Self {
+        self.event_wait_list.push(event.get());
         self
     }
 

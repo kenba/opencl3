@@ -131,7 +131,7 @@ fn test_opencl_1_2_example() {
         .set_arg(&y)
         .set_arg(&a)
         .set_global_work_size(ARRAY_SIZE)
-        .set_wait_event(y_write_event.get())
+        .set_wait_event(&y_write_event)
         .enqueue_nd_range(&queue)
         .unwrap();
     events.push(kernel_event.get());
