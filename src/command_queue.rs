@@ -18,7 +18,7 @@ use super::context::Context;
 
 use super::device::Device;
 use super::event::Event;
-use super::memory::Buffer;
+use super::memory::*;
 use super::Result;
 
 use cl3::types::{
@@ -346,7 +346,7 @@ impl CommandQueue {
 
     pub fn enqueue_read_image(
         &self,
-        image: cl_mem,
+        image: &Image,
         blocking_read: cl_bool,
         origin: *const size_t,
         region: *const size_t,
@@ -357,7 +357,7 @@ impl CommandQueue {
     ) -> Result<Event> {
         let event = enqueue_read_image(
             self.queue,
-            image,
+            image.get(),
             blocking_read,
             origin,
             region,
@@ -376,7 +376,7 @@ impl CommandQueue {
 
     pub fn enqueue_write_image(
         &self,
-        image: cl_mem,
+        image: &Image,
         blocking_write: cl_bool,
         origin: *const size_t,
         region: *const size_t,
@@ -387,7 +387,7 @@ impl CommandQueue {
     ) -> Result<Event> {
         let event = enqueue_write_image(
             self.queue,
-            image,
+            image.get(),
             blocking_write,
             origin,
             region,
@@ -406,7 +406,7 @@ impl CommandQueue {
 
     pub fn enqueue_fill_image(
         &self,
-        image: cl_mem,
+        image: &Image,
         fill_color: *const c_void,
         origin: *const size_t,
         region: *const size_t,
@@ -414,7 +414,7 @@ impl CommandQueue {
     ) -> Result<Event> {
         let event = enqueue_fill_image(
             self.queue,
-            image,
+            image.get(),
             fill_color,
             origin,
             region,
@@ -430,8 +430,8 @@ impl CommandQueue {
 
     pub fn enqueue_copy_image(
         &self,
-        src_image: cl_mem,
-        dst_image: cl_mem,
+        src_image: &Image,
+        dst_image: &Image,
         src_origin: *const size_t,
         dst_origin: *const size_t,
         region: *const size_t,
@@ -439,8 +439,8 @@ impl CommandQueue {
     ) -> Result<Event> {
         let event = enqueue_copy_image(
             self.queue,
-            src_image,
-            dst_image,
+            src_image.get(),
+            dst_image.get(),
             src_origin,
             dst_origin,
             region,
@@ -454,10 +454,10 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_copy_image_to_buffer(
+    pub fn enqueue_copy_image_to_buffer<T>(
         &self,
-        src_image: cl_mem,
-        dst_buffer: cl_mem,
+        src_image: &Image,
+        dst_buffer: &Buffer<T>,
         src_origin: *const size_t,
         region: *const size_t,
         dst_offset: size_t,
@@ -465,8 +465,8 @@ impl CommandQueue {
     ) -> Result<Event> {
         let event = enqueue_copy_image_to_buffer(
             self.queue,
-            src_image,
-            dst_buffer,
+            src_image.get(),
+            dst_buffer.get(),
             src_origin,
             region,
             dst_offset,
@@ -480,10 +480,10 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_copy_buffer_to_image(
+    pub fn enqueue_copy_buffer_to_image<T>(
         &self,
-        src_buffer: cl_mem,
-        dst_image: cl_mem,
+        src_buffer: &Buffer<T>,
+        dst_image: &Image,
         src_offset: size_t,
         dst_origin: *const size_t,
         region: *const size_t,
@@ -491,8 +491,8 @@ impl CommandQueue {
     ) -> Result<Event> {
         let event = enqueue_copy_buffer_to_image(
             self.queue,
-            src_buffer,
-            dst_image,
+            src_buffer.get(),
+            dst_image.get(),
             src_offset,
             dst_origin,
             region,
@@ -506,9 +506,9 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_map_buffer(
+    pub fn enqueue_map_buffer<T>(
         &self,
-        buffer: cl_mem,
+        buffer: &Buffer<T>,
         blocking_map: cl_bool,
         map_flags: cl_map_flags,
         offset: size_t,
@@ -518,7 +518,7 @@ impl CommandQueue {
     ) -> Result<Event> {
         let event = enqueue_map_buffer(
             self.queue,
-            buffer,
+            buffer.get(),
             blocking_map,
             map_flags,
             offset,
@@ -536,7 +536,7 @@ impl CommandQueue {
 
     pub fn enqueue_map_image(
         &self,
-        image: cl_mem,
+        image: &Image,
         blocking_map: cl_bool,
         map_flags: cl_map_flags,
         origin: *const size_t,
@@ -548,7 +548,7 @@ impl CommandQueue {
     ) -> Result<Event> {
         let event = enqueue_map_image(
             self.queue,
-            image,
+            image.get(),
             blocking_map,
             map_flags,
             origin,
