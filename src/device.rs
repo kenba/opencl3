@@ -13,6 +13,7 @@
 // limitations under the License.
 
 pub use cl3::device::*;
+pub use cl3::ffi::cl_ext::cl_amd_device_topology;
 
 use super::Result;
 use cl3::types::{
@@ -636,6 +637,26 @@ impl Device {
         .to_uint())
     }
 
+    pub fn uuid_khr(&self) -> Result<Vec<u8>> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_UUID_KHR)?.to_vec_uchar())
+    }
+
+    pub fn driver_uuid_khr(&self) -> Result<Vec<u8>> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DRIVER_UUID_KHR)?.to_vec_uchar())
+    }
+
+    pub fn luid_valid_khr(&self) -> Result<cl_uint> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_LUID_VALID_KHR)?.to_uint())
+    }
+
+    pub fn luid_khr(&self) -> Result<Vec<u8>> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_LUID_KHR)?.to_vec_uchar())
+    }
+
+    pub fn node_mask_khr(&self) -> Result<cl_uint> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NODE_MASK_KHR)?.to_uint())
+    }
+
     pub fn opencl_c_features(&self) -> Result<Vec<cl_name_version>> {
         Ok(
             get_device_info(self.id(), DeviceInfo::CL_DEVICE_OPENCL_C_FEATURES)?
@@ -660,6 +681,158 @@ impl Device {
             DeviceInfo::CL_DEVICE_LATEST_CONFORMANCE_VERSION_PASSED,
         )?
         .to_string())
+    }
+
+    pub fn compute_capability_major_nv(&self) -> Result<cl_uint> {
+        Ok(
+            get_device_info(self.id(), DeviceInfo::CL_DEVICE_COMPUTE_CAPABILITY_MAJOR_NV)?
+                .to_uint(),
+        )
+    }
+
+    pub fn compute_capability_minor_nv(&self) -> Result<cl_uint> {
+        Ok(
+            get_device_info(self.id(), DeviceInfo::CL_DEVICE_COMPUTE_CAPABILITY_MINOR_NV)?
+                .to_uint(),
+        )
+    }
+
+    pub fn registers_per_block_nv(&self) -> Result<cl_uint> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_REGISTERS_PER_BLOCK_NV)?.to_uint())
+    }
+
+    pub fn wrap_size_nv(&self) -> Result<cl_uint> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_WARP_SIZE_NV)?.to_uint())
+    }
+
+    pub fn gpu_overlap_nv(&self) -> Result<cl_uint> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_GPU_OVERLAP_NV)?.to_uint())
+    }
+
+    pub fn compute_kernel_exec_timeout_nv(&self) -> Result<cl_uint> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_KERNEL_EXEC_TIMEOUT_NV)?.to_uint())
+    }
+
+    pub fn integrated_memory_nv(&self) -> Result<cl_uint> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_INTEGRATED_MEMORY_NV)?.to_uint())
+    }
+
+    pub fn pci_bus_id_nv(&self) -> Result<cl_uint> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PCI_BUS_ID_NV)?.to_uint())
+    }
+
+    pub fn pci_slot_id_nv(&self) -> Result<cl_uint> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PCI_SLOT_ID_NV)?.to_uint())
+    }
+
+    pub fn profiling_timer_offset_amd(&self) -> Result<size_t> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PROFILING_TIMER_OFFSET_AMD)?.to_size())
+    }
+
+    pub fn topology_amd(&self) -> Result<cl_amd_device_topology> {
+        let value = get_device_info(self.id(), DeviceInfo::CL_DEVICE_TOPOLOGY_AMD)?.to_vec_uchar();
+        Ok(get_amd_device_topology(&value))
+    }
+
+    pub fn pci_bus_id_amd(&self) -> Result<cl_uint> {
+        let value = self.topology_amd()?;
+        Ok(value.bus as cl_uint)
+    }
+
+    pub fn board_name_amd(&self) -> Result<String> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_BOARD_NAME_AMD)?.to_string())
+    }
+
+    pub fn global_free_memory_amd(&self) -> Result<size_t> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_GLOBAL_FREE_MEMORY_AMD)?.to_size())
+    }
+
+    pub fn simd_per_compute_unit_amd(&self) -> Result<cl_uint> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_SIMD_PER_COMPUTE_UNIT_AMD)?.to_uint())
+    }
+
+    pub fn simd_width_amd(&self) -> Result<cl_uint> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_SIMD_WIDTH_AMD)?.to_uint())
+    }
+
+    pub fn simd_instruction_width_amd(&self) -> Result<cl_uint> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_SIMD_INSTRUCTION_WIDTH_AMD)?.to_uint())
+    }
+
+    pub fn wavefront_width_amd(&self) -> Result<cl_uint> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_WAVEFRONT_WIDTH_AMD)?.to_uint())
+    }
+
+    pub fn global_mem_channels_amd(&self) -> Result<cl_uint> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_GLOBAL_MEM_CHANNELS_AMD)?.to_uint())
+    }
+
+    pub fn global_mem_channel_banks_amd(&self) -> Result<cl_uint> {
+        Ok(get_device_info(
+            self.id(),
+            DeviceInfo::CL_DEVICE_GLOBAL_MEM_CHANNEL_BANKS_AMD,
+        )?
+        .to_uint())
+    }
+
+    pub fn global_mem_channel_bank_width_amd(&self) -> Result<cl_uint> {
+        Ok(get_device_info(
+            self.id(),
+            DeviceInfo::CL_DEVICE_GLOBAL_MEM_CHANNEL_BANK_WIDTH_AMD,
+        )?
+        .to_uint())
+    }
+
+    pub fn local_mem_size_per_compute_unit_amd(&self) -> Result<cl_uint> {
+        Ok(get_device_info(
+            self.id(),
+            DeviceInfo::CL_DEVICE_LOCAL_MEM_SIZE_PER_COMPUTE_UNIT_AMD,
+        )?
+        .to_uint())
+    }
+
+    pub fn local_mem_banks_amd(&self) -> Result<cl_uint> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_LOCAL_MEM_BANKS_AMD)?.to_uint())
+    }
+
+    pub fn thread_trace_supported_amd(&self) -> Result<cl_uint> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_THREAD_TRACE_SUPPORTED_AMD)?.to_uint())
+    }
+
+    pub fn gfxip_major_amd(&self) -> Result<cl_uint> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_GFXIP_MAJOR_AMD)?.to_uint())
+    }
+
+    pub fn gfxip_minor_amd(&self) -> Result<cl_uint> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_GFXIP_MINOR_AMD)?.to_uint())
+    }
+
+    pub fn available_async_queues_amd(&self) -> Result<cl_uint> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_AVAILABLE_ASYNC_QUEUES_AMD)?.to_uint())
+    }
+
+    pub fn preferred_work_group_size_amd(&self) -> Result<size_t> {
+        Ok(get_device_info(
+            self.id(),
+            DeviceInfo::CL_DEVICE_PREFERRED_WORK_GROUP_SIZE_AMD,
+        )?
+        .to_size())
+    }
+
+    pub fn max_work_group_size_amd(&self) -> Result<size_t> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_WORK_GROUP_SIZE_AMD)?.to_size())
+    }
+
+    pub fn preferred_constant_buffer_size_amd(&self) -> Result<size_t> {
+        Ok(get_device_info(
+            self.id(),
+            DeviceInfo::CL_DEVICE_PREFERRED_CONSTANT_BUFFER_SIZE_AMD,
+        )?
+        .to_size())
+    }
+
+    pub fn pcie_id_amd(&self) -> Result<cl_uint> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PCIE_ID_AMD)?.to_uint())
     }
 
     /// Determine if the device supports the given half floating point capability.  
@@ -1390,6 +1563,41 @@ mod tests {
             ),
         };
 
+        match device.uuid_khr() {
+            Ok(value) => {
+                println!("CL_DEVICE_UUID_KHR: {:?}", value)
+            }
+            Err(e) => println!("OpenCL error, CL_DEVICE_UUID_KHR: {:?}, {}", e, e),
+        };
+
+        match device.driver_uuid_khr() {
+            Ok(value) => {
+                println!("CL_DRIVER_UUID_KHR: {:?}", value)
+            }
+            Err(e) => println!("OpenCL error, CL_DRIVER_UUID_KHR: {:?}, {}", e, e),
+        };
+
+        match device.luid_valid_khr() {
+            Ok(value) => {
+                println!("CL_DEVICE_LUID_VALID_KHR: {}", value)
+            }
+            Err(e) => println!("OpenCL error, CL_DEVICE_LUID_VALID_KHR: {:?}, {}", e, e),
+        };
+
+        match device.luid_khr() {
+            Ok(value) => {
+                println!("CL_DEVICE_LUID_KHR: {:?}", value)
+            }
+            Err(e) => println!("OpenCL error, CL_DEVICE_LUID_KHR: {:?}, {}", e, e),
+        };
+
+        match device.node_mask_khr() {
+            Ok(value) => {
+                println!("CL_DEVICE_NODE_MASK_KHR: {}", value)
+            }
+            Err(e) => println!("OpenCL error, CL_DEVICE_NODE_MASK_KHR: {:?}, {}", e, e),
+        };
+
         match device.opencl_c_features() {
             Ok(value) => {
                 println!("CL_DEVICE_OPENCL_C_FEATURES: {:?}", value)
@@ -1422,6 +1630,276 @@ mod tests {
                 "OpenCL error, CL_DEVICE_LATEST_CONFORMANCE_VERSION_PASSED: {:?}, {}",
                 e, e
             ),
+        };
+
+        match device.compute_capability_major_nv() {
+            Ok(value) => {
+                println!("CL_DEVICE_COMPUTE_CAPABILITY_MAJOR_NV: {}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_COMPUTE_CAPABILITY_MAJOR_NV: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.compute_capability_minor_nv() {
+            Ok(value) => {
+                println!("CL_DEVICE_COMPUTE_CAPABILITY_MINOR_NV: {}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_COMPUTE_CAPABILITY_MINOR_NV: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.registers_per_block_nv() {
+            Ok(value) => {
+                println!("CL_DEVICE_REGISTERS_PER_BLOCK_NV: {}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_REGISTERS_PER_BLOCK_NV: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.wrap_size_nv() {
+            Ok(value) => {
+                println!("CL_DEVICE_WARP_SIZE_NV: {}", value)
+            }
+            Err(e) => println!("OpenCL error, CL_DEVICE_WARP_SIZE_NV: {:?}, {}", e, e),
+        };
+
+        match device.gpu_overlap_nv() {
+            Ok(value) => {
+                println!("CL_DEVICE_GPU_OVERLAP_NV: {}", value)
+            }
+            Err(e) => println!("OpenCL error, CL_DEVICE_GPU_OVERLAP_NV: {:?}, {}", e, e),
+        };
+
+        match device.compute_kernel_exec_timeout_nv() {
+            Ok(value) => {
+                println!("CL_DEVICE_KERNEL_EXEC_TIMEOUT_NV: {}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_KERNEL_EXEC_TIMEOUT_NV: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.integrated_memory_nv() {
+            Ok(value) => {
+                println!("CL_DEVICE_INTEGRATED_MEMORY_NV: {}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_INTEGRATED_MEMORY_NV: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.pci_bus_id_nv() {
+            Ok(value) => {
+                println!("CL_DEVICE_PCI_BUS_ID_NV: {}", value)
+            }
+            Err(e) => println!("OpenCL error, CL_DEVICE_PCI_BUS_ID_NV: {:?}, {}", e, e),
+        };
+
+        match device.profiling_timer_offset_amd() {
+            Ok(value) => {
+                println!("CL_DEVICE_PROFILING_TIMER_OFFSET_AMD: {}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_PROFILING_TIMER_OFFSET_AMD: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.topology_amd() {
+            Ok(value) => {
+                println!("CL_DEVICE_TOPOLOGY_AMD: {:?}", value)
+            }
+            Err(e) => println!("OpenCL error, CL_DEVICE_TOPOLOGY_AMD: {:?}, {}", e, e),
+        };
+
+        match device.pci_bus_id_amd() {
+            Ok(value) => {
+                println!("pci_bus_id_amd: {}", value)
+            }
+            Err(e) => println!("OpenCL error, pci_bus_id_amd: {:?}, {}", e, e),
+        };
+
+        match device.board_name_amd() {
+            Ok(value) => {
+                println!("CL_DEVICE_BOARD_NAME_AMD: {}", value)
+            }
+            Err(e) => println!("OpenCL error, CL_DEVICE_BOARD_NAME_AMD: {:?}, {}", e, e),
+        };
+
+        match device.global_free_memory_amd() {
+            Ok(value) => {
+                println!("CL_DEVICE_GLOBAL_FREE_MEMORY_AMD: {}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_GLOBAL_FREE_MEMORY_AMD: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.simd_per_compute_unit_amd() {
+            Ok(value) => {
+                println!("CL_DEVICE_SIMD_PER_COMPUTE_UNIT_AMD: {}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_SIMD_PER_COMPUTE_UNIT_AMD: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.simd_width_amd() {
+            Ok(value) => {
+                println!("CL_DEVICE_SIMD_WIDTH_AMD: {}", value)
+            }
+            Err(e) => println!("OpenCL error, CL_DEVICE_SIMD_WIDTH_AMD: {:?}, {}", e, e),
+        };
+
+        match device.simd_instruction_width_amd() {
+            Ok(value) => {
+                println!("CL_DEVICE_SIMD_INSTRUCTION_WIDTH_AMD: {}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_SIMD_INSTRUCTION_WIDTH_AMD: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.wavefront_width_amd() {
+            Ok(value) => {
+                println!("CL_DEVICE_WAVEFRONT_WIDTH_AMD: {}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_WAVEFRONT_WIDTH_AMD: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.global_mem_channels_amd() {
+            Ok(value) => {
+                println!("CL_DEVICE_GLOBAL_MEM_CHANNELS_AMD: {}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_GLOBAL_MEM_CHANNELS_AMD: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.global_mem_channel_banks_amd() {
+            Ok(value) => {
+                println!("CL_DEVICE_GLOBAL_MEM_CHANNEL_BANKS_AMD: {}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_GLOBAL_MEM_CHANNEL_BANKS_AMD: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.global_mem_channel_bank_width_amd() {
+            Ok(value) => {
+                println!("CL_DEVICE_GLOBAL_MEM_CHANNEL_BANK_WIDTH_AMD: {}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_GLOBAL_MEM_CHANNEL_BANK_WIDTH_AMD: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.local_mem_size_per_compute_unit_amd() {
+            Ok(value) => {
+                println!("CL_DEVICE_LOCAL_MEM_SIZE_PER_COMPUTE_UNIT_AMD: {}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_LOCAL_MEM_SIZE_PER_COMPUTE_UNIT_AMD: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.local_mem_banks_amd() {
+            Ok(value) => {
+                println!("CL_DEVICE_LOCAL_MEM_BANKS_AMD: {}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_LOCAL_MEM_BANKS_AMD: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.thread_trace_supported_amd() {
+            Ok(value) => {
+                println!("CL_DEVICE_THREAD_TRACE_SUPPORTED_AMD: {}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_THREAD_TRACE_SUPPORTED_AMD: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.gfxip_major_amd() {
+            Ok(value) => {
+                println!("CL_DEVICE_GFXIP_MAJOR_AMD: {}", value)
+            }
+            Err(e) => println!("OpenCL error, CL_DEVICE_GFXIP_MAJOR_AMD: {:?}, {}", e, e),
+        };
+
+        match device.gfxip_minor_amd() {
+            Ok(value) => {
+                println!("CL_DEVICE_GFXIP_MINOR_AMD: {}", value)
+            }
+            Err(e) => println!("OpenCL error, CL_DEVICE_GFXIP_MINOR_AMD: {:?}, {}", e, e),
+        };
+
+        match device.available_async_queues_amd() {
+            Ok(value) => {
+                println!("CL_DEVICE_AVAILABLE_ASYNC_QUEUES_AMD: {}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_AVAILABLE_ASYNC_QUEUES_AMD: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.preferred_work_group_size_amd() {
+            Ok(value) => {
+                println!("CL_DEVICE_PREFERRED_WORK_GROUP_SIZE_AMD: {}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_PREFERRED_WORK_GROUP_SIZE_AMD: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.max_work_group_size_amd() {
+            Ok(value) => {
+                println!("CL_DEVICE_MAX_WORK_GROUP_SIZE_AMD: {}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_MAX_WORK_GROUP_SIZE_AMD: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.preferred_constant_buffer_size_amd() {
+            Ok(value) => {
+                println!("CL_DEVICE_PREFERRED_CONSTANT_BUFFER_SIZE_AMD: {}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_PREFERRED_CONSTANT_BUFFER_SIZE_AMD: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.pcie_id_amd() {
+            Ok(value) => {
+                println!("CL_DEVICE_PCIE_ID_AMD: {}", value)
+            }
+            Err(e) => println!("OpenCL error, CL_DEVICE_PCIE_ID_AMD: {:?}, {}", e, e),
         };
     }
 }
