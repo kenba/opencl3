@@ -19,6 +19,8 @@ pub use cl3::memory::*;
 use super::context::Context;
 
 use super::Result;
+#[allow(unused_imports)]
+use cl3::egl;
 use cl3::gl;
 use cl3::memory;
 use cl3::sampler;
@@ -400,6 +402,32 @@ impl Image {
     ) -> Result<Image> {
         let image =
             gl::create_from_gl_texture_3d(context.get(), flags, texture_target, miplevel, texture)?;
+        Ok(Image::new(image))
+    }
+
+    /// Create an OpenCL image object, from the EGLImage source provided as image.  
+    /// Requires the cl_khr_egl_image extension.  
+    ///
+    /// * `context` - a valid OpenCL context created from an OpenGL context.
+    /// * `display` - should be of type EGLDisplay, cast into the type CLeglDisplayKHR
+    /// * `image` - should be of type EGLImageKHR, cast into the type CLeglImageKHR.  
+    /// * `flags` -  usage information about the memory object being created.  
+    /// * `properties` - a null terminated list of property names and their
+    /// corresponding values.  
+    ///
+    /// returns a Result containing the new OpenCL image object
+    /// or the error code from the OpenCL C API function.
+    #[cfg(feature = "cl_khr_egl_image")]
+    #[inline]
+    pub fn create_from_egl_image(
+        context: &Context,
+        display: egl::CLeglDisplayKHR,
+        image: egl::CLeglImageKHR,
+        flags: cl_mem_flags,
+        properties: &[egl::cl_egl_image_properties_khr],
+    ) -> Result<Image> {
+        let image =
+            egl::create_from_egl_image(context.get(), display, image, flags, properties.as_ptr())?;
         Ok(Image::new(image))
     }
 

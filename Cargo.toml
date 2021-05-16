@@ -2,7 +2,7 @@
 name = "opencl3"
 version = "0.2.0"
 authors = ["Ken Barker <ken.barker@via-technology.aero>"]
-description = "A Rust implementation of the Khronos OpenCL 3.0 API."
+description = "A Rust implementation of the Khronos OpenCL 3.0 API and extensions."
 documentation = "https://docs.rs/opencl3/"
 homepage = "https://github.com/kenba/opencl3"
 repository = "https://github.com/kenba/opencl3"
@@ -22,6 +22,8 @@ CL_VERSION_3_0 = ["cl3/CL_VERSION_3_0"]
 
 cl_khr_gl_sharing = ["cl3/cl_khr_gl_sharing"]
 cl_khr_gl_event = ["cl3/cl_khr_gl_event"]
+cl_khr_egl_image = ["cl3/cl_khr_egl_image"]
+cl_khr_egl_event = ["cl3/cl_khr_egl_event"]
 
 # Default features:
 default = ["CL_VERSION_1_2", "CL_VERSION_2_0"]

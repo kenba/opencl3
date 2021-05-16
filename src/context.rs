@@ -17,6 +17,8 @@ use super::Result;
 
 use cl3::context;
 #[allow(unused_imports)]
+use cl3::egl;
+#[allow(unused_imports)]
 use cl3::gl;
 #[allow(unused_imports)]
 use cl3::types::{
@@ -55,7 +57,7 @@ pub fn get_devices_for_gl_context_khr(
     properties: &[cl_context_properties],
 ) -> Result<Vec<cl_device_id>> {
     let dev_ptrs = gl::get_gl_context_info_khr(
-        properties.as_ptr() as *mut isize,
+        properties.as_ptr() as *mut cl_context_properties,
         gl::GlContextInfo::CL_DEVICES_FOR_GL_CONTEXT_KHR,
     )?
     .to_vec_intptr();
@@ -270,6 +272,27 @@ impl Context {
     #[cfg(feature = "cl_khr_gl_sharing")]
     pub fn create_event_from_gl_sync_khr(&self, sync: gl::gl_sync) -> Result<cl_event> {
         Ok(gl::create_event_from_gl_sync_khr(self.context, sync)?)
+    }
+
+    /// Create an event object linked to an EGL fence sync object.  
+    /// Requires the cl_khr_egl_event extension
+    ///
+    /// * `sync` - the handle to an EGLSync object.  
+    /// * `display` - the handle to an EGLDisplay.  
+    ///
+    /// returns a Result containing the new OpenCL event
+    /// or the error code from the OpenCL C API function.
+    #[cfg(feature = "cl_khr_egl_event")]
+    pub fn create_event_from_egl_sync_khr(
+        &self,
+        sync: egl::CLeglSyncKHR,
+        display: egl::CLeglDisplayKHR,
+    ) -> Result<cl_event> {
+        Ok(egl::create_event_from_egl_sync_khr(
+            self.context,
+            sync,
+            display,
+        )?)
     }
 }
 

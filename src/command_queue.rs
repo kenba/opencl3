@@ -21,6 +21,8 @@ use super::event::Event;
 use super::memory::*;
 use super::Result;
 
+#[allow(unused_imports)]
+use cl3::egl;
 use cl3::gl;
 use cl3::types::{
     cl_bool, cl_command_queue, cl_command_queue_properties, cl_context, cl_device_id, cl_event,
@@ -868,6 +870,48 @@ impl CommandQueue {
         event_wait_list: &[cl_event],
     ) -> Result<Event> {
         let event = gl::enqueue_release_gl_objects(
+            self.queue,
+            mem_objects.len() as cl_uint,
+            mem_objects.as_ptr() as *const *mut c_void,
+            event_wait_list.len() as cl_uint,
+            if 0 < event_wait_list.len() {
+                event_wait_list.as_ptr()
+            } else {
+                ptr::null()
+            },
+        )?;
+        Ok(Event::new(event))
+    }
+
+    #[cfg(feature = "cl_khr_egl_image")]
+    #[inline]
+    pub fn enqueue_acquire_egl_objects(
+        &self,
+        mem_objects: &[*const c_void],
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
+        let event = egl::enqueue_acquire_egl_objects(
+            self.queue,
+            mem_objects.len() as cl_uint,
+            mem_objects.as_ptr() as *const *mut c_void,
+            event_wait_list.len() as cl_uint,
+            if 0 < event_wait_list.len() {
+                event_wait_list.as_ptr()
+            } else {
+                ptr::null()
+            },
+        )?;
+        Ok(Event::new(event))
+    }
+
+    #[cfg(feature = "cl_khr_egl_image")]
+    #[inline]
+    pub fn enqueue_release_egl_objects(
+        &self,
+        mem_objects: &[*const c_void],
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
+        let event = egl::enqueue_release_egl_objects(
             self.queue,
             mem_objects.len() as cl_uint,
             mem_objects.as_ptr() as *const *mut c_void,
