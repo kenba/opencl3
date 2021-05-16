@@ -19,6 +19,7 @@ pub use cl3::memory::*;
 use super::context::Context;
 
 use super::Result;
+use cl3::gl;
 use cl3::memory;
 use cl3::sampler;
 #[allow(unused_imports)]
@@ -82,6 +83,14 @@ pub trait ClMem {
     // CL_VERSION_3_0
     fn properties(&self) -> Result<Vec<cl_ulong>> {
         Ok(memory::get_mem_object_info(self.get(), MemInfo::CL_MEM_PROPERTIES)?.to_vec_ulong())
+    }
+
+    /// Query an OpenGL object used to create an OpenCL memory object.  
+    ///
+    /// returns a Result containing the OpenGL object type and name
+    /// or the error code from the OpenCL C API function.
+    fn gl_object_info(&self) -> Result<(gl::gl_uint, gl::gl_uint)> {
+        Ok(gl::get_gl_object_info(self.get())?)
     }
 }
 
@@ -165,6 +174,25 @@ impl<T> Buffer<T> {
             count * mem::size_of::<T>(),
             host_ptr,
         )?;
+        Ok(Buffer::new(buffer))
+    }
+
+    /// Create an OpenCL buffer object for a context from an OpenGL buffer.  
+    ///
+    /// * `context` - a valid OpenCL context created from an OpenGL context.
+    /// * `flags` - a bit-field used to specify allocation and usage information
+    /// about the image memory object being created, see:
+    /// [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
+    /// * `bufobj` - the OpenGL buffer.  
+    ///
+    /// returns a Result containing the new OpenCL buffer object
+    /// or the error code from the OpenCL C API function.
+    pub fn create_from_gl_buffer(
+        context: &Context,
+        flags: cl_mem_flags,
+        bufobj: gl::gl_uint,
+    ) -> Result<Buffer<T>> {
+        let buffer = gl::create_from_gl_buffer(context.get(), flags, bufobj)?;
         Ok(Buffer::new(buffer))
     }
 
@@ -279,6 +307,102 @@ impl Image {
         Ok(Image::new(image))
     }
 
+    /// Create an OpenCL image object, image array object, or image buffer object
+    /// for a context from an OpenGL texture object, texture array object,
+    /// texture buffer object, or a single face of an OpenGL cubemap texture object.  
+    ///
+    /// * `context` - a valid OpenCL context created from an OpenGL context.
+    /// * `flags` - a bit-field used to specify allocation and usage information
+    /// about the image memory object being created, see:
+    /// [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
+    /// * `texture_target` - used to define the image type of texture.  
+    /// * `miplevel ` - used to define the mipmap level.  
+    /// * `texture  ` - the name of a GL buffer texture object.
+    ///
+    /// returns a Result containing the new OpenCL image object
+    /// or the error code from the OpenCL C API function.
+    pub fn create_from_gl_texture(
+        context: &Context,
+        flags: cl_mem_flags,
+        texture_target: gl::gl_enum,
+        miplevel: gl::gl_int,
+        texture: gl::gl_uint,
+    ) -> Result<Image> {
+        let image =
+            gl::create_from_gl_texture(context.get(), flags, texture_target, miplevel, texture)?;
+        Ok(Image::new(image))
+    }
+
+    /// Create an OpenCL 2D image object from an OpenGL renderbuffer object.  
+    ///
+    /// * `context` - a valid OpenCL context created from an OpenGL context.
+    /// * `flags` - a bit-field used to specify allocation and usage information
+    /// about the image memory object being created, see:
+    /// [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
+    /// * `renderbuffer`  - a GL renderbuffer object.  
+    ///
+    /// returns a Result containing the new OpenCL image object
+    /// or the error code from the OpenCL C API function.
+    pub fn create_from_gl_render_buffer(
+        context: &Context,
+        flags: cl_mem_flags,
+        renderbuffer: gl::gl_uint,
+    ) -> Result<Image> {
+        let image = gl::create_from_gl_render_buffer(context.get(), flags, renderbuffer)?;
+        Ok(Image::new(image))
+    }
+
+    /// Create an OpenCL 2D image object from an OpenGL 2D texture object,
+    /// or a single face of an OpenGL cubemap texture object.  
+    /// Deprecated in CL_VERSION_1_2, use create_from_gl_texture.  
+    ///
+    /// * `context` - a valid OpenCL context created from an OpenGL context.
+    /// * `flags` - a bit-field used to specify allocation and usage information
+    /// about the image memory object being created, see:
+    /// [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
+    /// * `texture_target` - used to define the image type of texture.  
+    /// * `miplevel ` - used to define the mipmap level.  
+    /// * `texture  ` - the name of a GL 2D, cubemap or rectangle texture object.  
+    ///
+    /// returns a Result containing the new OpenCL image object
+    /// or the error code from the OpenCL C API function.
+    pub fn create_from_gl_texture_2d(
+        context: &Context,
+        flags: cl_mem_flags,
+        texture_target: gl::gl_enum,
+        miplevel: gl::gl_int,
+        texture: gl::gl_uint,
+    ) -> Result<Image> {
+        let image =
+            gl::create_from_gl_texture_2d(context.get(), flags, texture_target, miplevel, texture)?;
+        Ok(Image::new(image))
+    }
+
+    /// Create an OpenCL 3D image object from an OpenGL 3D texture object.   
+    /// Deprecated in CL_VERSION_1_2, use create_from_gl_texture.  
+    ///
+    /// * `context` - a valid OpenCL context created from an OpenGL context.
+    /// * `flags` - a bit-field used to specify allocation and usage information
+    /// about the image memory object being created, see:
+    /// [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
+    /// * `texture_target` - used to define the image type of texture.  
+    /// * `miplevel ` - used to define the mipmap level.  
+    /// * `texture  ` - the name of a GL buffer texture object.
+    ///
+    /// returns a Result containing the new OpenCL image object
+    /// or the error code from the OpenCL C API function.
+    pub fn create_from_gl_texture_3d(
+        context: &Context,
+        flags: cl_mem_flags,
+        texture_target: gl::gl_enum,
+        miplevel: gl::gl_int,
+        texture: gl::gl_uint,
+    ) -> Result<Image> {
+        let image =
+            gl::create_from_gl_texture_3d(context.get(), flags, texture_target, miplevel, texture)?;
+        Ok(Image::new(image))
+    }
+
     pub fn format(&self) -> Result<Vec<cl_image_format>> {
         Ok(memory::get_image_info(self.image, ImageInfo::CL_IMAGE_FORMAT)?.to_vec_image_format())
     }
@@ -320,6 +444,21 @@ impl Image {
 
     pub fn num_samples(&self) -> Result<cl_uint> {
         Ok(memory::get_image_info(self.image, ImageInfo::CL_IMAGE_NUM_SAMPLES)?.to_uint())
+    }
+
+    ///  Get information about the GL texture target associated with a memory object.
+    pub fn gl_texture_target(&self) -> Result<cl_uint> {
+        Ok(gl::get_gl_texture_info(self.image, gl::TextureInfo::CL_GL_TEXTURE_TARGET)?.to_uint())
+    }
+
+    /// Get information about the GL mipmap level associated with a memory object.
+    pub fn gl_mipmap_level(&self) -> Result<cl_int> {
+        Ok(gl::get_gl_texture_info(self.image, gl::TextureInfo::CL_GL_MIPMAP_LEVEL)?.to_int())
+    }
+
+    ///  Get information about the GL number of samples associated with a memory object.
+    pub fn gl_num_samples(&self) -> Result<cl_int> {
+        Ok(gl::get_gl_texture_info(self.image, gl::TextureInfo::CL_GL_NUM_SAMPLES)?.to_int())
     }
 }
 

@@ -20,6 +20,9 @@ CL_VERSION_2_1 = ["cl3/CL_VERSION_2_1"]
 CL_VERSION_2_2 = ["cl3/CL_VERSION_2_2"]
 CL_VERSION_3_0 = ["cl3/CL_VERSION_3_0"]
 
+cl_khr_gl_sharing = ["cl3/cl_khr_gl_sharing"]
+cl_khr_gl_event = ["cl3/cl_khr_gl_event"]
+
 # Default features:
 default = ["CL_VERSION_1_2", "CL_VERSION_2_0"]
 

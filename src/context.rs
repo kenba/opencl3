@@ -16,12 +16,55 @@ use super::device::{Device, SubDevice};
 use super::Result;
 
 use cl3::context;
+#[allow(unused_imports)]
+use cl3::gl;
+#[allow(unused_imports)]
 use cl3::types::{
     cl_context, cl_context_properties, cl_device_id, cl_device_svm_capabilities, cl_device_type,
-    cl_image_format, cl_mem_flags, cl_mem_object_type, cl_uint,
+    cl_event, cl_image_format, cl_mem_flags, cl_mem_object_type, cl_uint,
 };
 use libc::{c_char, c_void, intptr_t, size_t};
 use std::ptr;
+
+/// Get the current device used by an OpenGL context.
+///
+/// * `properties` - the OpenCL context properties.
+///
+/// returns a Result containing the device
+/// or the error code from the OpenCL C API function.
+#[cfg(feature = "cl_khr_gl_sharing")]
+pub fn get_current_device_for_gl_context_khr(
+    properties: &[cl_context_properties],
+) -> Result<cl_device_id> {
+    let device = gl::get_gl_context_info_khr(
+        properties.as_ptr() as *mut cl_context_properties,
+        gl::GlContextInfo::CL_CURRENT_DEVICE_FOR_GL_CONTEXT_KHR,
+    )?
+    .to_ptr() as cl_device_id;
+    Ok(device)
+}
+
+/// Get the devices for an OpenGL context.
+///
+/// * `properties` - the OpenCL context properties.
+///
+/// returns a Result containing the devices
+/// or the error code from the OpenCL C API function.
+#[cfg(feature = "cl_khr_gl_sharing")]
+pub fn get_devices_for_gl_context_khr(
+    properties: &[cl_context_properties],
+) -> Result<Vec<cl_device_id>> {
+    let dev_ptrs = gl::get_gl_context_info_khr(
+        properties.as_ptr() as *mut isize,
+        gl::GlContextInfo::CL_DEVICES_FOR_GL_CONTEXT_KHR,
+    )?
+    .to_vec_intptr();
+    let devices = dev_ptrs
+        .iter()
+        .map(|ptr| *ptr as cl_device_id)
+        .collect::<Vec<cl_device_id>>();
+    Ok(devices)
+}
 
 /// An OpenCL context object.
 /// Implements the Drop trait to call release_context when the object is dropped.
@@ -215,6 +258,18 @@ impl Context {
             context::get_context_info(self.context, context::ContextInfo::CL_CONTEXT_PROPERTIES)?
                 .to_vec_intptr(),
         )
+    }
+
+    /// Create a cl_event linked to an OpenGL sync object.  
+    /// Requires the cl_khr_gl_event extension
+    ///
+    /// * `sync` - the sync object in the GL share group associated with context.  
+    ///
+    /// returns a Result containing the new OpenCL event
+    /// or the error code from the OpenCL C API function.
+    #[cfg(feature = "cl_khr_gl_sharing")]
+    pub fn create_event_from_gl_sync_khr(&self, sync: gl::gl_sync) -> Result<cl_event> {
+        Ok(gl::create_event_from_gl_sync_khr(self.context, sync)?)
     }
 }
 

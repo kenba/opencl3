@@ -21,6 +21,7 @@ use super::event::Event;
 use super::memory::*;
 use super::Result;
 
+use cl3::gl;
 use cl3::types::{
     cl_bool, cl_command_queue, cl_command_queue_properties, cl_context, cl_device_id, cl_event,
     cl_kernel, cl_map_flags, cl_mem, cl_mem_migration_flags, cl_queue_properties, cl_uint,
@@ -832,6 +833,44 @@ impl CommandQueue {
             svm_pointers.as_ptr(),
             sizes,
             flags,
+            event_wait_list.len() as cl_uint,
+            if 0 < event_wait_list.len() {
+                event_wait_list.as_ptr()
+            } else {
+                ptr::null()
+            },
+        )?;
+        Ok(Event::new(event))
+    }
+
+    pub fn enqueue_acquire_gl_objects(
+        &self,
+        mem_objects: &[*const c_void],
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
+        let event = gl::enqueue_acquire_gl_objects(
+            self.queue,
+            mem_objects.len() as cl_uint,
+            mem_objects.as_ptr() as *const *mut c_void,
+            event_wait_list.len() as cl_uint,
+            if 0 < event_wait_list.len() {
+                event_wait_list.as_ptr()
+            } else {
+                ptr::null()
+            },
+        )?;
+        Ok(Event::new(event))
+    }
+
+    pub fn enqueue_release_gl_objects(
+        &self,
+        mem_objects: &[*const c_void],
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
+        let event = gl::enqueue_release_gl_objects(
+            self.queue,
+            mem_objects.len() as cl_uint,
+            mem_objects.as_ptr() as *const *mut c_void,
             event_wait_list.len() as cl_uint,
             if 0 < event_wait_list.len() {
                 event_wait_list.as_ptr()
