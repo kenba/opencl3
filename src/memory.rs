@@ -26,9 +26,9 @@ use cl3::memory;
 use cl3::sampler;
 #[allow(unused_imports)]
 use cl3::types::{
-    cl_addressing_mode, cl_bool, cl_buffer_create_type, cl_context, cl_filter_mode, cl_image_desc,
-    cl_image_format, cl_int, cl_mem, cl_mem_flags, cl_mem_object_type, cl_mem_properties,
-    cl_sampler, cl_sampler_properties, cl_uint, cl_ulong,
+    cl_addressing_mode, cl_bool, cl_buffer_create_type, cl_buffer_region, cl_context,
+    cl_filter_mode, cl_image_desc, cl_image_format, cl_int, cl_mem, cl_mem_flags,
+    cl_mem_object_type, cl_mem_properties, cl_sampler, cl_sampler_properties, cl_uint, cl_ulong,
 };
 use libc::{c_void, intptr_t, size_t};
 use std::mem;
@@ -199,24 +199,32 @@ impl<T> Buffer<T> {
     }
 
     /// Create an new OpenCL buffer object from an existing buffer object.  
+    /// See: [SubBuffer Attributes](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#subbuffer-create-info-table).  
     ///
     /// * `flags` - a bit-field used to specify allocation and usage information
     /// about the sub-buffer memory object being created, see:
     /// [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
-    /// * `buffer_create_type`,`buffer_create_info` - describe the type of
-    /// buffer object to be created, see:
-    /// [SubBuffer Attributes](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#subbuffer-create-info-table).
+    /// * `origin` - the offset in number of objects of type <T>.
+    /// * `count` - the size of the sub-buffer in number of objects of type <T>.
     ///
     /// returns a Result containing the new OpenCL buffer object
     /// or the error code from the OpenCL C API function.
     pub fn create_sub_buffer(
         &self,
         flags: cl_mem_flags,
-        buffer_create_type: cl_buffer_create_type,
-        buffer_create_info: *const c_void,
+        origin: usize,
+        count: usize,
     ) -> Result<Buffer<T>> {
-        let buffer =
-            memory::create_sub_buffer(self.buffer, flags, buffer_create_type, buffer_create_info)?;
+        let buffer_create_info = cl_buffer_region {
+            origin: origin * std::mem::size_of::<T>(),
+            size: count * std::mem::size_of::<T>(),
+        };
+        let buffer = memory::create_sub_buffer(
+            self.buffer,
+            flags,
+            CL_BUFFER_CREATE_TYPE_REGION,
+            &buffer_create_info as *const _ as *const c_void,
+        )?;
         Ok(Buffer::new(buffer))
     }
 }
