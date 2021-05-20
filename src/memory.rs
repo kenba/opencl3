@@ -98,6 +98,7 @@ pub trait ClMem {
 
 /// An OpenCL buffer.  
 /// Implements the Drop trait to call release_mem_object when the object is dropped.
+#[derive(Debug)]
 pub struct Buffer<T> {
     buffer: cl_mem,
     #[doc(hidden)]
@@ -233,6 +234,7 @@ impl<T> Buffer<T> {
 /// Has methods to return information from calls to clGetImageInfo with the
 /// appropriate parameters.  
 /// Implements the Drop trait to call release_mem_object when the object is dropped.
+#[derive(Debug)]
 pub struct Image {
     image: cl_mem,
 }
@@ -502,6 +504,7 @@ impl Image {
 /// Has methods to return information from calls to clGetSamplerInfo with the
 /// appropriate parameters.  
 /// Implements the Drop trait to call release_sampler when the object is dropped.
+#[derive(Debug)]
 pub struct Sampler {
     sampler: cl_sampler,
 }
@@ -549,6 +552,7 @@ impl Sampler {
 /// Has methods to return information from calls to clGetPipeInfo with the
 /// appropriate parameters.  
 /// Implements the Drop trait to call release_mem_object when the object is dropped.
+#[derive(Debug)]
 pub struct Pipe {
     pipe: cl_mem,
 }

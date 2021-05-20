@@ -37,6 +37,7 @@ pub fn device_type_text(dev_type: cl_device_type) -> &'static str {
     }
 }
 
+#[derive(Debug)]
 pub struct SubDevice {
     id: cl_device_id,
 }

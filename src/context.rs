@@ -70,6 +70,7 @@ pub fn get_devices_for_gl_context_khr(
 
 /// An OpenCL context object.
 /// Implements the Drop trait to call release_context when the object is dropped.
+#[derive(Debug)]
 pub struct Context {
     context: cl_context,
     devices: Vec<cl_device_id>,

@@ -76,6 +76,7 @@ pub const ENABLE_LINK_OPTIONS: &str = "-enable-link-options ";
 /// An OpenCL program object.  
 /// Stores the names of the OpenCL kernels in the program.
 /// Implements the Drop trait to call release_program when the object is dropped.
+#[derive(Debug)]
 pub struct Program {
     program: cl_program,
     kernel_names: String,

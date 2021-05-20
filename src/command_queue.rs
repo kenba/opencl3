@@ -36,6 +36,7 @@ use std::ptr;
 /// An OpenCL command-queue.  
 /// Operations on OpenCL memory and kernel objects are performed using a
 /// command-queue.
+#[derive(Debug)]
 pub struct CommandQueue {
     queue: cl_command_queue,
     max_work_item_dimensions: cl_uint,
