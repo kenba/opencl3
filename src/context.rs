@@ -19,11 +19,15 @@ use cl3::context;
 #[allow(unused_imports)]
 use cl3::egl;
 #[allow(unused_imports)]
+use cl3::ext;
+#[allow(unused_imports)]
+use cl3::ffi::cl_ext::cl_import_properties_arm;
+#[allow(unused_imports)]
 use cl3::gl;
 #[allow(unused_imports)]
 use cl3::types::{
     cl_context, cl_context_properties, cl_device_id, cl_device_svm_capabilities, cl_device_type,
-    cl_event, cl_image_format, cl_mem_flags, cl_mem_object_type, cl_uint,
+    cl_event, cl_image_format, cl_mem, cl_mem_flags, cl_mem_object_type, cl_uint,
 };
 use libc::{c_char, c_void, intptr_t, size_t};
 use std::ptr;
@@ -226,6 +230,23 @@ impl Context {
         )?)
     }
 
+    #[cfg(feature = "cl_arm_import_memory")]
+    pub fn import_memory_arm(
+        &self,
+        flags: cl_mem_flags,
+        properties: *const cl_import_properties_arm,
+        memory: *mut c_void,
+        size: size_t,
+    ) -> Result<cl_mem> {
+        Ok(ext::import_memory_arm(
+            self.context,
+            flags,
+            properties,
+            memory,
+            size,
+        )?)
+    }
+
     pub fn devices(&self) -> &[cl_device_id] {
         &self.devices
     }
@@ -261,6 +282,11 @@ impl Context {
             context::get_context_info(self.context, context::ContextInfo::CL_CONTEXT_PROPERTIES)?
                 .to_vec_intptr(),
         )
+    }
+
+    #[cfg(feature = "cl_khr_terminate_context")]
+    pub fn terminate(&self) -> Result<()> {
+        Ok(ext::terminate_context_khr(self.context)?)
     }
 
     /// Create a cl_event linked to an OpenGL sync object.  

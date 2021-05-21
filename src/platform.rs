@@ -14,6 +14,8 @@
 
 use super::Result;
 use cl3::device;
+#[allow(unused_imports)]
+use cl3::ext;
 use cl3::platform;
 use cl3::program;
 use cl3::types::{
@@ -154,13 +156,19 @@ impl Platform {
 /// or the error code from the OpenCL C API function.
 pub fn get_platforms() -> Result<Vec<Platform>> {
     let platform_ids = platform::get_platform_ids()?;
-    let mut platforms: Vec<Platform> = Vec::with_capacity(platform_ids.len());
+    Ok(platform_ids
+        .iter()
+        .map(|id| Platform::new(*id))
+        .collect::<Vec<Platform>>())
+}
 
-    for id in platform_ids.iter() {
-        platforms.push(Platform::new(*id));
-    }
-
-    Ok(platforms)
+#[cfg(feature = "cl_khr_icd")]
+pub fn icd_get_platform_ids_khr() -> Result<Vec<Platform>> {
+    let platform_ids = ext::icd_get_platform_ids_khr()?;
+    Ok(platform_ids
+        .iter()
+        .map(|id| Platform::new(*id))
+        .collect::<Vec<Platform>>())
 }
 
 #[cfg(test)]

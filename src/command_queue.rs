@@ -23,6 +23,10 @@ use super::Result;
 
 #[allow(unused_imports)]
 use cl3::egl;
+#[allow(unused_imports)]
+use cl3::ext;
+#[allow(unused_imports)]
+use cl3::ffi::cl_ext::cl_queue_properties_khr;
 use cl3::gl;
 use cl3::types::{
     cl_bool, cl_command_queue, cl_command_queue_properties, cl_context, cl_device_id, cl_event,
@@ -124,6 +128,23 @@ impl CommandQueue {
         } else {
             create_command_queue_with_properties(context.get(), device_id, ptr::null())?
         };
+
+        let device = Device::new(device_id);
+        let max_work_item_dimensions = device.max_work_item_dimensions()?;
+        Ok(CommandQueue::new(queue, max_work_item_dimensions))
+    }
+
+    #[cfg(feature = "cl_khr_create_command_queue")]
+    pub fn create_with_properties_khr(
+        context: &Context,
+        device_id: cl_device_id,
+        properties: &[cl_queue_properties_khr],
+    ) -> Result<CommandQueue> {
+        let queue = ext::create_command_queue_with_properties_khr(
+            context.get(),
+            device_id,
+            properties.as_ptr(),
+        )?;
 
         let device = Device::new(device_id);
         let max_work_item_dimensions = device.max_work_item_dimensions()?;
@@ -612,6 +633,29 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
+    #[cfg(feature = "cl_ext_migrate_memobject")]
+    pub fn enqueue_migrate_mem_object_ext(
+        &self,
+        num_mem_objects: cl_uint,
+        mem_objects: *const cl_mem,
+        flags: cl_mem_migration_flags_ext,
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
+        let event = enqueue_migrate_mem_object_ext(
+            self.queue,
+            num_mem_objects,
+            mem_objects,
+            flags,
+            event_wait_list.len() as cl_uint,
+            if 0 < event_wait_list.len() {
+                event_wait_list.as_ptr()
+            } else {
+                ptr::null()
+            },
+        )?;
+        Ok(Event::new(event))
+    }
+
     pub fn enqueue_nd_range_kernel(
         &self,
         kernel: cl_kernel,
@@ -917,6 +961,75 @@ impl CommandQueue {
             mem_objects.len() as cl_uint,
             mem_objects.as_ptr() as *const *mut c_void,
             event_wait_list.len() as cl_uint,
+            if 0 < event_wait_list.len() {
+                event_wait_list.as_ptr()
+            } else {
+                ptr::null()
+            },
+        )?;
+        Ok(Event::new(event))
+    }
+
+    #[cfg(feature = "cl_img_use_gralloc_ptr")]
+    #[inline]
+    pub fn enqueue_acquire_gralloc_objects_img(
+        &self,
+        mem_objects: &[*const c_void],
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
+        let event = ext::enqueue_acquire_gralloc_objects_img(
+            self.queue,
+            mem_objects.len() as cl_uint,
+            mem_objects.as_ptr() as *const *mut c_void,
+            event_wait_list.len() as cl_uint,
+            if 0 < event_wait_list.len() {
+                event_wait_list.as_ptr()
+            } else {
+                ptr::null()
+            },
+        )?;
+        Ok(Event::new(event))
+    }
+
+    #[cfg(feature = "cl_img_use_gralloc_ptr")]
+    #[inline]
+    pub fn enqueue_release_gralloc_objects_img(
+        &self,
+        mem_objects: &[*const c_void],
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
+        let event = ext::enqueue_release_gralloc_objects_img(
+            self.queue,
+            mem_objects.len() as cl_uint,
+            mem_objects.as_ptr() as *const *mut c_void,
+            event_wait_list.len() as cl_uint,
+            if 0 < event_wait_list.len() {
+                event_wait_list.as_ptr()
+            } else {
+                ptr::null()
+            },
+        )?;
+        Ok(Event::new(event))
+    }
+
+    #[cfg(feature = "cl_img_generate_mipmap")]
+    #[inline]
+    pub fn enqueue_generate_mipmap_img(
+        &self,
+        src_image: cl_mem,
+        dst_image: cl_mem,
+        mipmap_filter_mode: cl_mipmap_filter_mode_img,
+        array_region: *const size_t,
+        mip_region: *const size_t,
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
+        let event = ext::enqueue_generate_mipmap_img(
+            self.queue,
+            src_image,
+            dst_image,
+            mipmap_filter_mode,
+            array_region,
+            mip_region,
             if 0 < event_wait_list.len() {
                 event_wait_list.as_ptr()
             } else {

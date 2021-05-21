@@ -14,6 +14,8 @@
 
 use core::marker::PhantomData;
 
+#[allow(unused_imports)]
+pub use cl3::ffi::cl_ext::cl_mem_properties_intel;
 pub use cl3::memory::*;
 
 use super::context::Context;
@@ -21,6 +23,8 @@ use super::context::Context;
 use super::Result;
 #[allow(unused_imports)]
 use cl3::egl;
+#[allow(unused_imports)]
+use cl3::ext;
 use cl3::gl;
 use cl3::memory;
 use cl3::sampler;
@@ -196,6 +200,24 @@ impl<T> Buffer<T> {
         bufobj: gl::gl_uint,
     ) -> Result<Buffer<T>> {
         let buffer = gl::create_from_gl_buffer(context.get(), flags, bufobj)?;
+        Ok(Buffer::new(buffer))
+    }
+
+    #[cfg(feature = "cl_intel_create_buffer_with_properties")]
+    pub fn create_with_properties_intel(
+        context: &Context,
+        properties: *const cl_mem_properties_intel,
+        flags: cl_mem_flags,
+        count: size_t,
+        host_ptr: *mut c_void,
+    ) -> Result<Buffer<T>> {
+        let buffer = ext::create_buffer_with_properties_intel(
+            context.get(),
+            properties,
+            flags,
+            count * mem::size_of::<T>(),
+            host_ptr,
+        )?;
         Ok(Buffer::new(buffer))
     }
 

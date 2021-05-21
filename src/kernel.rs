@@ -19,11 +19,12 @@ use super::event::Event;
 use super::program::Program;
 use super::Result;
 
+#[allow(unused_imports)]
+use cl3::ext;
 use cl3::types::{
     cl_context, cl_device_id, cl_event, cl_kernel, cl_kernel_exec_info, cl_program, cl_uint,
     cl_ulong,
 };
-
 use libc::{c_void, size_t};
 use std::ffi::CString;
 use std::mem;
@@ -251,6 +252,40 @@ impl Kernel {
             KernelWorkGroupInfo::CL_KERNEL_PRIVATE_MEM_SIZE,
         )?
         .to_ulong())
+    }
+
+    #[cfg(feature = "cl_khr_subgroups")]
+    pub fn get_kernel_sub_group_info_khr(
+        &self,
+        device: cl_device_id,
+        device: cl_device_id,
+        param_name: ext::KernelSubGroupInfoKhr,
+        input_values: &[size_t],
+    ) -> Result<size_t> {
+        Ok(get_kernel_sub_group_info_khr(
+            self.kernel,
+            device,
+            param_name,
+            input_values.len(),
+            input_values.as_ptr(),
+        )?)
+    }
+
+    #[cfg(feature = "cl_khr_suggested_local_work_size")]
+    pub fn get_kernel_suggested_local_work_size_khr(
+        &self,
+        command_queue: cl_command_queue,
+        work_dim: cl_uint,
+        global_work_offset: *const size_t,
+        global_work_size: *const size_t,
+    ) -> Result<size_t> {
+        Ok(get_kernel_suggested_local_work_size_khr(
+            command_queue,
+            self.kernel,
+            work_dim,
+            global_work_offset,
+            global_work_size,
+        )?)
     }
 }
 

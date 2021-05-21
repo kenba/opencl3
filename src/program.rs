@@ -19,6 +19,8 @@ use super::context::Context;
 use super::Result;
 #[allow(unused_imports)]
 use cl3::error_codes::CL_BUILD_PROGRAM_FAILURE;
+#[allow(unused_imports)]
+use cl3::ext;
 use cl3::types::{cl_context, cl_device_id, cl_int, cl_program, cl_uchar, cl_uint};
 use libc::{intptr_t, size_t};
 use std::ffi::{CStr, CString};
@@ -189,7 +191,18 @@ impl Program {
     /// or the error code from the OpenCL C API function.
     #[cfg(feature = "CL_VERSION_2_1")]
     pub fn create_from_il(context: &Context, il: &[u8]) -> Result<Program> {
-        Ok(Program::new(create_program_with_il(context.get(), &il)?))
+        Ok(Program::new(
+            create_program_with_il(context.get(), &il)?,
+            "",
+        ))
+    }
+
+    #[cfg(feature = "cl_khr_il_program")]
+    pub fn create_from_il_khr(context: &Context, il: &[u8]) -> Result<Program> {
+        Ok(Program::new(
+            ext::create_program_with_il_khr(context.get(), &il)?,
+            "",
+        ))
     }
 
     /// Build (compile & link) a Program.
