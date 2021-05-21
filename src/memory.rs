@@ -22,9 +22,23 @@ use super::context::Context;
 
 use super::Result;
 #[allow(unused_imports)]
+use cl3::d3d10;
+#[allow(unused_imports)]
+use cl3::d3d11;
+#[allow(unused_imports)]
+use cl3::dx9_media_sharing;
+#[allow(unused_imports)]
 use cl3::egl;
 #[allow(unused_imports)]
 use cl3::ext;
+#[allow(unused_imports)]
+use cl3::ffi::cl_d3d10::{ID3D10Buffer_ptr, ID3D10Texture2D_ptr, ID3D10Texture3D_ptr};
+#[allow(unused_imports)]
+use cl3::ffi::cl_d3d11::{ID3D11Buffer_ptr, ID3D11Texture2D_ptr, ID3D11Texture3D_ptr};
+#[allow(unused_imports)]
+use cl3::ffi::cl_dx9_media_sharing::{
+    cl_dx9_media_adapter_type_khr, IDirect3DSurface9_ptr, HANDLE,
+};
 use cl3::gl;
 use cl3::memory;
 use cl3::sampler;
@@ -460,6 +474,118 @@ impl Image {
     ) -> Result<Image> {
         let image =
             egl::create_from_egl_image(context.get(), display, image, flags, properties.as_ptr())?;
+        Ok(Image::new(image))
+    }
+
+    #[cfg(feature = "cl_khr_dx9_media_sharing")]
+    #[inline]
+    pub fn create_from_dx9_media_surface_khr(
+        context: &Context,
+        flags: cl_mem_flags,
+        adapter_type: cl_dx9_media_adapter_type_khr,
+        surface_info: *mut c_void,
+        plane: cl_uint,
+    ) -> Result<Image> {
+        let image = dx9_media_sharing::create_from_dx9_media_surface_khr(
+            context.get(),
+            flags,
+            adapter_type,
+            surface_info,
+            plane,
+        )?;
+        Ok(Image::new(image))
+    }
+
+    #[cfg(feature = "cl_intel_dx9_media_sharing")]
+    #[inline]
+    pub fn create_from_dx9_media_surface_intel(
+        context: &Context,
+        flags: cl_mem_flags,
+        resource: IDirect3DSurface9_ptr,
+        shared_handle: HANDLE,
+        plane: cl_uint,
+    ) -> Result<Image> {
+        let image = dx9_media_sharing::create_from_dx9_media_surface_intel(
+            context.get(),
+            flags,
+            resource,
+            shared_handle,
+            plane,
+        )?;
+        Ok(Image::new(image))
+    }
+
+    #[cfg(feature = "cl_khr_d3d10_sharing")]
+    #[inline]
+    pub fn create_from_d3d10_buffer_khr(
+        context: &Context,
+        flags: cl_mem_flags,
+        resource: ID3D10Buffer_ptr,
+    ) -> Result<Image> {
+        let image = d3d10::create_from_d3d10_buffer_khr(context.get(), flags, resource)?;
+        Ok(Image::new(image))
+    }
+
+    #[cfg(feature = "cl_khr_d3d10_sharing")]
+    #[inline]
+    pub fn create_from_d3d10_texture2d_khr(
+        context: &Context,
+        flags: cl_mem_flags,
+        resource: ID3D10Texture2D_ptr,
+        subresource: cl_uint,
+    ) -> Result<Image> {
+        let image =
+            d3d10::create_from_d3d10_texture2d_khr(context.get(), flags, resource, subresource)?;
+        Ok(Image::new(image))
+    }
+
+    #[cfg(feature = "cl_khr_d3d10_sharing")]
+    #[inline]
+    pub fn create_from_d3d10_texture3d_khr(
+        context: &Context,
+        flags: cl_mem_flags,
+        resource: ID3D10Texture3D_ptr,
+        subresource: cl_uint,
+    ) -> Result<Image> {
+        let image =
+            d3d10::create_from_d3d10_texture3d_khr(context.get(), flags, resource, subresource)?;
+        Ok(Image::new(image))
+    }
+
+    #[cfg(feature = "cl_khr_d3d11_sharing")]
+    #[inline]
+    pub fn create_from_d3d11_buffer_khr(
+        context: &Context,
+        flags: cl_mem_flags,
+        resource: ID3D11Buffer_ptr,
+    ) -> Result<Image> {
+        let image = d3d11::create_from_d3d11_buffer_khr(context.get(), flags, resource)?;
+        Ok(Image::new(image))
+    }
+
+    #[cfg(feature = "cl_khr_d3d11_sharing")]
+    #[inline]
+    pub fn create_from_d3d11_texture2d_khr(
+        context: &Context,
+        flags: cl_mem_flags,
+        resource: ID3D11Texture2D_ptr,
+        subresource: cl_uint,
+    ) -> Result<Image> {
+        let image =
+            d3d11::create_from_d3d11_texture2d_khr(context.get(), flags, resource, subresource)?;
+        Ok(Image::new(image))
+    }
+
+    #[cfg(feature = "cl_khr_d3d11_sharing")]
+    #[inline]
+    pub fn create_from_d3d11_texture3d_khr(
+        context: &Context,
+        flags: cl_mem_flags,
+        resource: ID3D11Texture3D_ptr,
+        subresource: cl_uint,
+    ) -> Result<Image> {
+        let image =
+            d3d11::create_from_d3d11_texture3d_khr(context.get(), flags, resource, subresource)?;
         Ok(Image::new(image))
     }
 

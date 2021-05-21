@@ -22,6 +22,12 @@ use super::memory::*;
 use super::Result;
 
 #[allow(unused_imports)]
+use cl3::d3d10;
+#[allow(unused_imports)]
+use cl3::d3d11;
+#[allow(unused_imports)]
+use cl3::dx9_media_sharing;
+#[allow(unused_imports)]
 use cl3::egl;
 #[allow(unused_imports)]
 use cl3::ext;
@@ -999,6 +1005,174 @@ impl CommandQueue {
         event_wait_list: &[cl_event],
     ) -> Result<Event> {
         let event = ext::enqueue_release_gralloc_objects_img(
+            self.queue,
+            mem_objects.len() as cl_uint,
+            mem_objects.as_ptr() as *const *mut c_void,
+            event_wait_list.len() as cl_uint,
+            if 0 < event_wait_list.len() {
+                event_wait_list.as_ptr()
+            } else {
+                ptr::null()
+            },
+        )?;
+        Ok(Event::new(event))
+    }
+
+    #[cfg(feature = "cl_khr_dx9_media_sharing")]
+    #[inline]
+    pub fn enqueue_acquire_dx9_media_surfaces_khr(
+        &self,
+        mem_objects: &[*const c_void],
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
+        let event = dx9_media_sharing::enqueue_acquire_dx9_media_surfaces_khr(
+            self.queue,
+            mem_objects.len() as cl_uint,
+            mem_objects.as_ptr() as *const *mut c_void,
+            event_wait_list.len() as cl_uint,
+            if 0 < event_wait_list.len() {
+                event_wait_list.as_ptr()
+            } else {
+                ptr::null()
+            },
+        )?;
+        Ok(Event::new(event))
+    }
+
+    #[cfg(feature = "cl_khr_dx9_media_sharing")]
+    #[inline]
+    pub fn enqueue_release_dx9_media_surfaces_khr(
+        &self,
+        mem_objects: &[*const c_void],
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
+        let event = dx9_media_sharing::enqueue_release_dx9_media_surfaces_khr(
+            self.queue,
+            mem_objects.len() as cl_uint,
+            mem_objects.as_ptr() as *const *mut c_void,
+            event_wait_list.len() as cl_uint,
+            if 0 < event_wait_list.len() {
+                event_wait_list.as_ptr()
+            } else {
+                ptr::null()
+            },
+        )?;
+        Ok(Event::new(event))
+    }
+
+    #[cfg(feature = "cl_intel_dx9_media_sharing")]
+    #[inline]
+    pub fn enqueue_acquire_dx9_objects_intel(
+        &self,
+        mem_objects: &[*const c_void],
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
+        let event = dx9_media_sharing::enqueue_acquire_dx9_objects_intel(
+            self.queue,
+            mem_objects.len() as cl_uint,
+            mem_objects.as_ptr() as *const *mut c_void,
+            event_wait_list.len() as cl_uint,
+            if 0 < event_wait_list.len() {
+                event_wait_list.as_ptr()
+            } else {
+                ptr::null()
+            },
+        )?;
+        Ok(Event::new(event))
+    }
+
+    #[cfg(feature = "cl_intel_dx9_media_sharing")]
+    #[inline]
+    pub fn enqueue_release_dx9_objects_intel(
+        &self,
+        mem_objects: &[*const c_void],
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
+        let event = dx9_media_sharing::enqueue_release_dx9_objects_intel(
+            self.queue,
+            mem_objects.len() as cl_uint,
+            mem_objects.as_ptr() as *const *mut c_void,
+            event_wait_list.len() as cl_uint,
+            if 0 < event_wait_list.len() {
+                event_wait_list.as_ptr()
+            } else {
+                ptr::null()
+            },
+        )?;
+        Ok(Event::new(event))
+    }
+
+    #[cfg(feature = "cl_khr_d3d10_sharing")]
+    #[inline]
+    pub fn enqueue_acquire_dx10_objects_khr(
+        &self,
+        mem_objects: &[*const c_void],
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
+        let event = d3d10::enqueue_acquire_dx10_objects_khr(
+            self.queue,
+            mem_objects.len() as cl_uint,
+            mem_objects.as_ptr() as *const *mut c_void,
+            event_wait_list.len() as cl_uint,
+            if 0 < event_wait_list.len() {
+                event_wait_list.as_ptr()
+            } else {
+                ptr::null()
+            },
+        )?;
+        Ok(Event::new(event))
+    }
+
+    #[cfg(feature = "cl_khr_d3d10_sharing")]
+    #[inline]
+    pub fn enqueue_release_dx10_objects_khr(
+        &self,
+        mem_objects: &[*const c_void],
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
+        let event = d3d10::enqueue_release_dx10_objects_khr(
+            self.queue,
+            mem_objects.len() as cl_uint,
+            mem_objects.as_ptr() as *const *mut c_void,
+            event_wait_list.len() as cl_uint,
+            if 0 < event_wait_list.len() {
+                event_wait_list.as_ptr()
+            } else {
+                ptr::null()
+            },
+        )?;
+        Ok(Event::new(event))
+    }
+
+    #[cfg(feature = "cl_khr_d3d11_sharing")]
+    #[inline]
+    pub fn enqueue_acquire_dx11_objects_khr(
+        &self,
+        mem_objects: &[*const c_void],
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
+        let event = d3d11::enqueue_acquire_dx11_objects_khr(
+            self.queue,
+            mem_objects.len() as cl_uint,
+            mem_objects.as_ptr() as *const *mut c_void,
+            event_wait_list.len() as cl_uint,
+            if 0 < event_wait_list.len() {
+                event_wait_list.as_ptr()
+            } else {
+                ptr::null()
+            },
+        )?;
+        Ok(Event::new(event))
+    }
+
+    #[cfg(feature = "cl_khr_d3d11_sharing")]
+    #[inline]
+    pub fn enqueue_release_dx11_objects_khr(
+        &self,
+        mem_objects: &[*const c_void],
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
+        let event = d3d11::enqueue_release_dx11_objects_khr(
             self.queue,
             mem_objects.len() as cl_uint,
             mem_objects.as_ptr() as *const *mut c_void,
