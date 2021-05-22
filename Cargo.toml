@@ -20,6 +20,7 @@ CL_VERSION_2_1 = ["cl3/CL_VERSION_2_1"]
 CL_VERSION_2_2 = ["cl3/CL_VERSION_2_2"]
 CL_VERSION_3_0 = ["cl3/CL_VERSION_3_0"]
 
+cl_apple_setmemobjectdestructor = ["cl3/cl_apple_setmemobjectdestructor"]
 cl_khr_icd = ["cl3/cl_khr_icd"]
 cl_khr_il_program = ["cl3/cl_khr_il_program"]
 cl_khr_terminate_context = ["cl3/cl_khr_terminate_context"]
@@ -52,4 +53,4 @@ default = ["CL_VERSION_1_2", "CL_VERSION_2_0"]
 
 [dependencies]
 libc = "0.2"
-cl3 = "0.3"
+cl3 = "0.3.1"
