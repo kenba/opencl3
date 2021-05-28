@@ -48,6 +48,8 @@ impl Drop for SubDevice {
     }
 }
 
+unsafe impl Send for SubDevice {}
+
 impl SubDevice {
     pub fn new(id: cl_device_id) -> SubDevice {
         SubDevice { id }
