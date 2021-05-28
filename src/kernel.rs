@@ -56,6 +56,8 @@ impl Drop for Kernel {
     }
 }
 
+unsafe impl Send for Kernel {}
+
 impl Kernel {
     /// Create a Kernel from an OpenCL cl_kernel.
     ///
@@ -317,6 +319,8 @@ pub struct ExecuteKernel<'a> {
 
     arg_index: cl_uint,
 }
+
+unsafe impl Send for ExecuteKernel<'_> {}
 
 impl<'a> ExecuteKernel<'a> {
     pub fn new(kernel: &'a Kernel) -> ExecuteKernel {

@@ -32,6 +32,8 @@ impl Drop for Event {
     }
 }
 
+unsafe impl Send for Event {}
+
 impl Event {
     /// Create an Event from an OpenCL cl_event.
     ///

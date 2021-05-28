@@ -90,6 +90,8 @@ impl Drop for Program {
     }
 }
 
+unsafe impl Send for Program {}
+
 impl Program {
     fn new(program: cl_program, kernel_names: &str) -> Program {
         Program {
