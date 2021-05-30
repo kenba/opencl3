@@ -1,6 +1,6 @@
 [package]
 name = "opencl3"
-version = "0.2.2"
+version = "0.2.3"
 authors = ["Ken Barker <ken.barker@via-technology.aero>"]
 description = "A Rust implementation of the Khronos OpenCL 3.0 API and extensions."
 documentation = "https://docs.rs/opencl3/"
@@ -53,4 +53,4 @@ default = ["CL_VERSION_1_2", "CL_VERSION_2_0"]
 
 [dependencies]
 libc = "0.2"
-cl3 = "0.3.1"
+cl3 = "0.4.0"
