@@ -56,6 +56,8 @@ impl Drop for Kernel {
     }
 }
 
+unsafe impl Send for Kernel {}
+
 impl Kernel {
     /// Create a Kernel from an OpenCL cl_kernel.
     ///

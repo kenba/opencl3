@@ -58,6 +58,8 @@ impl Drop for CommandQueue {
     }
 }
 
+unsafe impl Send for CommandQueue {}
+
 impl CommandQueue {
     fn new(queue: cl_command_queue, max_work_item_dimensions: cl_uint) -> CommandQueue {
         CommandQueue {

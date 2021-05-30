@@ -135,6 +135,8 @@ impl<T> Drop for Buffer<T> {
     }
 }
 
+unsafe impl<T: Send> Send for Buffer<T> {}
+
 impl<T> Buffer<T> {
     pub fn new(buffer: cl_mem) -> Buffer<T> {
         Buffer {
@@ -286,6 +288,8 @@ impl Drop for Image {
         memory::release_mem_object(self.get()).expect("Error: clReleaseMemObject");
     }
 }
+
+unsafe impl Send for Image {}
 
 impl Image {
     pub fn new(image: cl_mem) -> Image {
@@ -662,6 +666,8 @@ impl Drop for Sampler {
         sampler::release_sampler(self.sampler).expect("Error: clReleaseSampler");
     }
 }
+
+unsafe impl Send for Sampler {}
 
 impl Sampler {
     pub fn new(sampler: cl_sampler) -> Sampler {

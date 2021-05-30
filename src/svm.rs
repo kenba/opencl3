@@ -35,6 +35,8 @@ struct SvmRawVec<'a, T> {
     fine_grain_buffer: bool,
 }
 
+unsafe impl<'a, T: Send> Send for SvmRawVec<'a, T> {}
+
 impl<'a, T> SvmRawVec<'a, T> {
     fn new(context: &'a Context, svm_capabilities: cl_device_svm_capabilities) -> Self {
         assert!(0 < mem::size_of::<T>(), "No Zero Sized Types!");
@@ -314,6 +316,8 @@ struct RawValIter<T> {
     start: *const T,
     end: *const T,
 }
+
+unsafe impl<T: Send> Send for RawValIter<T> {}
 
 impl<T> RawValIter<T> {
     unsafe fn new(slice: &[T]) -> Self {
