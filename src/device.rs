@@ -13,7 +13,7 @@
 // limitations under the License.
 
 pub use cl3::device::*;
-pub use cl3::ffi::cl_ext::cl_amd_device_topology;
+pub use cl3::ffi::cl_ext::{cl_amd_device_topology, CL_LUID_SIZE_KHR, CL_UUID_SIZE_KHR};
 
 use super::Result;
 use cl3::types::{
