@@ -22,7 +22,8 @@ use cl3::error_codes::CL_BUILD_PROGRAM_FAILURE;
 #[allow(unused_imports)]
 use cl3::ext;
 use cl3::types::{cl_context, cl_device_id, cl_int, cl_program, cl_uchar, cl_uint};
-use libc::{intptr_t, size_t};
+#[allow(unused_imports)]
+use libc::{intptr_t, c_void, size_t};
 use std::ffi::{CStr, CString};
 use std::ptr;
 use std::result;
