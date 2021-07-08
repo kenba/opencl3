@@ -18,7 +18,7 @@ pub use cl3::ffi::cl_ext::{cl_amd_device_topology, CL_LUID_SIZE_KHR, CL_UUID_SIZ
 use super::Result;
 use cl3::types::{
     cl_device_fp_config, cl_device_id, cl_device_partition_property, cl_device_svm_capabilities,
-    cl_device_type, cl_name_version, cl_platform_id, cl_uint, cl_ulong,
+    cl_device_type, cl_name_version, cl_platform_id, cl_uint, cl_ulong, CL_TRUE,
 };
 use libc::{intptr_t, size_t};
 
@@ -227,8 +227,8 @@ impl Device {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE3D_MAX_DEPTH)?.to_size())
     }
 
-    pub fn image_support(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE_SUPPORT)?.to_uint())
+    pub fn image_support(&self) -> Result<bool> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE_SUPPORT)?.to_uint() == CL_TRUE)
     }
 
     pub fn max_parameter_size(&self) -> Result<size_t> {
@@ -283,24 +283,30 @@ impl Device {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_LOCAL_MEM_SIZE)?.to_ulong())
     }
 
-    pub fn error_correction_support(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_ERROR_CORRECTION_SUPPORT)?.to_uint())
+    pub fn error_correction_support(&self) -> Result<bool> {
+        Ok(
+            get_device_info(self.id(), DeviceInfo::CL_DEVICE_ERROR_CORRECTION_SUPPORT)?.to_uint()
+                == CL_TRUE,
+        )
     }
 
     pub fn profiling_timer_resolution(&self) -> Result<size_t> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PROFILING_TIMER_RESOLUTION)?.to_size())
     }
 
-    pub fn endian_little(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_ENDIAN_LITTLE)?.to_uint())
+    pub fn endian_little(&self) -> Result<bool> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_ENDIAN_LITTLE)?.to_uint() == CL_TRUE)
     }
 
-    pub fn available(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_AVAILABLE)?.to_uint())
+    pub fn available(&self) -> Result<bool> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_AVAILABLE)?.to_uint() == CL_TRUE)
     }
 
-    pub fn compiler_available(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_COMPILER_AVAILABLE)?.to_uint())
+    pub fn compiler_available(&self) -> Result<bool> {
+        Ok(
+            get_device_info(self.id(), DeviceInfo::CL_DEVICE_COMPILER_AVAILABLE)?.to_uint()
+                == CL_TRUE,
+        )
     }
 
     pub fn execution_capabilities(&self) -> Result<cl_ulong> {
@@ -355,8 +361,11 @@ impl Device {
     }
 
     // DEPRECATED 2.0
-    pub fn host_unified_memory(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_HOST_UNIFIED_MEMORY)?.to_uint())
+    pub fn host_unified_memory(&self) -> Result<bool> {
+        Ok(
+            get_device_info(self.id(), DeviceInfo::CL_DEVICE_HOST_UNIFIED_MEMORY)?.to_uint()
+                == CL_TRUE,
+        )
     }
 
     pub fn native_vector_width_char(&self) -> Result<cl_uint> {
@@ -391,8 +400,11 @@ impl Device {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_OPENCL_C_VERSION)?.to_string())
     }
 
-    pub fn linker_available(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_LINKER_AVAILABLE)?.to_uint())
+    pub fn linker_available(&self) -> Result<bool> {
+        Ok(
+            get_device_info(self.id(), DeviceInfo::CL_DEVICE_LINKER_AVAILABLE)?.to_uint()
+                == CL_TRUE,
+        )
     }
 
     pub fn built_in_kernels(&self) -> Result<String> {
@@ -436,10 +448,11 @@ impl Device {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_REFERENCE_COUNT)?.to_uint())
     }
 
-    pub fn preferred_interop_user_sync(&self) -> Result<cl_uint> {
+    pub fn preferred_interop_user_sync(&self) -> Result<bool> {
         Ok(
             get_device_info(self.id(), DeviceInfo::CL_DEVICE_PREFERRED_INTEROP_USER_SYNC)?
-                .to_uint(),
+                .to_uint()
+                == CL_TRUE,
         )
     }
 
@@ -556,12 +569,13 @@ impl Device {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_NUM_SUB_GROUPS)?.to_uint())
     }
 
-    pub fn sub_group_independent_forward_progress(&self) -> Result<cl_uint> {
+    pub fn sub_group_independent_forward_progress(&self) -> Result<bool> {
         Ok(get_device_info(
             self.id(),
             DeviceInfo::CL_DEVICE_SUB_GROUP_INDEPENDENT_FORWARD_PROGRESS,
         )?
-        .to_uint())
+        .to_uint()
+            == CL_TRUE)
     }
 
     // CL_VERSION_3_0
@@ -601,12 +615,13 @@ impl Device {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_ATOMIC_FENCE_CAPABILITIES)?.to_ulong())
     }
 
-    pub fn non_uniform_work_group_support(&self) -> Result<cl_uint> {
+    pub fn non_uniform_work_group_support(&self) -> Result<bool> {
         Ok(get_device_info(
             self.id(),
             DeviceInfo::CL_DEVICE_NON_UNIFORM_WORK_GROUP_SUPPORT,
         )?
-        .to_uint())
+        .to_uint()
+            == CL_TRUE)
     }
 
     pub fn opencl_c_all_versions(&self) -> Result<Vec<cl_name_version>> {
@@ -624,20 +639,22 @@ impl Device {
         .to_size())
     }
 
-    pub fn work_group_collective_functions_support(&self) -> Result<cl_uint> {
+    pub fn work_group_collective_functions_support(&self) -> Result<bool> {
         Ok(get_device_info(
             self.id(),
             DeviceInfo::CL_DEVICE_WORK_GROUP_COLLECTIVE_FUNCTIONS_SUPPORT,
         )?
-        .to_uint())
+        .to_uint()
+            == CL_TRUE)
     }
 
-    pub fn generic_address_space_support(&self) -> Result<cl_uint> {
+    pub fn generic_address_space_support(&self) -> Result<bool> {
         Ok(get_device_info(
             self.id(),
             DeviceInfo::CL_DEVICE_GENERIC_ADDRESS_SPACE_SUPPORT,
         )?
-        .to_uint())
+        .to_uint()
+            == CL_TRUE)
     }
 
     pub fn uuid_khr(&self) -> Result<Vec<u8>> {
@@ -674,8 +691,8 @@ impl Device {
         )
     }
 
-    pub fn pipe_support(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PIPE_SUPPORT)?.to_uint())
+    pub fn pipe_support(&self) -> Result<bool> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PIPE_SUPPORT)?.to_uint() == CL_TRUE)
     }
 
     pub fn latest_conformance_version_passed(&self) -> Result<String> {
@@ -1052,7 +1069,7 @@ mod tests {
 
         let value = device.image_support().unwrap();
         println!("CL_DEVICE_IMAGE_SUPPORT: {}", value);
-        assert!(0 < value);
+        assert!(value);
 
         let value = device.max_parameter_size().unwrap();
         println!("CL_DEVICE_MAX_PARAMETER_SIZE: {}", value);
@@ -1113,15 +1130,15 @@ mod tests {
 
         let value = device.endian_little().unwrap();
         println!("CL_DEVICE_ENDIAN_LITTLE: {}", value);
-        assert!(0 < value);
+        assert!(value);
 
         let value = device.available().unwrap();
         println!("CL_DEVICE_AVAILABLE: {}", value);
-        assert!(0 < value);
+        assert!(value);
 
         let value = device.compiler_available().unwrap();
         println!("CL_DEVICE_COMPILER_AVAILABLE: {}", value);
-        assert!(0 < value);
+        assert!(value);
 
         let value = device.execution_capabilities().unwrap();
         println!("CL_DEVICE_EXECUTION_CAPABILITIES: {:X}", value);
@@ -1254,7 +1271,7 @@ mod tests {
         assert!(0 < value);
 
         let value = device.preferred_interop_user_sync().unwrap();
-        println!("CL_DEVICE_PREFERRED_INTEROP_USER_SYNC: {:X}", value);
+        println!("CL_DEVICE_PREFERRED_INTEROP_USER_SYNC: {}", value);
 
         let value = device.printf_buffer_size().unwrap();
         println!("CL_DEVICE_PRINTF_BUFFER_SIZE: {}", value);
@@ -1546,7 +1563,7 @@ mod tests {
         match device.work_group_collective_functions_support() {
             Ok(value) => {
                 println!(
-                    "CL_DEVICE_WORK_GROUP_COLLECTIVE_FUNCTIONS_SUPPORT: {:X}",
+                    "CL_DEVICE_WORK_GROUP_COLLECTIVE_FUNCTIONS_SUPPORT: {}",
                     value
                 )
             }
@@ -1558,7 +1575,7 @@ mod tests {
 
         match device.generic_address_space_support() {
             Ok(value) => {
-                println!("CL_DEVICE_GENERIC_ADDRESS_SPACE_SUPPORT: {:X}", value)
+                println!("CL_DEVICE_GENERIC_ADDRESS_SPACE_SUPPORT: {}", value)
             }
             Err(e) => println!(
                 "OpenCL error, CL_DEVICE_GENERIC_ADDRESS_SPACE_SUPPORT: {:?}, {}",
@@ -1620,7 +1637,7 @@ mod tests {
 
         match device.pipe_support() {
             Ok(value) => {
-                println!("CL_DEVICE_PIPE_SUPPORT: {:X}", value)
+                println!("CL_DEVICE_PIPE_SUPPORT: {}", value)
             }
             Err(e) => println!("OpenCL error, CL_DEVICE_PIPE_SUPPORT: {:?}, {}", e, e),
         };
