@@ -18,7 +18,7 @@ pub use cl3::ffi::cl_ext::{cl_amd_device_topology, CL_LUID_SIZE_KHR, CL_UUID_SIZ
 use super::Result;
 use cl3::types::{
     cl_device_fp_config, cl_device_id, cl_device_partition_property, cl_device_svm_capabilities,
-    cl_device_type, cl_name_version, cl_platform_id, cl_uint, cl_ulong, CL_TRUE,
+    cl_device_type, cl_name_version, cl_platform_id, cl_uint, cl_ulong, CL_FALSE,
 };
 use libc::{intptr_t, size_t};
 
@@ -228,7 +228,7 @@ impl Device {
     }
 
     pub fn image_support(&self) -> Result<bool> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE_SUPPORT)?.to_uint() == CL_TRUE)
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE_SUPPORT)?.to_uint() != CL_FALSE)
     }
 
     pub fn max_parameter_size(&self) -> Result<size_t> {
@@ -286,7 +286,7 @@ impl Device {
     pub fn error_correction_support(&self) -> Result<bool> {
         Ok(
             get_device_info(self.id(), DeviceInfo::CL_DEVICE_ERROR_CORRECTION_SUPPORT)?.to_uint()
-                == CL_TRUE,
+                != CL_FALSE,
         )
     }
 
@@ -295,17 +295,17 @@ impl Device {
     }
 
     pub fn endian_little(&self) -> Result<bool> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_ENDIAN_LITTLE)?.to_uint() == CL_TRUE)
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_ENDIAN_LITTLE)?.to_uint() != CL_FALSE)
     }
 
     pub fn available(&self) -> Result<bool> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_AVAILABLE)?.to_uint() == CL_TRUE)
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_AVAILABLE)?.to_uint() != CL_FALSE)
     }
 
     pub fn compiler_available(&self) -> Result<bool> {
         Ok(
             get_device_info(self.id(), DeviceInfo::CL_DEVICE_COMPILER_AVAILABLE)?.to_uint()
-                == CL_TRUE,
+                != CL_FALSE,
         )
     }
 
@@ -364,7 +364,7 @@ impl Device {
     pub fn host_unified_memory(&self) -> Result<bool> {
         Ok(
             get_device_info(self.id(), DeviceInfo::CL_DEVICE_HOST_UNIFIED_MEMORY)?.to_uint()
-                == CL_TRUE,
+                != CL_FALSE,
         )
     }
 
@@ -403,7 +403,7 @@ impl Device {
     pub fn linker_available(&self) -> Result<bool> {
         Ok(
             get_device_info(self.id(), DeviceInfo::CL_DEVICE_LINKER_AVAILABLE)?.to_uint()
-                == CL_TRUE,
+                != CL_FALSE,
         )
     }
 
@@ -452,7 +452,7 @@ impl Device {
         Ok(
             get_device_info(self.id(), DeviceInfo::CL_DEVICE_PREFERRED_INTEROP_USER_SYNC)?
                 .to_uint()
-                == CL_TRUE,
+                != CL_FALSE,
         )
     }
 
@@ -575,7 +575,7 @@ impl Device {
             DeviceInfo::CL_DEVICE_SUB_GROUP_INDEPENDENT_FORWARD_PROGRESS,
         )?
         .to_uint()
-            == CL_TRUE)
+            != CL_FALSE)
     }
 
     // CL_VERSION_3_0
@@ -621,7 +621,7 @@ impl Device {
             DeviceInfo::CL_DEVICE_NON_UNIFORM_WORK_GROUP_SUPPORT,
         )?
         .to_uint()
-            == CL_TRUE)
+            != CL_FALSE)
     }
 
     pub fn opencl_c_all_versions(&self) -> Result<Vec<cl_name_version>> {
@@ -645,7 +645,7 @@ impl Device {
             DeviceInfo::CL_DEVICE_WORK_GROUP_COLLECTIVE_FUNCTIONS_SUPPORT,
         )?
         .to_uint()
-            == CL_TRUE)
+            != CL_FALSE)
     }
 
     pub fn generic_address_space_support(&self) -> Result<bool> {
@@ -654,7 +654,7 @@ impl Device {
             DeviceInfo::CL_DEVICE_GENERIC_ADDRESS_SPACE_SUPPORT,
         )?
         .to_uint()
-            == CL_TRUE)
+            != CL_FALSE)
     }
 
     pub fn uuid_khr(&self) -> Result<Vec<u8>> {
@@ -692,7 +692,7 @@ impl Device {
     }
 
     pub fn pipe_support(&self) -> Result<bool> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PIPE_SUPPORT)?.to_uint() == CL_TRUE)
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PIPE_SUPPORT)?.to_uint() != CL_FALSE)
     }
 
     pub fn latest_conformance_version_passed(&self) -> Result<String> {
