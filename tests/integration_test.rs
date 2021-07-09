@@ -28,7 +28,7 @@ use opencl3::memory::{Buffer, CL_MAP_READ, CL_MAP_WRITE, CL_MEM_READ_ONLY, CL_ME
 use opencl3::platform::get_platforms;
 use opencl3::program::Program;
 use opencl3::svm::SvmVec;
-use opencl3::types::{cl_event, cl_float, CL_FALSE, CL_TRUE};
+use opencl3::types::{cl_event, cl_float, CL_NON_BLOCKING, CL_BLOCKING};
 use std::ptr;
 
 const PROGRAM_SOURCE: &str = r#"
@@ -110,12 +110,12 @@ fn test_opencl_1_2_example() {
 
     // Blocking write
     let _x_write_event = queue
-        .enqueue_write_buffer(&x, CL_TRUE, 0, &ones, &events)
+        .enqueue_write_buffer(&x, CL_BLOCKING, 0, &ones, &events)
         .unwrap();
 
     // Non-blocking write, wait for y_write_event
     let y_write_event = queue
-        .enqueue_write_buffer(&y, CL_FALSE, 0, &sums, &events)
+        .enqueue_write_buffer(&y, CL_NON_BLOCKING, 0, &sums, &events)
         .unwrap();
 
     // a value for the kernel function
@@ -141,7 +141,7 @@ fn test_opencl_1_2_example() {
     // after the kernel event completes.
     let mut results: [cl_float; ARRAY_SIZE] = [0.0; ARRAY_SIZE];
     let _event = queue
-        .enqueue_read_buffer(&z, CL_FALSE, 0, &mut results, &events)
+        .enqueue_read_buffer(&z, CL_NON_BLOCKING, 0, &mut results, &events)
         .unwrap();
     events.clear();
 
@@ -285,10 +285,10 @@ fn test_opencl_svm_example() {
             // !is_fine_grained_svm
             // Map the SVM
             let map_ones_event = queue
-                .enqueue_svm_map(CL_FALSE, CL_MAP_WRITE, &mut ones, &events)
+                .enqueue_svm_map(CL_NON_BLOCKING, CL_MAP_WRITE, &mut ones, &events)
                 .unwrap();
             let map_sums_event = queue
-                .enqueue_svm_map(CL_FALSE, CL_MAP_WRITE, &mut sums, &events)
+                .enqueue_svm_map(CL_NON_BLOCKING, CL_MAP_WRITE, &mut sums, &events)
                 .unwrap();
 
             events.push(map_ones_event.get());
@@ -318,7 +318,7 @@ fn test_opencl_svm_example() {
 
             // Blocking SVM map, no need to wait for _map_results_event
             let _map_results_event = queue
-                .enqueue_svm_map(CL_TRUE, CL_MAP_READ, &mut results, &events)
+                .enqueue_svm_map(CL_BLOCKING, CL_MAP_READ, &mut results, &events)
                 .unwrap();
 
             assert_eq!(1300.0, results[ARRAY_SIZE - 1]);
