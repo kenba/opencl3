@@ -21,9 +21,10 @@ use super::Result;
 use cl3::error_codes::CL_BUILD_PROGRAM_FAILURE;
 #[allow(unused_imports)]
 use cl3::ext;
-use cl3::types::{cl_context, cl_device_id, cl_int, cl_program, cl_uchar, cl_uint};
 #[allow(unused_imports)]
-use libc::{intptr_t, c_void, size_t};
+use cl3::types::{cl_context, cl_device_id, cl_int, cl_program, cl_uchar, cl_uint, CL_FALSE};
+#[allow(unused_imports)]
+use libc::{c_void, intptr_t, size_t};
 use std::ffi::{CStr, CString};
 use std::ptr;
 use std::result;
@@ -458,21 +459,23 @@ impl Program {
     }
 
     #[cfg(feature = "CL_VERSION_2_2")]
-    pub fn get_program_scope_global_ctors_present(&self) -> Result<cl_uint> {
+    pub fn get_program_scope_global_ctors_present(&self) -> Result<bool> {
         Ok(get_program_info(
             self.program,
             ProgramInfo::CL_PROGRAM_SCOPE_GLOBAL_CTORS_PRESENT,
         )?
-        .to_uint())
+        .to_uint()
+            != CL_FALSE)
     }
 
     #[cfg(feature = "CL_VERSION_2_2")]
-    pub fn get_program_scope_global_dtors_present(&self) -> Result<cl_uint> {
+    pub fn get_program_scope_global_dtors_present(&self) -> Result<bool> {
         Ok(get_program_info(
             self.program,
             ProgramInfo::CL_PROGRAM_SCOPE_GLOBAL_DTORS_PRESENT,
         )?
-        .to_uint())
+        .to_uint()
+            != CL_FALSE)
     }
 
     pub fn get_build_status(&self, device: cl_device_id) -> Result<cl_int> {

@@ -47,6 +47,7 @@ use cl3::types::{
     cl_addressing_mode, cl_bool, cl_buffer_create_type, cl_buffer_region, cl_context,
     cl_filter_mode, cl_image_desc, cl_image_format, cl_int, cl_mem, cl_mem_flags,
     cl_mem_object_type, cl_mem_properties, cl_sampler, cl_sampler_properties, cl_uint, cl_ulong,
+    CL_FALSE,
 };
 use libc::{c_void, intptr_t, size_t};
 use std::mem;
@@ -699,6 +700,56 @@ impl Sampler {
 
     pub fn get(&self) -> cl_sampler {
         self.sampler
+    }
+
+    pub fn reference_count(&self) -> Result<cl_uint> {
+        Ok(
+            sampler::get_sampler_info(
+                self.get(),
+                sampler::SamplerInfo::CL_SAMPLER_REFERENCE_COUNT,
+            )?
+            .to_uint(),
+        )
+    }
+
+    pub fn context(&self) -> Result<cl_context> {
+        Ok(
+            sampler::get_sampler_info(self.get(), sampler::SamplerInfo::CL_SAMPLER_CONTEXT)?
+                .to_ptr() as cl_context,
+        )
+    }
+
+    pub fn normalized_coords(&self) -> Result<bool> {
+        Ok(sampler::get_sampler_info(
+            self.get(),
+            sampler::SamplerInfo::CL_SAMPLER_NORMALIZED_COORDS,
+        )?
+        .to_uint()
+            != CL_FALSE)
+    }
+
+    pub fn addressing_mode(&self) -> Result<cl_addressing_mode> {
+        Ok(
+            sampler::get_sampler_info(
+                self.get(),
+                sampler::SamplerInfo::CL_SAMPLER_ADDRESSING_MODE,
+            )?
+            .to_uint(),
+        )
+    }
+
+    pub fn filter_mode(&self) -> Result<cl_filter_mode> {
+        Ok(
+            sampler::get_sampler_info(self.get(), sampler::SamplerInfo::CL_SAMPLER_FILTER_MODE)?
+                .to_uint(),
+        )
+    }
+
+    pub fn sampler_properties(&self) -> Result<Vec<intptr_t>> {
+        Ok(
+            sampler::get_sampler_info(self.get(), sampler::SamplerInfo::CL_SAMPLER_PROPERTIES)?
+                .to_vec_intptr(),
+        )
     }
 }
 
