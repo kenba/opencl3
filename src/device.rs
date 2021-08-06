@@ -703,6 +703,14 @@ impl Device {
         .to_string())
     }
 
+    pub fn integer_dot_product_capabilities_khr(&self) -> Result<cl_ulong> {
+        Ok(get_device_info(
+            self.id(),
+            DeviceInfo::CL_DEVICE_INTEGER_DOT_PRODUCT_CAPABILITIES_KHR,
+        )?
+        .to_ulong())
+    }
+
     pub fn compute_capability_major_nv(&self) -> Result<cl_uint> {
         Ok(
             get_device_info(self.id(), DeviceInfo::CL_DEVICE_COMPUTE_CAPABILITY_MAJOR_NV)?
@@ -1648,6 +1656,19 @@ mod tests {
             }
             Err(e) => println!(
                 "OpenCL error, CL_DEVICE_LATEST_CONFORMANCE_VERSION_PASSED: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.integer_dot_product_capabilities_khr() {
+            Ok(value) => {
+                println!(
+                    "CL_DEVICE_INTEGER_DOT_PRODUCT_CAPABILITIES_KHR: {:?}",
+                    value
+                )
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_INTEGER_DOT_PRODUCT_CAPABILITIES_KHR: {:?}, {}",
                 e, e
             ),
         };
