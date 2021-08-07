@@ -15,7 +15,8 @@
 pub use cl3::event::*;
 
 use super::Result;
-use cl3::types::{cl_command_queue, cl_context, cl_event, cl_uint, cl_ulong};
+use cl3::types::{cl_command_queue, cl_context, cl_event, cl_int, cl_uint, cl_ulong};
+use libc::c_void;
 
 /// An OpenCL event object.  
 /// Has methods to return information from calls to clGetEventInfo and
@@ -82,6 +83,20 @@ impl Event {
         Ok(get_event_info(self.event, EventInfo::CL_EVENT_CONTEXT)?.to_ptr() as cl_context)
     }
 
+    pub fn set_callback(
+        &self,
+        command_exec_callback_type: cl_int,
+        pfn_notify: extern "C" fn(cl_event, cl_int, *mut c_void),
+        user_data: *mut c_void,
+    ) -> Result<()> {
+        Ok(set_event_callback(
+            self.event,
+            command_exec_callback_type,
+            pfn_notify,
+            user_data,
+        )?)
+    }
+
     pub fn profiling_command_queued(&self) -> Result<cl_ulong> {
         Ok(
             get_event_profiling_info(self.event, ProfilingInfo::CL_PROFILING_COMMAND_QUEUED)?
@@ -127,8 +142,19 @@ mod tests {
     use crate::device::{Device, CL_DEVICE_TYPE_GPU};
     use crate::memory::{Buffer, CL_MEM_WRITE_ONLY};
     use crate::platform::get_platforms;
-    use crate::types::{cl_float, CL_FALSE};
+    use crate::types::{cl_float, CL_NON_BLOCKING};
     use std::ptr;
+
+    extern "C" fn event_callback_function(
+        _event: cl_event,
+        event_command_status: cl_int,
+        _user_data: *mut c_void,
+    ) {
+        println!(
+            "OpenCL event callback command status: {}",
+            event_command_status
+        );
+    }
 
     #[test]
     fn test_event() {
@@ -164,7 +190,12 @@ mod tests {
 
         // Non-blocking write, wait for event
         let event = queue
-            .enqueue_write_buffer(&buffer, CL_FALSE, 0, &ones, &events)
+            .enqueue_write_buffer(&buffer, CL_NON_BLOCKING, 0, &ones, &events)
+            .unwrap();
+
+        // Set a callback_function on the event (i.e. write) being completed.
+        event
+            .set_callback(CL_COMPLETE, event_callback_function, ptr::null_mut())
             .unwrap();
 
         let value = event.command_execution_status().unwrap();
