@@ -182,7 +182,7 @@ mod tests {
         const ARRAY_SIZE: usize = 1024;
         let ones: [cl_float; ARRAY_SIZE] = [1.0; ARRAY_SIZE];
 
-        let buffer =
+        let mut buffer =
             Buffer::<cl_float>::create(&context, CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())
                 .unwrap();
 
@@ -190,7 +190,7 @@ mod tests {
 
         // Non-blocking write, wait for event
         let event = queue
-            .enqueue_write_buffer(&buffer, CL_NON_BLOCKING, 0, &ones, &events)
+            .enqueue_write_buffer(&mut buffer, CL_NON_BLOCKING, 0, &ones, &events)
             .unwrap();
 
         // Set a callback_function on the event (i.e. write) being completed.
