@@ -55,6 +55,8 @@ use std::mem;
 pub trait ClMem {
     fn get(&self) -> cl_mem;
 
+    fn get_mut(&mut self) -> cl_mem;
+
     fn mem_type(&self) -> Result<cl_mem_object_type> {
         Ok(memory::get_mem_object_info(self.get(), MemInfo::CL_MEM_TYPE)?.to_uint())
     }
@@ -126,6 +128,10 @@ pub struct Buffer<T> {
 
 impl<T> ClMem for Buffer<T> {
     fn get(&self) -> cl_mem {
+        self.buffer
+    }
+
+    fn get_mut(&mut self) -> cl_mem {
         self.buffer
     }
 }
@@ -280,6 +286,10 @@ pub struct Image {
 
 impl ClMem for Image {
     fn get(&self) -> cl_mem {
+        self.image
+    }
+
+    fn get_mut(&mut self) -> cl_mem {
         self.image
     }
 }
@@ -764,6 +774,10 @@ pub struct Pipe {
 
 impl ClMem for Pipe {
     fn get(&self) -> cl_mem {
+        self.pipe
+    }
+
+    fn get_mut(&mut self) -> cl_mem {
         self.pipe
     }
 }

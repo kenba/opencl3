@@ -234,7 +234,7 @@ impl CommandQueue {
 
     pub fn enqueue_write_buffer<T>(
         &self,
-        buffer: &Buffer<T>,
+        buffer: &mut Buffer<T>,
         blocking_write: cl_bool,
         offset: size_t,
         data: &[T],
@@ -242,7 +242,7 @@ impl CommandQueue {
     ) -> Result<Event> {
         let event = enqueue_write_buffer(
             self.queue,
-            buffer.get(),
+            buffer.get_mut(),
             blocking_write,
             offset,
             (data.len() * mem::size_of::<T>()) as size_t,
@@ -259,7 +259,7 @@ impl CommandQueue {
 
     pub fn enqueue_write_buffer_rect<T>(
         &self,
-        buffer: &Buffer<T>,
+        buffer: &mut Buffer<T>,
         blocking_write: cl_bool,
         buffer_origin: *const size_t,
         host_origin: *const size_t,
@@ -273,7 +273,7 @@ impl CommandQueue {
     ) -> Result<Event> {
         let event = enqueue_write_buffer_rect(
             self.queue,
-            buffer.get(),
+            buffer.get_mut(),
             blocking_write,
             buffer_origin,
             host_origin,
@@ -295,7 +295,7 @@ impl CommandQueue {
 
     pub fn enqueue_fill_buffer<T>(
         &self,
-        buffer: &Buffer<T>,
+        buffer: &mut Buffer<T>,
         pattern: &[T],
         offset: size_t,
         size: size_t,
@@ -303,7 +303,7 @@ impl CommandQueue {
     ) -> Result<Event> {
         let event = enqueue_fill_buffer(
             self.queue,
-            buffer.get(),
+            buffer.get_mut(),
             pattern.as_ptr() as cl_mem,
             pattern.len() * mem::size_of::<T>(),
             offset,
@@ -321,7 +321,7 @@ impl CommandQueue {
     pub fn enqueue_copy_buffer<T>(
         &self,
         src_buffer: &Buffer<T>,
-        dst_buffer: &Buffer<T>,
+        dst_buffer: &mut Buffer<T>,
         src_offset: size_t,
         dst_offset: size_t,
         size: size_t,
@@ -330,7 +330,7 @@ impl CommandQueue {
         let event = enqueue_copy_buffer(
             self.queue,
             src_buffer.get(),
-            dst_buffer.get(),
+            dst_buffer.get_mut(),
             src_offset,
             dst_offset,
             size,
@@ -346,7 +346,7 @@ impl CommandQueue {
     pub fn enqueue_copy_buffer_rect<T>(
         &self,
         src_buffer: &Buffer<T>,
-        dst_buffer: &Buffer<T>,
+        dst_buffer: &mut Buffer<T>,
         src_origin: *const size_t,
         dst_origin: *const size_t,
         region: *const size_t,
@@ -359,7 +359,7 @@ impl CommandQueue {
         let event = enqueue_copy_buffer_rect(
             self.queue,
             src_buffer.get(),
-            dst_buffer.get(),
+            dst_buffer.get_mut(),
             src_origin,
             dst_origin,
             region,
@@ -409,7 +409,7 @@ impl CommandQueue {
 
     pub fn enqueue_write_image(
         &self,
-        image: &Image,
+        image: &mut Image,
         blocking_write: cl_bool,
         origin: *const size_t,
         region: *const size_t,
@@ -420,7 +420,7 @@ impl CommandQueue {
     ) -> Result<Event> {
         let event = enqueue_write_image(
             self.queue,
-            image.get(),
+            image.get_mut(),
             blocking_write,
             origin,
             region,
@@ -439,7 +439,7 @@ impl CommandQueue {
 
     pub fn enqueue_fill_image(
         &self,
-        image: &Image,
+        image: &mut Image,
         fill_color: *const c_void,
         origin: *const size_t,
         region: *const size_t,
@@ -447,7 +447,7 @@ impl CommandQueue {
     ) -> Result<Event> {
         let event = enqueue_fill_image(
             self.queue,
-            image.get(),
+            image.get_mut(),
             fill_color,
             origin,
             region,
@@ -464,7 +464,7 @@ impl CommandQueue {
     pub fn enqueue_copy_image(
         &self,
         src_image: &Image,
-        dst_image: &Image,
+        dst_image: &mut Image,
         src_origin: *const size_t,
         dst_origin: *const size_t,
         region: *const size_t,
@@ -473,7 +473,7 @@ impl CommandQueue {
         let event = enqueue_copy_image(
             self.queue,
             src_image.get(),
-            dst_image.get(),
+            dst_image.get_mut(),
             src_origin,
             dst_origin,
             region,
@@ -490,7 +490,7 @@ impl CommandQueue {
     pub fn enqueue_copy_image_to_buffer<T>(
         &self,
         src_image: &Image,
-        dst_buffer: &Buffer<T>,
+        dst_buffer: &mut Buffer<T>,
         src_origin: *const size_t,
         region: *const size_t,
         dst_offset: size_t,
@@ -499,7 +499,7 @@ impl CommandQueue {
         let event = enqueue_copy_image_to_buffer(
             self.queue,
             src_image.get(),
-            dst_buffer.get(),
+            dst_buffer.get_mut(),
             src_origin,
             region,
             dst_offset,
@@ -516,7 +516,7 @@ impl CommandQueue {
     pub fn enqueue_copy_buffer_to_image<T>(
         &self,
         src_buffer: &Buffer<T>,
-        dst_image: &Image,
+        dst_image: &mut Image,
         src_offset: size_t,
         dst_origin: *const size_t,
         region: *const size_t,
@@ -525,7 +525,7 @@ impl CommandQueue {
         let event = enqueue_copy_buffer_to_image(
             self.queue,
             src_buffer.get(),
-            dst_image.get(),
+            dst_image.get_mut(),
             src_offset,
             dst_origin,
             region,

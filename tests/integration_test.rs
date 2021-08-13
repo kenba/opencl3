@@ -99,10 +99,12 @@ fn test_opencl_1_2_example() {
     }
 
     // Create OpenCL device buffers
-    let x = Buffer::<cl_float>::create(&context, CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())
-        .unwrap();
-    let y = Buffer::<cl_float>::create(&context, CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())
-        .unwrap();
+    let mut x =
+        Buffer::<cl_float>::create(&context, CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())
+            .unwrap();
+    let mut y =
+        Buffer::<cl_float>::create(&context, CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())
+            .unwrap();
     let z = Buffer::<cl_float>::create(&context, CL_MEM_READ_ONLY, ARRAY_SIZE, ptr::null_mut())
         .unwrap();
 
@@ -110,12 +112,12 @@ fn test_opencl_1_2_example() {
 
     // Blocking write
     let _x_write_event = queue
-        .enqueue_write_buffer(&x, CL_BLOCKING, 0, &ones, &events)
+        .enqueue_write_buffer(&mut x, CL_BLOCKING, 0, &ones, &events)
         .unwrap();
 
     // Non-blocking write, wait for y_write_event
     let y_write_event = queue
-        .enqueue_write_buffer(&y, CL_NON_BLOCKING, 0, &sums, &events)
+        .enqueue_write_buffer(&mut y, CL_NON_BLOCKING, 0, &sums, &events)
         .unwrap();
 
     // a value for the kernel function
