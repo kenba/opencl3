@@ -18,7 +18,9 @@ use cl3::device::{
     CL_DEVICE_SVM_COARSE_GRAIN_BUFFER, CL_DEVICE_SVM_FINE_GRAIN_BUFFER,
     CL_DEVICE_SVM_FINE_GRAIN_SYSTEM,
 };
-use cl3::memory::{svm_alloc, svm_free, CL_MEM_READ_WRITE, CL_MEM_SVM_FINE_GRAIN_BUFFER};
+use cl3::memory::CL_MEM_READ_WRITE;
+#[cfg(feature = "CL_VERSION_2_0")]
+use cl3::memory::{svm_alloc, svm_free, CL_MEM_SVM_FINE_GRAIN_BUFFER};
 use cl3::types::{cl_device_svm_capabilities, cl_svm_mem_flags, cl_uint};
 use libc::c_void;
 use std::fmt;

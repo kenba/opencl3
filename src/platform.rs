@@ -33,6 +33,7 @@ use cl3::ffi::cl_dx9_media_sharing::{
     cl_dx9_media_adapter_type_khr,
 };
 use cl3::platform;
+#[cfg(feature = "CL_VERSION_1_2")]
 use cl3::program;
 #[allow(unused_imports)]
 use cl3::types::{
@@ -219,6 +220,7 @@ impl Platform {
     }
 
     /// Unload an OpenCL compiler for a platform.
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn unload_compiler(&self) -> Result<()> {
         Ok(program::unload_platform_compiler(self.id())?)
     }

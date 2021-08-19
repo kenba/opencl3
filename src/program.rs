@@ -25,7 +25,9 @@ use cl3::ext;
 use cl3::types::{cl_context, cl_device_id, cl_int, cl_program, cl_uchar, cl_uint, CL_FALSE};
 #[allow(unused_imports)]
 use libc::{c_void, intptr_t, size_t};
-use std::ffi::{CStr, CString};
+#[cfg(feature = "CL_VERSION_1_2")]
+use std::ffi::CStr;
+use std::ffi::CString;
 use std::ptr;
 use std::result;
 
@@ -168,6 +170,7 @@ impl Program {
     ///
     /// returns a Result containing the new Program
     /// or the error code from the OpenCL C API function.
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn create_from_builtin_kernels(
         context: &Context,
         devices: &[cl_device_id],
@@ -323,6 +326,7 @@ impl Program {
     ///
     /// returns a null Result
     /// or the error code from the OpenCL C API function.
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn compile(
         &mut self,
         devices: &[cl_device_id],
@@ -352,6 +356,7 @@ impl Program {
     ///
     /// returns a null Result
     /// or the error code from the OpenCL C API function.
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn link(
         &mut self,
         devices: &[cl_device_id],
@@ -615,7 +620,7 @@ mod tests {
         println!("program.get_build_binary_type(): {}", value);
         assert_eq!(CL_PROGRAM_BINARY_TYPE_EXECUTABLE as u32, value);
 
-        // CL_VERSION_2_0 value
+        #[cfg(feature = "CL_VERSION_2_0")]
         match program.get_build_global_variable_total_size(device.id()) {
             Ok(value) => println!("program.get_build_global_variable_total_size(): {}", value),
             Err(e) => println!(

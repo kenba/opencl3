@@ -14,21 +14,15 @@
 
 extern crate opencl3;
 
-use cl3::device::{
-    CL_DEVICE_SVM_COARSE_GRAIN_BUFFER, CL_DEVICE_SVM_FINE_GRAIN_BUFFER, CL_DEVICE_TYPE_GPU,
-};
-use opencl3::command_queue::{
-    CommandQueue, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, CL_QUEUE_PROFILING_ENABLE,
-};
+use cl3::device::CL_DEVICE_TYPE_GPU;
+use opencl3::command_queue::{CommandQueue, CL_QUEUE_PROFILING_ENABLE};
 use opencl3::context::Context;
 use opencl3::device::Device;
-use opencl3::event;
 use opencl3::kernel::{ExecuteKernel, Kernel};
-use opencl3::memory::{Buffer, CL_MAP_READ, CL_MAP_WRITE, CL_MEM_READ_ONLY, CL_MEM_WRITE_ONLY};
+use opencl3::memory::{Buffer, CL_MEM_READ_ONLY, CL_MEM_WRITE_ONLY};
 use opencl3::platform::get_platforms;
 use opencl3::program::Program;
-use opencl3::svm::SvmVec;
-use opencl3::types::{cl_event, cl_float, CL_NON_BLOCKING, CL_BLOCKING};
+use opencl3::types::{cl_event, cl_float, CL_BLOCKING, CL_NON_BLOCKING};
 use std::ptr;
 
 const PROGRAM_SOURCE: &str = r#"
@@ -160,9 +154,16 @@ fn test_opencl_1_2_example() {
     println!("kernel execution duration (ns): {}", duration);
 }
 
+#[cfg(feature = "CL_VERSION_2_0")]
 #[test]
 #[ignore]
 fn test_opencl_svm_example() {
+    use cl3::device::{CL_DEVICE_SVM_COARSE_GRAIN_BUFFER, CL_DEVICE_SVM_FINE_GRAIN_BUFFER};
+    use opencl3::command_queue::CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
+    use opencl3::event;
+    use opencl3::memory::{CL_MAP_READ, CL_MAP_WRITE};
+    use opencl3::svm::SvmVec;
+
     let platforms = get_platforms().unwrap();
     assert!(0 < platforms.len());
 

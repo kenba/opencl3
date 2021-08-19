@@ -322,6 +322,7 @@ impl Image {
     ///
     /// returns a Result containing the new OpenCL image object
     /// or the error code from the OpenCL C API function.
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn create(
         context: &Context,
         flags: cl_mem_flags,
@@ -700,6 +701,7 @@ impl Sampler {
         Ok(Sampler::new(sampler))
     }
 
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn create_with_properties(
         context: &Context,
         properties: *const cl_sampler_properties,
@@ -767,11 +769,13 @@ impl Sampler {
 /// Has methods to return information from calls to clGetPipeInfo with the
 /// appropriate parameters.  
 /// Implements the Drop trait to call release_mem_object when the object is dropped.
+#[cfg(feature = "CL_VERSION_2_0")]
 #[derive(Debug)]
 pub struct Pipe {
     pipe: cl_mem,
 }
 
+#[cfg(feature = "CL_VERSION_2_0")]
 impl ClMem for Pipe {
     fn get(&self) -> cl_mem {
         self.pipe
@@ -782,12 +786,14 @@ impl ClMem for Pipe {
     }
 }
 
+#[cfg(feature = "CL_VERSION_2_0")]
 impl Drop for Pipe {
     fn drop(&mut self) {
         memory::release_mem_object(self.get()).expect("Error: clReleaseMemObject");
     }
 }
 
+#[cfg(feature = "CL_VERSION_2_0")]
 impl Pipe {
     pub fn new(pipe: cl_mem) -> Pipe {
         Pipe { pipe }

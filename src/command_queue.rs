@@ -34,10 +34,13 @@ use cl3::ext;
 #[allow(unused_imports)]
 use cl3::ffi::cl_ext::cl_queue_properties_khr;
 use cl3::gl;
+#[cfg(any(feature = "CL_VERSION_1_2", feature = "CL_VERSION_2_1"))]
+use cl3::types::cl_mem_migration_flags;
+#[cfg(feature = "CL_VERSION_2_0")]
+use cl3::types::cl_queue_properties;
 use cl3::types::{
     cl_bool, cl_command_queue, cl_command_queue_properties, cl_context, cl_device_id, cl_event,
-    cl_kernel, cl_map_flags, cl_mem, cl_mem_migration_flags, cl_queue_properties, cl_uint,
-    cl_ulong,
+    cl_kernel, cl_map_flags, cl_mem, cl_uint, cl_ulong,
 };
 use libc::{c_void, size_t};
 use std::mem;
@@ -112,6 +115,7 @@ impl CommandQueue {
     ///
     /// returns a Result containing the new CommandQueue
     /// or the error code from the OpenCL C API function.
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn create_with_properties(
         context: &Context,
         device_id: cl_device_id,
@@ -293,6 +297,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn enqueue_fill_buffer<T>(
         &self,
         buffer: &mut Buffer<T>,
@@ -437,6 +442,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn enqueue_fill_image(
         &self,
         image: &mut Image,
@@ -619,6 +625,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn enqueue_migrate_mem_object(
         &self,
         num_mem_objects: cl_uint,
@@ -690,6 +697,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn enqueue_task(&self, kernel: cl_kernel, event_wait_list: &[cl_event]) -> Result<Event> {
         let event = enqueue_task(
             self.queue,
@@ -734,6 +742,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn enqueue_marker_with_wait_list(&self, event_wait_list: &[cl_event]) -> Result<Event> {
         let event = enqueue_marker_with_wait_list(
             self.queue,
@@ -747,6 +756,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn enqueue_barrier_with_wait_list(&self, event_wait_list: &[cl_event]) -> Result<Event> {
         let event = enqueue_barrier_with_wait_list(
             self.queue,
@@ -760,6 +770,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn enqueue_svm_free(
         &self,
         svm_pointers: &[*const c_void],
@@ -790,6 +801,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn enqueue_svm_mem_cpy(
         &self,
         blocking_copy: cl_bool,
@@ -814,6 +826,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn enqueue_svm_mem_fill<T>(
         &self,
         svm_ptr: *mut c_void,
@@ -837,6 +850,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn enqueue_svm_map<T>(
         &self,
         blocking_map: cl_bool,
@@ -860,6 +874,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn enqueue_svm_unmap<T>(&self, svm: &[T], event_wait_list: &[cl_event]) -> Result<Event> {
         let event = enqueue_svm_unmap(
             self.queue,
@@ -1240,11 +1255,12 @@ impl CommandQueue {
         Ok(get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_PROPERTIES)?.to_ulong())
     }
 
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn size(&self) -> Result<cl_uint> {
         Ok(get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_SIZE)?.to_uint())
     }
 
-    // CL_VERSION_2_1
+    #[cfg(feature = "CL_VERSION_2_1")]
     pub fn device_default(&self) -> Result<cl_device_id> {
         Ok(
             get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_DEVICE_DEFAULT)?.to_ptr()
@@ -1252,7 +1268,7 @@ impl CommandQueue {
         )
     }
 
-    // CL_VERSION_3_0
+    #[cfg(feature = "CL_VERSION_3_0")]
     pub fn properties_array(&self) -> Result<Vec<cl_ulong>> {
         Ok(
             get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_PROPERTIES_ARRAY)?
@@ -1268,6 +1284,7 @@ mod tests {
     use crate::device::Device;
     use crate::platform::get_platforms;
     use cl3::device::CL_DEVICE_TYPE_GPU;
+    #[cfg(feature = "CL_VERSION_2_1")]
     use libc::intptr_t;
 
     #[test]
@@ -1307,19 +1324,19 @@ mod tests {
         println!("queue.properties(): {:X}", value);
         // assert_eq!(2, value);
 
-        // CL_VERSION_2_0 value
+        #[cfg(feature = "CL_VERSION_2_0")]
         match queue.size() {
             Ok(value) => println!("queue.size(): {:?}", value),
             Err(e) => println!("OpenCL error, queue.size(): {}", e),
         }
 
-        // CL_VERSION_2_1 value
+        #[cfg(feature = "CL_VERSION_2_1")]
         match queue.device_default() {
             Ok(value) => println!("queue.device_default(): {:X}", value as intptr_t),
             Err(e) => println!("OpenCL error, queue.device_default(): {}", e),
         }
 
-        // CL_VERSION_3_0 value
+        #[cfg(feature = "CL_VERSION_3_0")]
         match queue.properties_array() {
             Ok(value) => println!("queue.properties_array(): {:?}", value),
             Err(e) => println!("OpenCL error, queue.properties_array(): {}", e),

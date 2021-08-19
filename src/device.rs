@@ -16,9 +16,14 @@ pub use cl3::device::*;
 pub use cl3::ffi::cl_ext::{cl_amd_device_topology, CL_LUID_SIZE_KHR, CL_UUID_SIZE_KHR};
 
 use super::Result;
+#[cfg(feature = "CL_VERSION_1_2")]
+use cl3::types::cl_device_partition_property;
+#[cfg(feature = "CL_VERSION_2_0")]
+use cl3::types::cl_device_svm_capabilities;
+#[cfg(feature = "CL_VERSION_3_0")]
+use cl3::types::cl_name_version;
 use cl3::types::{
-    cl_device_fp_config, cl_device_id, cl_device_partition_property, cl_device_svm_capabilities,
-    cl_device_type, cl_name_version, cl_platform_id, cl_uint, cl_ulong, CL_FALSE,
+    cl_device_fp_config, cl_device_id, cl_device_type, cl_platform_id, cl_uint, cl_ulong, CL_FALSE,
 };
 use libc::{intptr_t, size_t};
 
@@ -37,19 +42,23 @@ pub fn device_type_text(dev_type: cl_device_type) -> &'static str {
     }
 }
 
+#[cfg(feature = "CL_VERSION_1_2")]
 #[derive(Debug)]
 pub struct SubDevice {
     id: cl_device_id,
 }
 
+#[cfg(feature = "CL_VERSION_1_2")]
 impl Drop for SubDevice {
     fn drop(&mut self) {
         release_device(self.id()).expect("Error: clReleaseDevice");
     }
 }
 
+#[cfg(feature = "CL_VERSION_1_2")]
 unsafe impl Send for SubDevice {}
 
+#[cfg(feature = "CL_VERSION_1_2")]
 impl SubDevice {
     pub fn new(id: cl_device_id) -> SubDevice {
         SubDevice { id }
@@ -89,6 +98,7 @@ impl Device {
     ///
     /// returns a Result containing a vector of available SubDevices
     /// or the error code from the OpenCL C API function.
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn create_sub_devices(
         &self,
         properties: &[cl_device_partition_property],
@@ -345,6 +355,7 @@ impl Device {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PLATFORM)?.to_ptr() as cl_platform_id)
     }
 
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn double_fp_config(&self) -> Result<cl_ulong> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_DOUBLE_FP_CONFIG)?.to_ulong())
     }
@@ -400,6 +411,7 @@ impl Device {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_OPENCL_C_VERSION)?.to_string())
     }
 
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn linker_available(&self) -> Result<bool> {
         Ok(
             get_device_info(self.id(), DeviceInfo::CL_DEVICE_LINKER_AVAILABLE)?.to_uint()
@@ -407,18 +419,22 @@ impl Device {
         )
     }
 
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn built_in_kernels(&self) -> Result<String> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_BUILT_IN_KERNELS)?.to_string())
     }
 
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn image_max_buffer_size(&self) -> Result<size_t> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE_MAX_BUFFER_SIZE)?.to_size())
     }
 
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn image_max_array_size(&self) -> Result<size_t> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE_MAX_ARRAY_SIZE)?.to_size())
     }
 
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn parent_device(&self) -> Result<cl_device_id> {
         Ok(
             get_device_info(self.id(), DeviceInfo::CL_DEVICE_PARENT_DEVICE)?.to_ptr()
@@ -426,13 +442,17 @@ impl Device {
         )
     }
 
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn partition_max_sub_devices(&self) -> Result<cl_uint> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PARTITION_MAX_SUB_DEVICES)?.to_uint())
     }
+
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn partition_properties(&self) -> Result<Vec<intptr_t>> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PARTITION_PROPERTIES)?.to_vec_intptr())
     }
 
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn partition_affinity_domain(&self) -> Result<Vec<cl_ulong>> {
         Ok(
             get_device_info(self.id(), DeviceInfo::CL_DEVICE_PARTITION_AFFINITY_DOMAIN)?
@@ -440,14 +460,17 @@ impl Device {
         )
     }
 
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn partition_type(&self) -> Result<Vec<intptr_t>> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PARTITION_TYPE)?.to_vec_intptr())
     }
 
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn reference_count(&self) -> Result<cl_uint> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_REFERENCE_COUNT)?.to_uint())
     }
 
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn preferred_interop_user_sync(&self) -> Result<bool> {
         Ok(
             get_device_info(self.id(), DeviceInfo::CL_DEVICE_PREFERRED_INTEROP_USER_SYNC)?
@@ -456,15 +479,17 @@ impl Device {
         )
     }
 
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn printf_buffer_size(&self) -> Result<size_t> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PRINTF_BUFFER_SIZE)?.to_size())
     }
 
-    // CL_VERSION_2_0
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn image_pitch_alignment(&self) -> Result<cl_uint> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE_PITCH_ALIGNMENT)?.to_uint())
     }
 
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn image_base_address_alignment(&self) -> Result<cl_uint> {
         Ok(get_device_info(
             self.id(),
@@ -473,14 +498,17 @@ impl Device {
         .to_uint())
     }
 
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn max_read_write_image_args(&self) -> Result<cl_uint> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_READ_WRITE_IMAGE_ARGS)?.to_uint())
     }
 
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn max_global_variable_size(&self) -> Result<size_t> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_GLOBAL_VARIABLE_SIZE)?.to_size())
     }
 
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn queue_on_device_properties(&self) -> Result<Vec<intptr_t>> {
         Ok(
             get_device_info(self.id(), DeviceInfo::CL_DEVICE_QUEUE_ON_DEVICE_PROPERTIES)?
@@ -488,6 +516,7 @@ impl Device {
         )
     }
 
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn queue_on_device_preferred_size(&self) -> Result<size_t> {
         Ok(get_device_info(
             self.id(),
@@ -496,22 +525,27 @@ impl Device {
         .to_size())
     }
 
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn queue_on_device_max_size(&self) -> Result<size_t> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_QUEUE_ON_DEVICE_MAX_SIZE)?.to_size())
     }
 
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn max_on_device_queues(&self) -> Result<cl_uint> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_ON_DEVICE_QUEUES)?.to_uint())
     }
 
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn max_on_device_events(&self) -> Result<cl_uint> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_ON_DEVICE_EVENTS)?.to_uint())
     }
 
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn svm_capabilities(&self) -> Result<cl_device_svm_capabilities> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_SVM_CAPABILITIES)?.to_ulong())
     }
 
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn global_variable_preferred_total_size(&self) -> Result<size_t> {
         Ok(get_device_info(
             self.id(),
@@ -520,10 +554,12 @@ impl Device {
         .to_size())
     }
 
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn max_pipe_args(&self) -> Result<cl_uint> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_PIPE_ARGS)?.to_uint())
     }
 
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn pipe_max_active_reservations(&self) -> Result<cl_uint> {
         Ok(get_device_info(
             self.id(),
@@ -532,10 +568,12 @@ impl Device {
         .to_uint())
     }
 
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn pipe_max_packet_size(&self) -> Result<cl_uint> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PIPE_MAX_PACKET_SIZE)?.to_uint())
     }
 
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn preferred_platform_atomic_alignment(&self) -> Result<cl_uint> {
         Ok(get_device_info(
             self.id(),
@@ -544,6 +582,7 @@ impl Device {
         .to_uint())
     }
 
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn preferred_global_atomic_alignment(&self) -> Result<cl_uint> {
         Ok(get_device_info(
             self.id(),
@@ -552,6 +591,7 @@ impl Device {
         .to_uint())
     }
 
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn preferred_local_atomic_alignment(&self) -> Result<cl_uint> {
         Ok(get_device_info(
             self.id(),
@@ -560,15 +600,17 @@ impl Device {
         .to_uint())
     }
 
-    // CL_VERSION_2_1
+    #[cfg(feature = "CL_VERSION_2_1")]
     pub fn il_version(&self) -> Result<String> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IL_VERSION)?.to_string())
     }
 
+    #[cfg(feature = "CL_VERSION_2_1")]
     pub fn max_num_sub_groups(&self) -> Result<cl_uint> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_NUM_SUB_GROUPS)?.to_uint())
     }
 
+    #[cfg(feature = "CL_VERSION_2_1")]
     pub fn sub_group_independent_forward_progress(&self) -> Result<bool> {
         Ok(get_device_info(
             self.id(),
@@ -578,11 +620,12 @@ impl Device {
             != CL_FALSE)
     }
 
-    // CL_VERSION_3_0
+    #[cfg(feature = "CL_VERSION_3_0")]
     pub fn numeric_version(&self) -> Result<cl_uint> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NUMERIC_VERSION)?.to_uint())
     }
 
+    #[cfg(feature = "CL_VERSION_3_0")]
     pub fn extensions_with_version(&self) -> Result<Vec<cl_name_version>> {
         Ok(
             get_device_info(self.id(), DeviceInfo::CL_DEVICE_EXTENSIONS_WITH_VERSION)?
@@ -590,6 +633,7 @@ impl Device {
         )
     }
 
+    #[cfg(feature = "CL_VERSION_3_0")]
     pub fn ils_with_version(&self) -> Result<Vec<cl_name_version>> {
         Ok(
             get_device_info(self.id(), DeviceInfo::CL_DEVICE_ILS_WITH_VERSION)?
@@ -597,6 +641,7 @@ impl Device {
         )
     }
 
+    #[cfg(feature = "CL_VERSION_3_0")]
     pub fn built_in_kernels_with_version(&self) -> Result<Vec<cl_name_version>> {
         Ok(get_device_info(
             self.id(),
@@ -604,6 +649,8 @@ impl Device {
         )?
         .to_vec_name_version())
     }
+
+    #[cfg(feature = "CL_VERSION_3_0")]
     pub fn atomic_memory_capabilities(&self) -> Result<cl_ulong> {
         Ok(
             get_device_info(self.id(), DeviceInfo::CL_DEVICE_ATOMIC_MEMORY_CAPABILITIES)?
@@ -611,10 +658,12 @@ impl Device {
         )
     }
 
+    #[cfg(feature = "CL_VERSION_3_0")]
     pub fn atomic_fence_capabilities(&self) -> Result<cl_ulong> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_ATOMIC_FENCE_CAPABILITIES)?.to_ulong())
     }
 
+    #[cfg(feature = "CL_VERSION_3_0")]
     pub fn non_uniform_work_group_support(&self) -> Result<bool> {
         Ok(get_device_info(
             self.id(),
@@ -624,6 +673,7 @@ impl Device {
             != CL_FALSE)
     }
 
+    #[cfg(feature = "CL_VERSION_3_0")]
     pub fn opencl_c_all_versions(&self) -> Result<Vec<cl_name_version>> {
         Ok(
             get_device_info(self.id(), DeviceInfo::CL_DEVICE_OPENCL_C_ALL_VERSIONS)?
@@ -631,6 +681,7 @@ impl Device {
         )
     }
 
+    #[cfg(feature = "CL_VERSION_3_0")]
     pub fn preferred_work_group_size_multiple(&self) -> Result<size_t> {
         Ok(get_device_info(
             self.id(),
@@ -639,6 +690,7 @@ impl Device {
         .to_size())
     }
 
+    #[cfg(feature = "CL_VERSION_3_0")]
     pub fn work_group_collective_functions_support(&self) -> Result<bool> {
         Ok(get_device_info(
             self.id(),
@@ -648,6 +700,7 @@ impl Device {
             != CL_FALSE)
     }
 
+    #[cfg(feature = "CL_VERSION_3_0")]
     pub fn generic_address_space_support(&self) -> Result<bool> {
         Ok(get_device_info(
             self.id(),
@@ -657,26 +710,32 @@ impl Device {
             != CL_FALSE)
     }
 
+    #[cfg(feature = "CL_VERSION_3_0")]
     pub fn uuid_khr(&self) -> Result<Vec<u8>> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_UUID_KHR)?.to_vec_uchar())
     }
 
+    #[cfg(feature = "CL_VERSION_3_0")]
     pub fn driver_uuid_khr(&self) -> Result<Vec<u8>> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DRIVER_UUID_KHR)?.to_vec_uchar())
     }
 
+    #[cfg(feature = "CL_VERSION_3_0")]
     pub fn luid_valid_khr(&self) -> Result<cl_uint> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_LUID_VALID_KHR)?.to_uint())
     }
 
+    #[cfg(feature = "CL_VERSION_3_0")]
     pub fn luid_khr(&self) -> Result<Vec<u8>> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_LUID_KHR)?.to_vec_uchar())
     }
 
+    #[cfg(feature = "CL_VERSION_3_0")]
     pub fn node_mask_khr(&self) -> Result<cl_uint> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NODE_MASK_KHR)?.to_uint())
     }
 
+    #[cfg(feature = "CL_VERSION_3_0")]
     pub fn opencl_c_features(&self) -> Result<Vec<cl_name_version>> {
         Ok(
             get_device_info(self.id(), DeviceInfo::CL_DEVICE_OPENCL_C_FEATURES)?
@@ -684,6 +743,7 @@ impl Device {
         )
     }
 
+    #[cfg(feature = "CL_VERSION_3_0")]
     pub fn device_enqueue_capabilities(&self) -> Result<cl_ulong> {
         Ok(
             get_device_info(self.id(), DeviceInfo::CL_DEVICE_DEVICE_ENQUEUE_CAPABILITIES)?
@@ -691,10 +751,12 @@ impl Device {
         )
     }
 
+    #[cfg(feature = "CL_VERSION_3_0")]
     pub fn pipe_support(&self) -> Result<bool> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PIPE_SUPPORT)?.to_uint() != CL_FALSE)
     }
 
+    #[cfg(feature = "CL_VERSION_3_0")]
     pub fn latest_conformance_version_passed(&self) -> Result<String> {
         Ok(get_device_info(
             self.id(),
@@ -874,6 +936,7 @@ impl Device {
     }
     /// Determine if the device supports the given double floating point capability.  
     /// Returns true if the device supports it, false otherwise.
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn supports_double(&self, min_fp_capability: cl_device_fp_config) -> bool {
         if let Ok(fp) = self.double_fp_config() {
             0 < fp & min_fp_capability
@@ -884,6 +947,7 @@ impl Device {
 
     /// Determine if the device supports SVM and, if so, what kind of SVM.  
     /// Returns zero if the device does not support SVM.
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn svm_mem_capability(&self) -> cl_device_svm_capabilities {
         if let Ok(svm) = self.svm_capabilities() {
             svm
@@ -897,6 +961,7 @@ impl Device {
 mod tests {
     use super::*;
     use crate::platform::get_platforms;
+    #[cfg(feature = "CL_VERSION_1_2")]
     use std::ptr;
 
     #[test]
@@ -926,6 +991,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "CL_VERSION_1_2")]
     #[test]
     fn test_get_sub_devices() {
         let platforms = get_platforms().unwrap();
@@ -1192,6 +1258,7 @@ mod tests {
         assert_eq!(platform.id(), value);
 
         // Device may not support double fp precision
+        #[cfg(feature = "CL_VERSION_1_2")]
         match device.double_fp_config() {
             Ok(value) => {
                 println!("CL_DEVICE_DOUBLE_FP_CONFIG: {:X}", value)
@@ -1243,422 +1310,432 @@ mod tests {
         println!("CL_DEVICE_OPENCL_C_VERSION: {}", value);
         assert!(!value.is_empty());
 
-        let value = device.linker_available().unwrap();
-        println!("CL_DEVICE_LINKER_AVAILABLE: {}", value);
+        #[cfg(feature = "CL_VERSION_1_2")]
+        {
+            let value = device.linker_available().unwrap();
+            println!("CL_DEVICE_LINKER_AVAILABLE: {}", value);
 
-        let value = device.built_in_kernels().unwrap();
-        println!("CL_DEVICE_BUILT_IN_KERNELS: {:?}", value);
+            let value = device.built_in_kernels().unwrap();
+            println!("CL_DEVICE_BUILT_IN_KERNELS: {:?}", value);
 
-        let value = device.image_max_buffer_size().unwrap();
-        println!("CL_DEVICE_IMAGE_MAX_BUFFER_SIZE: {}", value);
-        assert!(0 < value);
+            let value = device.image_max_buffer_size().unwrap();
+            println!("CL_DEVICE_IMAGE_MAX_BUFFER_SIZE: {}", value);
+            assert!(0 < value);
 
-        let value = device.image_max_array_size().unwrap();
-        println!("CL_DEVICE_IMAGE_MAX_ARRAY_SIZE: {}", value);
-        assert!(0 < value);
+            let value = device.image_max_array_size().unwrap();
+            println!("CL_DEVICE_IMAGE_MAX_ARRAY_SIZE: {}", value);
+            assert!(0 < value);
 
-        let value = device.parent_device().unwrap();
-        println!("CL_DEVICE_PARENT_DEVICE: {:X}", value as intptr_t);
-        let value = device.partition_max_sub_devices().unwrap();
-        println!("CL_DEVICE_PARTITION_MAX_SUB_DEVICES: {}", value);
+            let value = device.parent_device().unwrap();
+            println!("CL_DEVICE_PARENT_DEVICE: {:X}", value as intptr_t);
+            let value = device.partition_max_sub_devices().unwrap();
+            println!("CL_DEVICE_PARTITION_MAX_SUB_DEVICES: {}", value);
 
-        let value = device.partition_properties().unwrap();
-        println!("CL_DEVICE_PARTITION_PROPERTIES: {:?}", value);
-        assert!(0 < value.len());
+            let value = device.partition_properties().unwrap();
+            println!("CL_DEVICE_PARTITION_PROPERTIES: {:?}", value);
+            assert!(0 < value.len());
 
-        let value = device.partition_affinity_domain().unwrap();
-        println!("CL_DEVICE_PARTITION_AFFINITY_DOMAIN: {:?}", value);
-        assert!(0 < value.len());
+            let value = device.partition_affinity_domain().unwrap();
+            println!("CL_DEVICE_PARTITION_AFFINITY_DOMAIN: {:?}", value);
+            assert!(0 < value.len());
 
-        let value = device.partition_type().unwrap();
-        println!("CL_DEVICE_PARTITION_TYPE: {:?}", value);
-        // assert!(0 < value.len());
+            let value = device.partition_type().unwrap();
+            println!("CL_DEVICE_PARTITION_TYPE: {:?}", value);
+            // assert!(0 < value.len());
 
-        let value = device.reference_count().unwrap();
-        println!("CL_DEVICE_REFERENCE_COUNT: {}", value);
-        assert!(0 < value);
+            let value = device.reference_count().unwrap();
+            println!("CL_DEVICE_REFERENCE_COUNT: {}", value);
+            assert!(0 < value);
 
-        let value = device.preferred_interop_user_sync().unwrap();
-        println!("CL_DEVICE_PREFERRED_INTEROP_USER_SYNC: {}", value);
+            let value = device.preferred_interop_user_sync().unwrap();
+            println!("CL_DEVICE_PREFERRED_INTEROP_USER_SYNC: {}", value);
 
-        let value = device.printf_buffer_size().unwrap();
-        println!("CL_DEVICE_PRINTF_BUFFER_SIZE: {}", value);
-        assert!(0 < value);
+            let value = device.printf_buffer_size().unwrap();
+            println!("CL_DEVICE_PRINTF_BUFFER_SIZE: {}", value);
+            assert!(0 < value);
+        }
 
         //////////////////////////////////////////////////////////////////////
         // CL_VERSION_2_0 parameters
-        match device.image_pitch_alignment() {
-            Ok(value) => {
-                println!("CL_DEVICE_IMAGE_PITCH_ALIGNMENT: {}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_IMAGE_PITCH_ALIGNMENT: {:?}, {}",
-                e, e
-            ),
-        };
+        #[cfg(feature = "CL_VERSION_2_0")]
+        {
+            match device.image_pitch_alignment() {
+                Ok(value) => {
+                    println!("CL_DEVICE_IMAGE_PITCH_ALIGNMENT: {}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_IMAGE_PITCH_ALIGNMENT: {:?}, {}",
+                    e, e
+                ),
+            };
 
-        match device.image_base_address_alignment() {
-            Ok(value) => {
-                println!("CL_DEVICE_IMAGE_BASE_ADDRESS_ALIGNMENT: {}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_IMAGE_BASE_ADDRESS_ALIGNMENT: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.image_base_address_alignment() {
+                Ok(value) => {
+                    println!("CL_DEVICE_IMAGE_BASE_ADDRESS_ALIGNMENT: {}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_IMAGE_BASE_ADDRESS_ALIGNMENT: {:?}, {}",
+                    e, e
+                ),
+            };
 
-        match device.max_read_write_image_args() {
-            Ok(value) => {
-                println!("CL_DEVICE_MAX_READ_WRITE_IMAGE_ARGS: {}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_MAX_READ_WRITE_IMAGE_ARGS: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.max_read_write_image_args() {
+                Ok(value) => {
+                    println!("CL_DEVICE_MAX_READ_WRITE_IMAGE_ARGS: {}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_MAX_READ_WRITE_IMAGE_ARGS: {:?}, {}",
+                    e, e
+                ),
+            };
 
-        match device.max_global_variable_size() {
-            Ok(value) => {
-                println!("CL_DEVICE_MAX_GLOBAL_VARIABLE_SIZE: {}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_MAX_GLOBAL_VARIABLE_SIZE: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.max_global_variable_size() {
+                Ok(value) => {
+                    println!("CL_DEVICE_MAX_GLOBAL_VARIABLE_SIZE: {}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_MAX_GLOBAL_VARIABLE_SIZE: {:?}, {}",
+                    e, e
+                ),
+            };
 
-        match device.queue_on_device_properties() {
-            Ok(value) => {
-                println!("CL_DEVICE_QUEUE_ON_DEVICE_PROPERTIES: {:?}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_QUEUE_ON_DEVICE_PROPERTIES: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.queue_on_device_properties() {
+                Ok(value) => {
+                    println!("CL_DEVICE_QUEUE_ON_DEVICE_PROPERTIES: {:?}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_QUEUE_ON_DEVICE_PROPERTIES: {:?}, {}",
+                    e, e
+                ),
+            };
 
-        match device.queue_on_device_preferred_size() {
-            Ok(value) => {
-                println!("CL_DEVICE_QUEUE_ON_DEVICE_PREFERRED_SIZE: {}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_QUEUE_ON_DEVICE_PREFERRED_SIZE: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.queue_on_device_preferred_size() {
+                Ok(value) => {
+                    println!("CL_DEVICE_QUEUE_ON_DEVICE_PREFERRED_SIZE: {}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_QUEUE_ON_DEVICE_PREFERRED_SIZE: {:?}, {}",
+                    e, e
+                ),
+            };
 
-        match device.queue_on_device_max_size() {
-            Ok(value) => {
-                println!("CL_DEVICE_QUEUE_ON_DEVICE_MAX_SIZE: {}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_QUEUE_ON_DEVICE_MAX_SIZE: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.queue_on_device_max_size() {
+                Ok(value) => {
+                    println!("CL_DEVICE_QUEUE_ON_DEVICE_MAX_SIZE: {}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_QUEUE_ON_DEVICE_MAX_SIZE: {:?}, {}",
+                    e, e
+                ),
+            };
 
-        match device.max_on_device_queues() {
-            Ok(value) => {
-                println!("CL_DEVICE_MAX_ON_DEVICE_QUEUES: {}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_MAX_ON_DEVICE_QUEUES: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.max_on_device_queues() {
+                Ok(value) => {
+                    println!("CL_DEVICE_MAX_ON_DEVICE_QUEUES: {}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_MAX_ON_DEVICE_QUEUES: {:?}, {}",
+                    e, e
+                ),
+            };
 
-        match device.max_on_device_events() {
-            Ok(value) => {
-                println!("CL_DEVICE_MAX_ON_DEVICE_EVENTS: {}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_MAX_ON_DEVICE_EVENTS: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.max_on_device_events() {
+                Ok(value) => {
+                    println!("CL_DEVICE_MAX_ON_DEVICE_EVENTS: {}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_MAX_ON_DEVICE_EVENTS: {:?}, {}",
+                    e, e
+                ),
+            };
 
-        match device.svm_capabilities() {
-            Ok(value) => {
-                println!("CL_DEVICE_SVM_CAPABILITIES: {}", value)
-            }
-            Err(e) => println!("OpenCL error, CL_DEVICE_SVM_CAPABILITIES: {:?}, {}", e, e),
-        };
+            match device.svm_capabilities() {
+                Ok(value) => {
+                    println!("CL_DEVICE_SVM_CAPABILITIES: {}", value)
+                }
+                Err(e) => println!("OpenCL error, CL_DEVICE_SVM_CAPABILITIES: {:?}, {}", e, e),
+            };
 
-        match device.global_variable_preferred_total_size() {
-            Ok(value) => {
-                println!("CL_DEVICE_GLOBAL_VARIABLE_PREFERRED_TOTAL_SIZE: {}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_GLOBAL_VARIABLE_PREFERRED_TOTAL_SIZE: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.global_variable_preferred_total_size() {
+                Ok(value) => {
+                    println!("CL_DEVICE_GLOBAL_VARIABLE_PREFERRED_TOTAL_SIZE: {}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_GLOBAL_VARIABLE_PREFERRED_TOTAL_SIZE: {:?}, {}",
+                    e, e
+                ),
+            };
 
-        match device.max_pipe_args() {
-            Ok(value) => {
-                println!("CL_DEVICE_MAX_PIPE_ARGS: {}", value)
-            }
-            Err(e) => println!("OpenCL error, CL_DEVICE_MAX_PIPE_ARGS: {:?}, {}", e, e),
-        };
+            match device.max_pipe_args() {
+                Ok(value) => {
+                    println!("CL_DEVICE_MAX_PIPE_ARGS: {}", value)
+                }
+                Err(e) => println!("OpenCL error, CL_DEVICE_MAX_PIPE_ARGS: {:?}, {}", e, e),
+            };
 
-        match device.pipe_max_active_reservations() {
-            Ok(value) => {
-                println!("CL_DEVICE_PIPE_MAX_ACTIVE_RESERVATIONS: {}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_PIPE_MAX_ACTIVE_RESERVATIONS: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.pipe_max_active_reservations() {
+                Ok(value) => {
+                    println!("CL_DEVICE_PIPE_MAX_ACTIVE_RESERVATIONS: {}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_PIPE_MAX_ACTIVE_RESERVATIONS: {:?}, {}",
+                    e, e
+                ),
+            };
 
-        match device.pipe_max_packet_size() {
-            Ok(value) => {
-                println!("CL_DEVICE_PIPE_MAX_PACKET_SIZE: {}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_PIPE_MAX_PACKET_SIZE: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.pipe_max_packet_size() {
+                Ok(value) => {
+                    println!("CL_DEVICE_PIPE_MAX_PACKET_SIZE: {}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_PIPE_MAX_PACKET_SIZE: {:?}, {}",
+                    e, e
+                ),
+            };
 
-        match device.preferred_platform_atomic_alignment() {
-            Ok(value) => {
-                println!("CL_DEVICE_PREFERRED_PLATFORM_ATOMIC_ALIGNMENT: {}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_PREFERRED_PLATFORM_ATOMIC_ALIGNMENT: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.preferred_platform_atomic_alignment() {
+                Ok(value) => {
+                    println!("CL_DEVICE_PREFERRED_PLATFORM_ATOMIC_ALIGNMENT: {}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_PREFERRED_PLATFORM_ATOMIC_ALIGNMENT: {:?}, {}",
+                    e, e
+                ),
+            };
 
-        match device.preferred_global_atomic_alignment() {
-            Ok(value) => {
-                println!("CL_DEVICE_PREFERRED_GLOBAL_ATOMIC_ALIGNMENT: {}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_PREFERRED_GLOBAL_ATOMIC_ALIGNMENT: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.preferred_global_atomic_alignment() {
+                Ok(value) => {
+                    println!("CL_DEVICE_PREFERRED_GLOBAL_ATOMIC_ALIGNMENT: {}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_PREFERRED_GLOBAL_ATOMIC_ALIGNMENT: {:?}, {}",
+                    e, e
+                ),
+            };
 
-        match device.preferred_local_atomic_alignment() {
-            Ok(value) => {
-                println!("CL_DEVICE_PREFERRED_LOCAL_ATOMIC_ALIGNMENT: {}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_PREFERRED_LOCAL_ATOMIC_ALIGNMENT: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.preferred_local_atomic_alignment() {
+                Ok(value) => {
+                    println!("CL_DEVICE_PREFERRED_LOCAL_ATOMIC_ALIGNMENT: {}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_PREFERRED_LOCAL_ATOMIC_ALIGNMENT: {:?}, {}",
+                    e, e
+                ),
+            };
+        }
 
-        // //////////////////////////////////////////////////////////////////////
-        // // CL_VERSION_2_1 parameters
+        //////////////////////////////////////////////////////////////////////
+        // CL_VERSION_2_1 parameters
+        #[cfg(feature = "CL_VERSION_2_1")]
+        {
+            match device.il_version() {
+                Ok(value) => {
+                    println!("CL_DEVICE_IL_VERSION: {:?}", value)
+                }
+                Err(e) => println!("OpenCL error, CL_DEVICE_IL_VERSION: {:?}, {}", e, e),
+            };
 
-        match device.il_version() {
-            Ok(value) => {
-                println!("CL_DEVICE_IL_VERSION: {:?}", value)
-            }
-            Err(e) => println!("OpenCL error, CL_DEVICE_IL_VERSION: {:?}, {}", e, e),
-        };
+            match device.max_num_sub_groups() {
+                Ok(value) => {
+                    println!("CL_DEVICE_MAX_NUM_SUB_GROUPS: {:?}", value)
+                }
+                Err(e) => println!("OpenCL error, CL_DEVICE_MAX_NUM_SUB_GROUPS: {:?}, {}", e, e),
+            };
 
-        match device.max_num_sub_groups() {
-            Ok(value) => {
-                println!("CL_DEVICE_MAX_NUM_SUB_GROUPS: {:?}", value)
-            }
-            Err(e) => println!("OpenCL error, CL_DEVICE_MAX_NUM_SUB_GROUPS: {:?}, {}", e, e),
-        };
-
-        match device.sub_group_independent_forward_progress() {
-            Ok(value) => {
-                println!(
-                    "CL_DEVICE_SUB_GROUP_INDEPENDENT_FORWARD_PROGRESS: {:?}",
-                    value
-                )
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_SUB_GROUP_INDEPENDENT_FORWARD_PROGRESS:{:?}, {}",
-                e, e
-            ),
-        };
+            match device.sub_group_independent_forward_progress() {
+                Ok(value) => {
+                    println!(
+                        "CL_DEVICE_SUB_GROUP_INDEPENDENT_FORWARD_PROGRESS: {:?}",
+                        value
+                    )
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_SUB_GROUP_INDEPENDENT_FORWARD_PROGRESS:{:?}, {}",
+                    e, e
+                ),
+            };
+        }
 
         //////////////////////////////////////////////////////////////////////
         // CL_VERSION_3_0 parameters
+        #[cfg(feature = "CL_VERSION_3_0")]
+        {
+            match device.numeric_version() {
+                Ok(value) => {
+                    println!("CL_DEVICE_NUMERIC_VERSION: {:X}", value)
+                }
+                Err(e) => println!("OpenCL error, CL_DEVICE_NUMERIC_VERSION: {:?}, {}", e, e),
+            };
 
-        match device.numeric_version() {
-            Ok(value) => {
-                println!("CL_DEVICE_NUMERIC_VERSION: {:X}", value)
-            }
-            Err(e) => println!("OpenCL error, CL_DEVICE_NUMERIC_VERSION: {:?}, {}", e, e),
-        };
+            match device.extensions_with_version() {
+                Ok(value) => {
+                    println!("CL_DEVICE_EXTENSIONS_WITH_VERSION: {:?}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_EXTENSIONS_WITH_VERSION: {:?}, {}",
+                    e, e
+                ),
+            };
 
-        match device.extensions_with_version() {
-            Ok(value) => {
-                println!("CL_DEVICE_EXTENSIONS_WITH_VERSION: {:?}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_EXTENSIONS_WITH_VERSION: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.ils_with_version() {
+                Ok(value) => {
+                    println!("CL_DEVICE_ILS_WITH_VERSION: {:?}", value)
+                }
+                Err(e) => println!("OpenCL error, CL_DEVICE_ILS_WITH_VERSION: {:?}, {}", e, e),
+            };
 
-        match device.ils_with_version() {
-            Ok(value) => {
-                println!("CL_DEVICE_ILS_WITH_VERSION: {:?}", value)
-            }
-            Err(e) => println!("OpenCL error, CL_DEVICE_ILS_WITH_VERSION: {:?}, {}", e, e),
-        };
+            match device.built_in_kernels_with_version() {
+                Ok(value) => {
+                    println!("CL_DEVICE_BUILT_IN_KERNELS_WITH_VERSION: {:?}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_BUILT_IN_KERNELS_WITH_VERSION: {:?}, {}",
+                    e, e
+                ),
+            };
 
-        match device.built_in_kernels_with_version() {
-            Ok(value) => {
-                println!("CL_DEVICE_BUILT_IN_KERNELS_WITH_VERSION: {:?}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_BUILT_IN_KERNELS_WITH_VERSION: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.atomic_memory_capabilities() {
+                Ok(value) => {
+                    println!("CL_DEVICE_ATOMIC_MEMORY_CAPABILITIES: {:X}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_ATOMIC_MEMORY_CAPABILITIES: {:?}, {}",
+                    e, e
+                ),
+            };
 
-        match device.atomic_memory_capabilities() {
-            Ok(value) => {
-                println!("CL_DEVICE_ATOMIC_MEMORY_CAPABILITIES: {:X}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_ATOMIC_MEMORY_CAPABILITIES: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.atomic_fence_capabilities() {
+                Ok(value) => {
+                    println!("CL_DEVICE_ATOMIC_FENCE_CAPABILITIES: {:X}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_ATOMIC_FENCE_CAPABILITIES: {:?}, {}",
+                    e, e
+                ),
+            };
 
-        match device.atomic_fence_capabilities() {
-            Ok(value) => {
-                println!("CL_DEVICE_ATOMIC_FENCE_CAPABILITIES: {:X}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_ATOMIC_FENCE_CAPABILITIES: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.non_uniform_work_group_support() {
+                Ok(value) => {
+                    println!("CL_DEVICE_NON_UNIFORM_WORK_GROUP_SUPPORT: {}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_NON_UNIFORM_WORK_GROUP_SUPPORT: {:?}, {}",
+                    e, e
+                ),
+            };
 
-        match device.non_uniform_work_group_support() {
-            Ok(value) => {
-                println!("CL_DEVICE_NON_UNIFORM_WORK_GROUP_SUPPORT: {}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_NON_UNIFORM_WORK_GROUP_SUPPORT: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.opencl_c_all_versions() {
+                Ok(value) => {
+                    println!("CL_DEVICE_OPENCL_C_ALL_VERSIONS: {:?}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_OPENCL_C_ALL_VERSIONS: {:?}, {}",
+                    e, e
+                ),
+            };
 
-        match device.opencl_c_all_versions() {
-            Ok(value) => {
-                println!("CL_DEVICE_OPENCL_C_ALL_VERSIONS: {:?}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_OPENCL_C_ALL_VERSIONS: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.preferred_work_group_size_multiple() {
+                Ok(value) => {
+                    println!("CL_DEVICE_PREFERRED_WORK_GROUP_SIZE_MULTIPLE: {}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_PREFERRED_WORK_GROUP_SIZE_MULTIPLE: {:?}, {}",
+                    e, e
+                ),
+            };
 
-        match device.preferred_work_group_size_multiple() {
-            Ok(value) => {
-                println!("CL_DEVICE_PREFERRED_WORK_GROUP_SIZE_MULTIPLE: {}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_PREFERRED_WORK_GROUP_SIZE_MULTIPLE: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.work_group_collective_functions_support() {
+                Ok(value) => {
+                    println!(
+                        "CL_DEVICE_WORK_GROUP_COLLECTIVE_FUNCTIONS_SUPPORT: {}",
+                        value
+                    )
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_WORK_GROUP_COLLECTIVE_FUNCTIONS_SUPPORT: {:?}, {}",
+                    e, e
+                ),
+            };
 
-        match device.work_group_collective_functions_support() {
-            Ok(value) => {
-                println!(
-                    "CL_DEVICE_WORK_GROUP_COLLECTIVE_FUNCTIONS_SUPPORT: {}",
-                    value
-                )
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_WORK_GROUP_COLLECTIVE_FUNCTIONS_SUPPORT: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.generic_address_space_support() {
+                Ok(value) => {
+                    println!("CL_DEVICE_GENERIC_ADDRESS_SPACE_SUPPORT: {}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_GENERIC_ADDRESS_SPACE_SUPPORT: {:?}, {}",
+                    e, e
+                ),
+            };
 
-        match device.generic_address_space_support() {
-            Ok(value) => {
-                println!("CL_DEVICE_GENERIC_ADDRESS_SPACE_SUPPORT: {}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_GENERIC_ADDRESS_SPACE_SUPPORT: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.uuid_khr() {
+                Ok(value) => {
+                    println!("CL_DEVICE_UUID_KHR: {:?}", value)
+                }
+                Err(e) => println!("OpenCL error, CL_DEVICE_UUID_KHR: {:?}, {}", e, e),
+            };
 
-        match device.uuid_khr() {
-            Ok(value) => {
-                println!("CL_DEVICE_UUID_KHR: {:?}", value)
-            }
-            Err(e) => println!("OpenCL error, CL_DEVICE_UUID_KHR: {:?}, {}", e, e),
-        };
+            match device.driver_uuid_khr() {
+                Ok(value) => {
+                    println!("CL_DRIVER_UUID_KHR: {:?}", value)
+                }
+                Err(e) => println!("OpenCL error, CL_DRIVER_UUID_KHR: {:?}, {}", e, e),
+            };
 
-        match device.driver_uuid_khr() {
-            Ok(value) => {
-                println!("CL_DRIVER_UUID_KHR: {:?}", value)
-            }
-            Err(e) => println!("OpenCL error, CL_DRIVER_UUID_KHR: {:?}, {}", e, e),
-        };
+            match device.luid_valid_khr() {
+                Ok(value) => {
+                    println!("CL_DEVICE_LUID_VALID_KHR: {}", value)
+                }
+                Err(e) => println!("OpenCL error, CL_DEVICE_LUID_VALID_KHR: {:?}, {}", e, e),
+            };
 
-        match device.luid_valid_khr() {
-            Ok(value) => {
-                println!("CL_DEVICE_LUID_VALID_KHR: {}", value)
-            }
-            Err(e) => println!("OpenCL error, CL_DEVICE_LUID_VALID_KHR: {:?}, {}", e, e),
-        };
+            match device.luid_khr() {
+                Ok(value) => {
+                    println!("CL_DEVICE_LUID_KHR: {:?}", value)
+                }
+                Err(e) => println!("OpenCL error, CL_DEVICE_LUID_KHR: {:?}, {}", e, e),
+            };
 
-        match device.luid_khr() {
-            Ok(value) => {
-                println!("CL_DEVICE_LUID_KHR: {:?}", value)
-            }
-            Err(e) => println!("OpenCL error, CL_DEVICE_LUID_KHR: {:?}, {}", e, e),
-        };
+            match device.node_mask_khr() {
+                Ok(value) => {
+                    println!("CL_DEVICE_NODE_MASK_KHR: {}", value)
+                }
+                Err(e) => println!("OpenCL error, CL_DEVICE_NODE_MASK_KHR: {:?}, {}", e, e),
+            };
 
-        match device.node_mask_khr() {
-            Ok(value) => {
-                println!("CL_DEVICE_NODE_MASK_KHR: {}", value)
-            }
-            Err(e) => println!("OpenCL error, CL_DEVICE_NODE_MASK_KHR: {:?}, {}", e, e),
-        };
+            match device.opencl_c_features() {
+                Ok(value) => {
+                    println!("CL_DEVICE_OPENCL_C_FEATURES: {:?}", value)
+                }
+                Err(e) => println!("OpenCL error, CL_DEVICE_OPENCL_C_FEATURES: {:?}, {}", e, e),
+            };
 
-        match device.opencl_c_features() {
-            Ok(value) => {
-                println!("CL_DEVICE_OPENCL_C_FEATURES: {:?}", value)
-            }
-            Err(e) => println!("OpenCL error, CL_DEVICE_OPENCL_C_FEATURES: {:?}, {}", e, e),
-        };
+            match device.device_enqueue_capabilities() {
+                Ok(value) => {
+                    println!("CL_DEVICE_DEVICE_ENQUEUE_CAPABILITIES: {:X}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_DEVICE_ENQUEUE_CAPABILITIES: {:?}, {}",
+                    e, e
+                ),
+            };
 
-        match device.device_enqueue_capabilities() {
-            Ok(value) => {
-                println!("CL_DEVICE_DEVICE_ENQUEUE_CAPABILITIES: {:X}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_DEVICE_ENQUEUE_CAPABILITIES: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.pipe_support() {
+                Ok(value) => {
+                    println!("CL_DEVICE_PIPE_SUPPORT: {}", value)
+                }
+                Err(e) => println!("OpenCL error, CL_DEVICE_PIPE_SUPPORT: {:?}, {}", e, e),
+            };
 
-        match device.pipe_support() {
-            Ok(value) => {
-                println!("CL_DEVICE_PIPE_SUPPORT: {}", value)
-            }
-            Err(e) => println!("OpenCL error, CL_DEVICE_PIPE_SUPPORT: {:?}, {}", e, e),
-        };
-
-        match device.latest_conformance_version_passed() {
-            Ok(value) => {
-                println!("CL_DEVICE_LATEST_CONFORMANCE_VERSION_PASSED: {:?}", value)
-            }
-            Err(e) => println!(
-                "OpenCL error, CL_DEVICE_LATEST_CONFORMANCE_VERSION_PASSED: {:?}, {}",
-                e, e
-            ),
-        };
+            match device.latest_conformance_version_passed() {
+                Ok(value) => {
+                    println!("CL_DEVICE_LATEST_CONFORMANCE_VERSION_PASSED: {:?}", value)
+                }
+                Err(e) => println!(
+                    "OpenCL error, CL_DEVICE_LATEST_CONFORMANCE_VERSION_PASSED: {:?}, {}",
+                    e, e
+                ),
+            };
+        }
 
         match device.integer_dot_product_capabilities_khr() {
             Ok(value) => {

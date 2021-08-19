@@ -238,7 +238,7 @@ mod tests {
         println!("event.profiling_command_end(): {}", value);
         assert!(0 < value);
 
-        // CL_VERSION_2_0
+        #[cfg(feature = "CL_VERSION_2_0")]
         match event.profiling_command_complete() {
             Ok(value) => println!("event.profiling_command_complete(): {}", value),
             Err(e) => println!("OpenCL error, event.profiling_command_complete(): {}", e),

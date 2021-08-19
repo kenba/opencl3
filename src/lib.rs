@@ -208,6 +208,7 @@ pub mod kernel;
 pub mod memory;
 pub mod platform;
 pub mod program;
+#[cfg(feature = "CL_VERSION_2_0")]
 pub mod svm;
 
 pub mod error_codes {

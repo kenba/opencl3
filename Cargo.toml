@@ -53,4 +53,5 @@ default = ["CL_VERSION_1_2", "CL_VERSION_2_0"]
 
 [dependencies]
 libc = "0.2"
-cl3 = "0.4.1"
+#cl3 = "0.4.1"
+cl3 = { git = "https://github.com/vmx/cl3", branch = "features-standard", default-features = false }
