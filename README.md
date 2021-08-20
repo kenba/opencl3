@@ -130,7 +130,7 @@ OpenCL 2.0 ICD loader then add the following to your project's `Cargo.toml`:
 
 ```toml
 [dependencies]
-opencl3 = "0.3"
+opencl3 = "0.4"
 ```
 
 If your OpenCL ICD loader supports higher versions of OpenCL then add the
@@ -139,7 +139,7 @@ following to your project's `Cargo.toml` instead:
 
 ```toml
 [dependencies.opencl3]
-version = "0.3"
+version = "0.4"
 features = ["CL_VERSION_2_1", "CL_VERSION_2_2"]
 ```
 
@@ -152,6 +152,8 @@ See [OpenCL Description](https://github.com/kenba/opencl3/tree/main/docs/opencl_
 
 The API has changed considerably since version `0.1` of the library, with the
 aim of making the library more consistent and easier to use.
+
+The most recent change is to features, to enable running on older OpenCL ICDs that don't even support OpenCL 1.2, see issue [#30](https://github.com/kenba/opencl3/issues/30).
 
 The biggest change is that [Context](src/context.rs) no longer contains:
 Programs, Kernels and Command Queues.  
