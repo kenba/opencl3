@@ -375,7 +375,7 @@ impl<'a> ExecuteKernel<'a> {
     /// * `size` - the size of the local memory buffer in bytes.
     ///
     /// returns a reference to self.
-    pub fn set_arg_local_buffer<T>(& mut self, size: size_t) -> & mut Self {
+    pub fn set_arg_local_buffer<T>(&mut self, size: size_t) -> &mut Self {
         assert!(
             self.arg_index < self.num_args,
             "ExecuteKernel::set_arg_local_buffer too many args"
@@ -399,7 +399,7 @@ impl<'a> ExecuteKernel<'a> {
     ///
     /// returns a reference to self.
     #[cfg(feature = "CL_VERSION_2_0")]
-    pub fn set_arg_svm<T>(& mut self, arg_ptr: *const T) -> & mut Self {
+    pub fn set_arg_svm<T>(&mut self, arg_ptr: *const T) -> &mut Self {
         assert!(
             self.arg_index < self.num_args,
             "ExecuteKernel::set_arg_svm too many args"
@@ -421,10 +421,10 @@ impl<'a> ExecuteKernel<'a> {
     /// returns a reference to self.
     #[cfg(feature = "CL_VERSION_2_0")]
     pub fn set_exec_info<T>(
-        & mut self,
+        &mut self,
         param_name: cl_kernel_exec_info,
         param_ptr: *const T,
-    ) -> & mut Self {
+    ) -> &mut Self {
         self.kernel.set_exec_info(param_name, param_ptr).unwrap();
         self
     }
@@ -434,7 +434,7 @@ impl<'a> ExecuteKernel<'a> {
     /// * `size` - the size of the global work offset.
     ///
     /// returns a reference to self.
-    pub fn set_global_work_offset(& mut self, size: size_t) -> & mut Self {
+    pub fn set_global_work_offset(&mut self, size: size_t) -> &mut Self {
         self.global_work_offsets.push(size);
         self
     }
@@ -448,7 +448,7 @@ impl<'a> ExecuteKernel<'a> {
     /// * `sizes` - the sizes of the global work offset.
     ///
     /// returns a reference to self.
-    pub fn set_global_work_offsets(& mut self, sizes: &[size_t]) -> & mut Self {
+    pub fn set_global_work_offsets(&mut self, sizes: &[size_t]) -> &mut Self {
         assert!(
             self.global_work_offsets.is_empty(),
             "ExecuteKernel::set_global_work_offsets already set"

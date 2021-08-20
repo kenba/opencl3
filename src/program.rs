@@ -271,9 +271,7 @@ impl Program {
         options: &str,
     ) -> result::Result<Program, String> {
         let sources = [src];
-        Program::create_and_build_from_sources(
-            context, &sources, options,
-        )
+        Program::create_and_build_from_sources(context, &sources, options)
     }
 
     /// Create and build an OpenCL Program from binaries with the given options.  

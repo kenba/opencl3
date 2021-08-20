@@ -291,10 +291,7 @@ impl<'a, T> IntoIterator for SvmVec<'a, T> {
             let buf = ptr::read(&self.buf);
             mem::forget(self);
 
-            Self::IntoIter {
-                iter,
-                _buf: buf,
-            }
+            Self::IntoIter { iter, _buf: buf }
         }
     }
 }
