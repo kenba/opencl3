@@ -25,9 +25,8 @@ use cl3::ext;
 use cl3::types::{cl_context, cl_device_id, cl_int, cl_program, cl_uchar, cl_uint, CL_FALSE};
 #[allow(unused_imports)]
 use libc::{c_void, intptr_t, size_t};
-#[cfg(feature = "CL_VERSION_1_2")]
-use std::ffi::CStr;
-use std::ffi::CString;
+#[allow(unused_imports)]
+use std::ffi::{CStr, CString};
 use std::ptr;
 use std::result;
 
@@ -458,12 +457,12 @@ impl Program {
         Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_KERNEL_NAMES)?.to_string())
     }
 
-    #[cfg(feature = "CL_VERSION_2_1")]
+    /// CL_VERSION_2_1
     pub fn get_program_il(&self) -> Result<String> {
         Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_IL)?.to_string())
     }
 
-    #[cfg(feature = "CL_VERSION_2_2")]
+    /// CL_VERSION_2_2
     pub fn get_program_scope_global_ctors_present(&self) -> Result<bool> {
         Ok(get_program_info(
             self.program,
@@ -473,7 +472,7 @@ impl Program {
             != CL_FALSE)
     }
 
-    #[cfg(feature = "CL_VERSION_2_2")]
+    /// CL_VERSION_2_2
     pub fn get_program_scope_global_dtors_present(&self) -> Result<bool> {
         Ok(get_program_info(
             self.program,
@@ -517,7 +516,7 @@ impl Program {
         .to_uint())
     }
 
-    #[cfg(feature = "CL_VERSION_2_0")]
+    /// CL_VERSION_2_0
     pub fn get_build_global_variable_total_size(&self, device: cl_device_id) -> Result<size_t> {
         Ok(get_program_build_info(
             self.program,
@@ -620,7 +619,7 @@ mod tests {
         println!("program.get_build_binary_type(): {}", value);
         assert_eq!(CL_PROGRAM_BINARY_TYPE_EXECUTABLE as u32, value);
 
-        #[cfg(feature = "CL_VERSION_2_0")]
+        // CL_VERSION_2_0 value
         match program.get_build_global_variable_total_size(device.id()) {
             Ok(value) => println!("program.get_build_global_variable_total_size(): {}", value),
             Err(e) => println!(

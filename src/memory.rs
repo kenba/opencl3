@@ -103,7 +103,7 @@ pub trait ClMem {
         Ok(memory::get_mem_object_info(self.get(), MemInfo::CL_MEM_USES_SVM_POINTER)?.to_uint())
     }
 
-    // CL_VERSION_3_0
+    /// CL_VERSION_3_0
     fn properties(&self) -> Result<Vec<cl_ulong>> {
         Ok(memory::get_mem_object_info(self.get(), MemInfo::CL_MEM_PROPERTIES)?.to_vec_ulong())
     }

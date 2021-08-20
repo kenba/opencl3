@@ -21,9 +21,11 @@ use super::Result;
 
 #[allow(unused_imports)]
 use cl3::ext;
-#[cfg(feature = "CL_VERSION_2_0")]
-use cl3::types::cl_kernel_exec_info;
-use cl3::types::{cl_context, cl_device_id, cl_event, cl_kernel, cl_program, cl_uint, cl_ulong};
+#[allow(unused_imports)]
+use cl3::types::{
+    cl_context, cl_device_id, cl_event, cl_kernel, cl_kernel_exec_info, cl_program, cl_uint,
+    cl_ulong,
+};
 use libc::{c_void, size_t};
 use std::ffi::CString;
 use std::mem;

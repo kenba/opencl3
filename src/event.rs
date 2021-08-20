@@ -125,7 +125,7 @@ impl Event {
         )
     }
 
-    #[cfg(feature = "CL_VERSION_2_0")]
+    /// CL_VERSION_2_0
     pub fn profiling_command_complete(&self) -> Result<cl_ulong> {
         Ok(
             get_event_profiling_info(self.event, ProfilingInfo::CL_PROFILING_COMMAND_COMPLETE)?
@@ -238,7 +238,7 @@ mod tests {
         println!("event.profiling_command_end(): {}", value);
         assert!(0 < value);
 
-        #[cfg(feature = "CL_VERSION_2_0")]
+        // CL_VERSION_2_0
         match event.profiling_command_complete() {
             Ok(value) => println!("event.profiling_command_complete(): {}", value),
             Err(e) => println!("OpenCL error, event.profiling_command_complete(): {}", e),

@@ -200,7 +200,6 @@ impl Context {
 
     /// Get the common Shared Virtual Memory (SVM) capabilities of the
     /// devices in the Context.
-    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn get_svm_mem_capability(&self) -> cl_device_svm_capabilities {
         let device = Device::new(self.devices[0]);
         let mut svm_capability = device.svm_mem_capability();
@@ -272,11 +271,7 @@ impl Context {
         pfn_notify: extern "C" fn(cl_context, *const c_void),
         user_data: *mut c_void,
     ) -> Result<()> {
-        Ok(context::set_context_destructor_callback(
-            self.context,
-            pfn_notify,
-            user_data,
-        )?)
+        set_context_destructor_callback(self.context, pfn_notify, user_data)
     }
 
     pub fn reference_count(&self) -> Result<cl_uint> {
@@ -356,7 +351,6 @@ mod tests {
         let device = Device::new(devices[0]);
         let context = Context::from_device(&device).unwrap();
 
-        #[cfg(feature = "CL_VERSION_2_0")]
         println!(
             "CL_DEVICE_SVM_CAPABILITIES: {:X}",
             context.get_svm_mem_capability()

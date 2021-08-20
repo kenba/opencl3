@@ -34,13 +34,11 @@ use cl3::ext;
 #[allow(unused_imports)]
 use cl3::ffi::cl_ext::cl_queue_properties_khr;
 use cl3::gl;
-#[cfg(any(feature = "CL_VERSION_1_2", feature = "CL_VERSION_2_1"))]
-use cl3::types::cl_mem_migration_flags;
-#[cfg(feature = "CL_VERSION_2_0")]
-use cl3::types::cl_queue_properties;
+#[allow(unused_imports)]
 use cl3::types::{
     cl_bool, cl_command_queue, cl_command_queue_properties, cl_context, cl_device_id, cl_event,
-    cl_kernel, cl_map_flags, cl_mem, cl_uint, cl_ulong,
+    cl_kernel, cl_map_flags, cl_mem, cl_mem_migration_flags, cl_queue_properties, cl_uint,
+    cl_ulong,
 };
 use libc::{c_void, size_t};
 use std::mem;
@@ -1255,12 +1253,12 @@ impl CommandQueue {
         Ok(get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_PROPERTIES)?.to_ulong())
     }
 
-    #[cfg(feature = "CL_VERSION_2_0")]
+    /// CL_VERSION_2_0
     pub fn size(&self) -> Result<cl_uint> {
         Ok(get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_SIZE)?.to_uint())
     }
 
-    #[cfg(feature = "CL_VERSION_2_1")]
+    /// CL_VERSION_2_1
     pub fn device_default(&self) -> Result<cl_device_id> {
         Ok(
             get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_DEVICE_DEFAULT)?.to_ptr()
@@ -1268,7 +1266,7 @@ impl CommandQueue {
         )
     }
 
-    #[cfg(feature = "CL_VERSION_3_0")]
+    /// CL_VERSION_3_0
     pub fn properties_array(&self) -> Result<Vec<cl_ulong>> {
         Ok(
             get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_PROPERTIES_ARRAY)?
@@ -1284,7 +1282,6 @@ mod tests {
     use crate::device::Device;
     use crate::platform::get_platforms;
     use cl3::device::CL_DEVICE_TYPE_GPU;
-    #[cfg(feature = "CL_VERSION_2_1")]
     use libc::intptr_t;
 
     #[test]
@@ -1324,19 +1321,19 @@ mod tests {
         println!("queue.properties(): {:X}", value);
         // assert_eq!(2, value);
 
-        #[cfg(feature = "CL_VERSION_2_0")]
+        // CL_VERSION_2_0 value
         match queue.size() {
             Ok(value) => println!("queue.size(): {:?}", value),
             Err(e) => println!("OpenCL error, queue.size(): {}", e),
         }
 
-        #[cfg(feature = "CL_VERSION_2_1")]
+        // CL_VERSION_2_1 value
         match queue.device_default() {
             Ok(value) => println!("queue.device_default(): {:X}", value as intptr_t),
             Err(e) => println!("OpenCL error, queue.device_default(): {}", e),
         }
 
-        #[cfg(feature = "CL_VERSION_3_0")]
+        // CL_VERSION_3_0 value
         match queue.properties_array() {
             Ok(value) => println!("queue.properties_array(): {:?}", value),
             Err(e) => println!("OpenCL error, queue.properties_array(): {}", e),
