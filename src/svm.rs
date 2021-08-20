@@ -23,6 +23,7 @@ use cl3::types::{cl_device_svm_capabilities, cl_svm_mem_flags, cl_uint};
 use libc::c_void;
 use std::fmt;
 use std::fmt::Debug;
+use std::iter::IntoIterator;
 use std::marker::PhantomData;
 use std::mem;
 use std::ops::{Deref, DerefMut};
@@ -263,19 +264,6 @@ impl<'a, T> SvmVec<'a, T> {
         }
     }
 
-    pub fn into_iter(self) -> IntoIter<'a, T> {
-        unsafe {
-            let iter = RawValIter::new(&self);
-            let buf = ptr::read(&self.buf);
-            mem::forget(self);
-
-            IntoIter {
-                iter,
-                _buf: buf,
-            }
-        }
-    }
-
     pub fn drain(&mut self) -> Drain<T> {
         unsafe {
             let iter = RawValIter::new(self);
@@ -288,6 +276,24 @@ impl<'a, T> SvmVec<'a, T> {
             Drain {
                 iter,
                 vec: PhantomData,
+            }
+        }
+    }
+}
+
+impl<'a, T> IntoIterator for SvmVec<'a, T> {
+    type Item = T;
+    type IntoIter = IntoIter<'a, Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        unsafe {
+            let iter = RawValIter::new(&self);
+            let buf = ptr::read(&self.buf);
+            mem::forget(self);
+
+            Self::IntoIter {
+                iter,
+                _buf: buf,
             }
         }
     }
