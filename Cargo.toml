@@ -53,5 +53,4 @@ default = ["CL_VERSION_1_2", "CL_VERSION_2_0"]
 
 [dependencies]
 libc = "0.2"
-#cl3 = "0.4.1"
-cl3 = { git = "https://github.com/kenba/cl3", branch = "develop", default-features = false }
+cl3 = "0.4.2"
