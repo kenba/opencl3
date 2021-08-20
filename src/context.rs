@@ -271,7 +271,8 @@ impl Context {
         pfn_notify: extern "C" fn(cl_context, *const c_void),
         user_data: *mut c_void,
     ) -> Result<()> {
-        set_context_destructor_callback(self.context, pfn_notify, user_data)
+        context::set_context_destructor_callback(self.context, pfn_notify, user_data)
+            .map_err(Into::into)
     }
 
     pub fn reference_count(&self) -> Result<cl_uint> {
