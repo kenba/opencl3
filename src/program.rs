@@ -221,7 +221,7 @@ impl Program {
     pub fn build(&mut self, devices: &[cl_device_id], options: &str) -> Result<()> {
         // Ensure options string is null terminated
         let c_options = CString::new(options).expect("Program::build, invalid options");
-        build_program(self.program, &devices, &c_options, None, ptr::null_mut())?;
+        build_program(self.program, devices, &c_options, None, ptr::null_mut())?;
         self.kernel_names = self.get_kernel_names()?;
         Ok(())
     }
@@ -241,7 +241,7 @@ impl Program {
         options: &str,
     ) -> result::Result<Program, String> {
         let mut program =
-            Program::create_from_sources(&context, sources).map_err(|e| e.to_string())?;
+            Program::create_from_sources(context, sources).map_err(|e| e.to_string())?;
         match program.build(context.devices(), options) {
             Ok(_) => Ok(program),
             Err(e) => {
@@ -271,9 +271,9 @@ impl Program {
         options: &str,
     ) -> result::Result<Program, String> {
         let sources = [src];
-        Ok(Program::create_and_build_from_sources(
+        Program::create_and_build_from_sources(
             context, &sources, options,
-        )?)
+        )
     }
 
     /// Create and build an OpenCL Program from binaries with the given options.  
@@ -289,7 +289,7 @@ impl Program {
         binaries: &[&[u8]],
         options: &str,
     ) -> Result<Program> {
-        let mut program = Program::create_from_binary(&context, context.devices(), binaries)?;
+        let mut program = Program::create_from_binary(context, context.devices(), binaries)?;
         program.build(context.devices(), options)?;
         Ok(program)
     }
@@ -337,10 +337,10 @@ impl Program {
         let c_options = CString::new(options).expect("Program::compile, invalid options");
         Ok(compile_program(
             self.program,
-            &devices,
+            devices,
             &c_options,
-            &input_headers,
-            &header_include_names,
+            input_headers,
+            header_include_names,
             None,
             ptr::null_mut(),
         )?)
@@ -366,9 +366,9 @@ impl Program {
         let c_options = CString::new(options).expect("Program::link, invalid options");
         self.program = link_program(
             self.program,
-            &devices,
+            devices,
             &c_options,
-            &input_programs,
+            input_programs,
             None,
             ptr::null_mut(),
         )?;

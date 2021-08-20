@@ -99,7 +99,7 @@ impl Device {
         &self,
         properties: &[cl_device_partition_property],
     ) -> Result<Vec<SubDevice>> {
-        let sub_device_ids = create_sub_devices(self.id(), &properties)?;
+        let sub_device_ids = create_sub_devices(self.id(), properties)?;
         Ok(sub_device_ids
             .iter()
             .map(|id| SubDevice::new(*id))
@@ -984,7 +984,7 @@ mod tests {
                     "\tCL_DEVICE_OPENCL_C_VERSION: {:?}",
                     device.opencl_c_version().unwrap()
                 );
-                println!("");
+                println!();
             }
         }
     }

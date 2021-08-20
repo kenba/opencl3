@@ -290,7 +290,7 @@ mod tests {
                 ),
             };
 
-            println!("");
+            println!();
         }
     }
 }

@@ -120,12 +120,12 @@ impl Context {
         pfn_notify: Option<extern "C" fn(*const c_char, *const c_void, size_t, *mut c_void)>,
         user_data: *mut c_void,
     ) -> Result<Context> {
-        let properties_ptr = if 0 < properties.len() {
+        let properties_ptr = if !properties.is_empty() {
             properties.as_ptr()
         } else {
             ptr::null()
         };
-        let context = context::create_context(&devices, properties_ptr, pfn_notify, user_data)?;
+        let context = context::create_context(devices, properties_ptr, pfn_notify, user_data)?;
         Ok(Context::new(context, devices))
     }
 
@@ -181,7 +181,7 @@ impl Context {
         pfn_notify: Option<extern "C" fn(*const c_char, *const c_void, size_t, *mut c_void)>,
         user_data: *mut c_void,
     ) -> Result<Context> {
-        let properties_ptr = if 0 < properties.len() {
+        let properties_ptr = if !properties.is_empty() {
             properties.as_ptr()
         } else {
             ptr::null()

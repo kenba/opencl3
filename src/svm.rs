@@ -157,6 +157,13 @@ impl<'a, T> SvmVec<'a, T> {
         self.len
     }
 
+    /// Whether the vector is empty
+    pub fn is_empty(&self) -> bool {
+        self.len > 0
+    }
+
+    /// # Safety
+    /// May fail to grow buf if memory is not available for new_len.
     pub unsafe fn set_len(&mut self, new_len: usize) {
         if self.cap() < new_len {
             self.buf.grow(new_len);
@@ -169,7 +176,7 @@ impl<'a, T> SvmVec<'a, T> {
     /// The SvmVec has the lifetime of the [Context].
     pub fn new(context: &'a Context, svm_capabilities: cl_device_svm_capabilities) -> Self {
         SvmVec {
-            buf: SvmRawVec::new(&context, svm_capabilities),
+            buf: SvmRawVec::new(context, svm_capabilities),
             len: 0,
         }
     }
@@ -180,7 +187,7 @@ impl<'a, T> SvmVec<'a, T> {
         capacity: usize,
     ) -> Self {
         SvmVec {
-            buf: SvmRawVec::with_capacity(&context, svm_capabilities, capacity),
+            buf: SvmRawVec::with_capacity(context, svm_capabilities, capacity),
             len: 0,
         }
     }
@@ -191,7 +198,7 @@ impl<'a, T> SvmVec<'a, T> {
         capacity: usize,
     ) -> Self {
         SvmVec {
-            buf: SvmRawVec::with_capacity_zeroed(&context, svm_capabilities, capacity),
+            buf: SvmRawVec::with_capacity_zeroed(context, svm_capabilities, capacity),
             len: 0,
         }
     }
@@ -207,7 +214,7 @@ impl<'a, T> SvmVec<'a, T> {
         }
 
         unsafe {
-            ptr::write(self.ptr().offset(self.len as isize), elem);
+            ptr::write(self.ptr().add(self.len), elem);
         }
 
         // Can't fail, we'll OOM first.
@@ -219,7 +226,7 @@ impl<'a, T> SvmVec<'a, T> {
             None
         } else {
             self.len -= 1;
-            unsafe { Some(ptr::read(self.ptr().offset(self.len as isize))) }
+            unsafe { Some(ptr::read(self.ptr().add(self.len))) }
         }
     }
 
@@ -232,12 +239,12 @@ impl<'a, T> SvmVec<'a, T> {
         unsafe {
             if index < self.len {
                 ptr::copy(
-                    self.ptr().offset(index as isize),
-                    self.ptr().offset(index as isize + 1),
+                    self.ptr().add(index),
+                    self.ptr().add(index + 1),
                     self.len - index,
                 );
             }
-            ptr::write(self.ptr().offset(index as isize), elem);
+            ptr::write(self.ptr().add(index), elem);
             self.len += 1;
         }
     }
@@ -246,10 +253,10 @@ impl<'a, T> SvmVec<'a, T> {
         assert!(index < self.len, "index out of bounds");
         unsafe {
             self.len -= 1;
-            let result = ptr::read(self.ptr().offset(index as isize));
+            let result = ptr::read(self.ptr().add(index));
             ptr::copy(
-                self.ptr().offset(index as isize + 1),
-                self.ptr().offset(index as isize),
+                self.ptr().add(index + 1),
+                self.ptr().add(index),
                 self.len - index,
             );
             result
@@ -263,7 +270,7 @@ impl<'a, T> SvmVec<'a, T> {
             mem::forget(self);
 
             IntoIter {
-                iter: iter,
+                iter,
                 _buf: buf,
             }
         }
@@ -271,7 +278,7 @@ impl<'a, T> SvmVec<'a, T> {
 
     pub fn drain(&mut self) -> Drain<T> {
         unsafe {
-            let iter = RawValIter::new(&self);
+            let iter = RawValIter::new(self);
 
             // this is a mem::forget safety thing. If Drain is forgotten, we just
             // leak the whole Vec's contents. Also we need to do this *eventually*
@@ -279,7 +286,7 @@ impl<'a, T> SvmVec<'a, T> {
             self.len = 0;
 
             Drain {
-                iter: iter,
+                iter,
                 vec: PhantomData,
             }
         }
@@ -288,7 +295,7 @@ impl<'a, T> SvmVec<'a, T> {
 
 impl<'a, T> Drop for SvmVec<'a, T> {
     fn drop(&mut self) {
-        while let Some(_) = self.pop() {}
+        while self.pop().is_some() {}
         // allocation is handled by SvmRawVec
     }
 }
@@ -325,10 +332,10 @@ impl<T> RawValIter<T> {
             start: slice.as_ptr(),
             end: if mem::size_of::<T>() == 0 {
                 ((slice.as_ptr() as usize) + slice.len()) as *const _
-            } else if slice.len() == 0 {
+            } else if slice.is_empty() {
                 slice.as_ptr()
             } else {
-                slice.as_ptr().offset(slice.len() as isize)
+                slice.as_ptr().add(slice.len())
             },
         }
     }

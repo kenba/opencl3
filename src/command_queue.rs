@@ -189,7 +189,7 @@ impl CommandQueue {
             (data.len() * mem::size_of::<T>()) as size_t,
             data.as_mut_ptr() as cl_mem,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -225,7 +225,7 @@ impl CommandQueue {
             host_slice_pitch,
             ptr,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -250,7 +250,7 @@ impl CommandQueue {
             (data.len() * mem::size_of::<T>()) as size_t,
             data.as_ptr() as cl_mem,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -286,7 +286,7 @@ impl CommandQueue {
             host_slice_pitch,
             ptr,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -312,7 +312,7 @@ impl CommandQueue {
             offset,
             size,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -338,7 +338,7 @@ impl CommandQueue {
             dst_offset,
             size,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -371,7 +371,7 @@ impl CommandQueue {
             dst_row_pitch,
             dst_slice_pitch,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -401,7 +401,7 @@ impl CommandQueue {
             slice_pitch,
             ptr,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -431,7 +431,7 @@ impl CommandQueue {
             slice_pitch,
             ptr,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -456,7 +456,7 @@ impl CommandQueue {
             origin,
             region,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -482,7 +482,7 @@ impl CommandQueue {
             dst_origin,
             region,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -508,7 +508,7 @@ impl CommandQueue {
             region,
             dst_offset,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -534,7 +534,7 @@ impl CommandQueue {
             dst_origin,
             region,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -562,7 +562,7 @@ impl CommandQueue {
             size,
             buffer_ptr,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -594,7 +594,7 @@ impl CommandQueue {
             image_slice_pitch,
             image_ptr,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -614,7 +614,7 @@ impl CommandQueue {
             memobj,
             mapped_ptr,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -637,7 +637,7 @@ impl CommandQueue {
             mem_objects,
             flags,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -660,7 +660,7 @@ impl CommandQueue {
             mem_objects,
             flags,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -686,7 +686,7 @@ impl CommandQueue {
             global_work_sizes,
             local_work_sizes,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -701,7 +701,7 @@ impl CommandQueue {
             self.queue,
             kernel,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -724,14 +724,14 @@ impl CommandQueue {
             args.as_ptr() as *mut c_void,
             args.len() as size_t,
             mem_list.len() as cl_uint,
-            if 0 < mem_list.len() {
+            if !mem_list.is_empty() {
                 mem_list.as_ptr()
             } else {
                 ptr::null()
             },
             args_mem_loc.as_ptr(),
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -745,7 +745,7 @@ impl CommandQueue {
         let event = enqueue_marker_with_wait_list(
             self.queue,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -759,7 +759,7 @@ impl CommandQueue {
         let event = enqueue_barrier_with_wait_list(
             self.queue,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -790,7 +790,7 @@ impl CommandQueue {
             pfn_free_func,
             user_data,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -815,7 +815,7 @@ impl CommandQueue {
             src_ptr,
             size,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -839,7 +839,7 @@ impl CommandQueue {
             pattern.len() * mem::size_of::<T>(),
             size,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -863,7 +863,7 @@ impl CommandQueue {
             svm.as_mut_ptr() as *mut c_void,
             svm.len() * mem::size_of::<T>(),
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -878,7 +878,7 @@ impl CommandQueue {
             self.queue,
             svm.as_ptr() as *mut c_void,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -902,7 +902,7 @@ impl CommandQueue {
             sizes,
             flags,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -921,7 +921,7 @@ impl CommandQueue {
             mem_objects.len() as cl_uint,
             mem_objects.as_ptr() as *const *mut c_void,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -940,7 +940,7 @@ impl CommandQueue {
             mem_objects.len() as cl_uint,
             mem_objects.as_ptr() as *const *mut c_void,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -961,7 +961,7 @@ impl CommandQueue {
             mem_objects.len() as cl_uint,
             mem_objects.as_ptr() as *const *mut c_void,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -982,7 +982,7 @@ impl CommandQueue {
             mem_objects.len() as cl_uint,
             mem_objects.as_ptr() as *const *mut c_void,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -1003,7 +1003,7 @@ impl CommandQueue {
             mem_objects.len() as cl_uint,
             mem_objects.as_ptr() as *const *mut c_void,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -1024,7 +1024,7 @@ impl CommandQueue {
             mem_objects.len() as cl_uint,
             mem_objects.as_ptr() as *const *mut c_void,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -1045,7 +1045,7 @@ impl CommandQueue {
             mem_objects.len() as cl_uint,
             mem_objects.as_ptr() as *const *mut c_void,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -1066,7 +1066,7 @@ impl CommandQueue {
             mem_objects.len() as cl_uint,
             mem_objects.as_ptr() as *const *mut c_void,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -1087,7 +1087,7 @@ impl CommandQueue {
             mem_objects.len() as cl_uint,
             mem_objects.as_ptr() as *const *mut c_void,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -1108,7 +1108,7 @@ impl CommandQueue {
             mem_objects.len() as cl_uint,
             mem_objects.as_ptr() as *const *mut c_void,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -1129,7 +1129,7 @@ impl CommandQueue {
             mem_objects.len() as cl_uint,
             mem_objects.as_ptr() as *const *mut c_void,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -1150,7 +1150,7 @@ impl CommandQueue {
             mem_objects.len() as cl_uint,
             mem_objects.as_ptr() as *const *mut c_void,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -1171,7 +1171,7 @@ impl CommandQueue {
             mem_objects.len() as cl_uint,
             mem_objects.as_ptr() as *const *mut c_void,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -1192,7 +1192,7 @@ impl CommandQueue {
             mem_objects.len() as cl_uint,
             mem_objects.as_ptr() as *const *mut c_void,
             event_wait_list.len() as cl_uint,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
@@ -1219,7 +1219,7 @@ impl CommandQueue {
             mipmap_filter_mode,
             array_region,
             mip_region,
-            if 0 < event_wait_list.len() {
+            if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {
                 ptr::null()
