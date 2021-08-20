@@ -25,6 +25,7 @@ use cl3::ext;
 use cl3::types::{cl_context, cl_device_id, cl_int, cl_program, cl_uchar, cl_uint, CL_FALSE};
 #[allow(unused_imports)]
 use libc::{c_void, intptr_t, size_t};
+#[allow(unused_imports)]
 use std::ffi::{CStr, CString};
 use std::ptr;
 use std::result;
@@ -168,6 +169,7 @@ impl Program {
     ///
     /// returns a Result containing the new Program
     /// or the error code from the OpenCL C API function.
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn create_from_builtin_kernels(
         context: &Context,
         devices: &[cl_device_id],
@@ -323,6 +325,7 @@ impl Program {
     ///
     /// returns a null Result
     /// or the error code from the OpenCL C API function.
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn compile(
         &mut self,
         devices: &[cl_device_id],
@@ -352,6 +355,7 @@ impl Program {
     ///
     /// returns a null Result
     /// or the error code from the OpenCL C API function.
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn link(
         &mut self,
         devices: &[cl_device_id],
@@ -453,12 +457,12 @@ impl Program {
         Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_KERNEL_NAMES)?.to_string())
     }
 
-    #[cfg(feature = "CL_VERSION_2_1")]
+    /// CL_VERSION_2_1
     pub fn get_program_il(&self) -> Result<String> {
         Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_IL)?.to_string())
     }
 
-    #[cfg(feature = "CL_VERSION_2_2")]
+    /// CL_VERSION_2_2
     pub fn get_program_scope_global_ctors_present(&self) -> Result<bool> {
         Ok(get_program_info(
             self.program,
@@ -468,7 +472,7 @@ impl Program {
             != CL_FALSE)
     }
 
-    #[cfg(feature = "CL_VERSION_2_2")]
+    /// CL_VERSION_2_2
     pub fn get_program_scope_global_dtors_present(&self) -> Result<bool> {
         Ok(get_program_info(
             self.program,
@@ -512,7 +516,7 @@ impl Program {
         .to_uint())
     }
 
-    #[cfg(feature = "CL_VERSION_2_0")]
+    /// CL_VERSION_2_0
     pub fn get_build_global_variable_total_size(&self, device: cl_device_id) -> Result<size_t> {
         Ok(get_program_build_info(
             self.program,

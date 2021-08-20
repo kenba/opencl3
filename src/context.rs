@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::device::{Device, SubDevice};
+use super::device::Device;
+#[cfg(feature = "CL_VERSION_1_2")]
+use super::device::SubDevice;
 use super::Result;
 
 use cl3::context;
@@ -149,6 +151,7 @@ impl Context {
     ///
     /// returns a Result containing the new OpenCL context
     /// or the error code from the OpenCL C API function.
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn from_sub_devices(
         sub_devices: &[SubDevice],
         properties: &[cl_context_properties],
@@ -268,7 +271,8 @@ impl Context {
         pfn_notify: extern "C" fn(cl_context, *const c_void),
         user_data: *mut c_void,
     ) -> Result<()> {
-        set_context_destructor_callback(self.context, pfn_notify, user_data)
+        context::set_context_destructor_callback(self.context, pfn_notify, user_data)
+            .map_err(Into::into)
     }
 
     pub fn reference_count(&self) -> Result<cl_uint> {

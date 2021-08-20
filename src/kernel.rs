@@ -21,6 +21,7 @@ use super::Result;
 
 #[allow(unused_imports)]
 use cl3::ext;
+#[allow(unused_imports)]
 use cl3::types::{
     cl_context, cl_device_id, cl_event, cl_kernel, cl_kernel_exec_info, cl_program, cl_uint,
     cl_ulong,
@@ -120,6 +121,7 @@ impl Kernel {
     /// * `arg_ptr` - the SVM pointer to the data for the argument at arg_index.
     ///
     /// returns an empty Result or the error code from the OpenCL C API function.
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn set_arg_svm_pointer(&self, arg_index: cl_uint, arg_ptr: *const c_void) -> Result<()> {
         Ok(set_kernel_arg_svm_pointer(self.kernel, arg_index, arg_ptr)?)
     }
@@ -131,6 +133,7 @@ impl Kernel {
     /// * `param_ptr` - pointer to the data for the param_name.
     ///
     /// returns an empty Result or the error code from the OpenCL C API function.
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn set_exec_info<T>(
         &self,
         param_name: cl_kernel_exec_info,
@@ -168,6 +171,7 @@ impl Kernel {
         Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_ATTRIBUTES)?.to_string())
     }
 
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn get_arg_address_qualifier(&self, arg_indx: cl_uint) -> Result<cl_uint> {
         Ok(get_kernel_arg_info(
             self.kernel,
@@ -177,6 +181,7 @@ impl Kernel {
         .to_uint())
     }
 
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn get_arg_access_qualifier(&self, arg_indx: cl_uint) -> Result<cl_uint> {
         Ok(get_kernel_arg_info(
             self.kernel,
@@ -186,6 +191,7 @@ impl Kernel {
         .to_uint())
     }
 
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn get_arg_type_qualifier(&self, arg_indx: cl_uint) -> Result<cl_ulong> {
         Ok(get_kernel_arg_info(
             self.kernel,
@@ -195,6 +201,7 @@ impl Kernel {
         .to_ulong())
     }
 
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn get_arg_type_name(&self, arg_indx: cl_uint) -> Result<String> {
         Ok(get_kernel_arg_info(
             self.kernel,
@@ -204,6 +211,7 @@ impl Kernel {
         .to_string())
     }
 
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn get_arg_name(&self, arg_indx: cl_uint) -> Result<String> {
         Ok(
             get_kernel_arg_info(self.kernel, arg_indx, KernelArgInfo::CL_KERNEL_ARG_NAME)?
@@ -390,6 +398,7 @@ impl<'a> ExecuteKernel<'a> {
     /// * `arg` - a reference to the data for the kernel argument.
     ///
     /// returns a reference to self.
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn set_arg_svm<'b, T>(&'b mut self, arg_ptr: *const T) -> &'b mut Self {
         assert!(
             self.arg_index < self.num_args,
@@ -410,6 +419,7 @@ impl<'a> ExecuteKernel<'a> {
     /// * `param_ptr` - pointer to the data for the param_name.
     ///
     /// returns a reference to self.
+    #[cfg(feature = "CL_VERSION_2_0")]
     pub fn set_exec_info<'b, T>(
         &'b mut self,
         param_name: cl_kernel_exec_info,
@@ -692,36 +702,39 @@ mod tests {
         println!("kernel.attributes(): {}", value);
         // assert!(value.is_empty());
 
-        let arg0_address = kernels[0]
-            .get_arg_address_qualifier(0)
-            .expect("OpenCL kernel_0.get_arg_address_qualifier");
-        println!(
-            "OpenCL kernel_0.get_arg_address_qualifier: {:X}",
-            arg0_address
-        );
+        #[cfg(feature = "CL_VERSION_1_2")]
+        {
+            let arg0_address = kernels[0]
+                .get_arg_address_qualifier(0)
+                .expect("OpenCL kernel_0.get_arg_address_qualifier");
+            println!(
+                "OpenCL kernel_0.get_arg_address_qualifier: {:X}",
+                arg0_address
+            );
 
-        let arg0_access = kernels[0]
-            .get_arg_access_qualifier(0)
-            .expect("OpenCL kernel_0.get_arg_access_qualifier");
-        println!(
-            "OpenCL kernel_0.get_arg_access_qualifier: {:X}",
-            arg0_access
-        );
+            let arg0_access = kernels[0]
+                .get_arg_access_qualifier(0)
+                .expect("OpenCL kernel_0.get_arg_access_qualifier");
+            println!(
+                "OpenCL kernel_0.get_arg_access_qualifier: {:X}",
+                arg0_access
+            );
 
-        let arg0_type_name = kernels[0]
-            .get_arg_type_name(0)
-            .expect("OpenCL kernel_0.get_arg_type_name");
-        println!("OpenCL kernel_0.get_arg_type_name: {}", arg0_type_name);
+            let arg0_type_name = kernels[0]
+                .get_arg_type_name(0)
+                .expect("OpenCL kernel_0.get_arg_type_name");
+            println!("OpenCL kernel_0.get_arg_type_name: {}", arg0_type_name);
 
-        let arg0_type = kernels[0]
-            .get_arg_type_qualifier(0)
-            .expect("OpenCL kernel_0.get_arg_type_qualifier");
-        println!("OpenCL kernel_0.get_arg_type_qualifier: {}", arg0_type);
+            let arg0_type = kernels[0]
+                .get_arg_type_qualifier(0)
+                .expect("OpenCL kernel_0.get_arg_type_qualifier");
+            println!("OpenCL kernel_0.get_arg_type_qualifier: {}", arg0_type);
 
-        let arg0_name = kernels[0]
-            .get_arg_name(0)
-            .expect("OpenCL kernel_0.get_arg_name");
-        println!("OpenCL kernel_0.get_arg_name: {}", arg0_name);
+            let arg0_name = kernels[0]
+                .get_arg_name(0)
+                .expect("OpenCL kernel_0.get_arg_name");
+            println!("OpenCL kernel_0.get_arg_name: {}", arg0_name);
+        }
 
         let value = kernels[0].get_work_group_size(device.id()).unwrap();
         println!("kernel.get_work_group_size(): {}", value);

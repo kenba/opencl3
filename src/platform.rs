@@ -33,6 +33,7 @@ use cl3::ffi::cl_dx9_media_sharing::{
     cl_dx9_media_adapter_type_khr,
 };
 use cl3::platform;
+#[allow(unused_imports)]
 use cl3::program;
 #[allow(unused_imports)]
 use cl3::types::{
@@ -188,7 +189,7 @@ impl Platform {
 
     /// The resolution of the host timer in nanoseconds as used by
     /// clGetDeviceAndHostTimer.  
-    // CL_VERSION_2_1
+    /// CL_VERSION_2_1
     pub fn host_timer_resolution(&self) -> Result<cl_ulong> {
         Ok(platform::get_platform_info(
             self.id(),
@@ -198,7 +199,7 @@ impl Platform {
     }
 
     /// The detailed (major, minor, patch) version supported by the platform.  
-    // CL_VERSION_3_0
+    /// CL_VERSION_3_0
     pub fn numeric_version(&self) -> Result<cl_version> {
         Ok(platform::get_platform_info(
             self.id(),
@@ -209,7 +210,7 @@ impl Platform {
 
     /// An array of description (name and version) structures that lists all the
     /// extensions supported by the platform.  
-    // CL_VERSION_3_0
+    /// CL_VERSION_3_0
     pub fn extensions_with_version(&self) -> Result<Vec<cl_name_version>> {
         Ok(platform::get_platform_info(
             self.id(),
@@ -219,6 +220,8 @@ impl Platform {
     }
 
     /// Unload an OpenCL compiler for a platform.
+    /// CL_VERSION_1_2
+    #[cfg(feature = "CL_VERSION_1_2")]
     pub fn unload_compiler(&self) -> Result<()> {
         Ok(program::unload_platform_compiler(self.id())?)
     }
