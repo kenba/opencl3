@@ -69,14 +69,15 @@ fn test_opencl_2_kernel_example() {
 
     /////////////////////////////////////////////////////////////////////
     // Query OpenCL compute environment
-    let opencl_2: String = "OpenCL 2".to_string();
+    let opencl_2: &str = "OpenCL 2";
+    let opencl_3: &str = "OpenCL 3";
 
     // Find an OpenCL fine grained SVM, platform and device
     let mut device_id = ptr::null_mut();
     let mut is_fine_grained_svm: bool = false;
     for p in platforms {
         let platform_version = p.version().unwrap();
-        if platform_version.contains(&opencl_2) {
+        if platform_version.contains(&opencl_2) || platform_version.contains(&opencl_3) {
             let devices = p
                 .get_devices(CL_DEVICE_TYPE_GPU)
                 .expect("Platform::get_devices failed");
