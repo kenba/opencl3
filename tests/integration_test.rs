@@ -160,7 +160,6 @@ fn test_opencl_1_2_example() {
 fn test_opencl_svm_example() {
     use cl3::device::{CL_DEVICE_SVM_COARSE_GRAIN_BUFFER, CL_DEVICE_SVM_FINE_GRAIN_BUFFER};
     use opencl3::command_queue::CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
-    use opencl3::event;
     use opencl3::memory::{CL_MAP_READ, CL_MAP_WRITE};
     use opencl3::svm::SvmVec;
 
@@ -236,29 +235,27 @@ fn test_opencl_svm_example() {
 
         // Create SVM vectors for the data
 
-        // The input data
+        // The SVM vectors
         const ARRAY_SIZE: usize = 1000;
         let mut ones = SvmVec::<cl_float>::new(&context, svm_capability);
         ones.reserve(ARRAY_SIZE);
-        for _ in 0..ARRAY_SIZE {
-            ones.push(1.0);
-        }
 
         let mut sums = SvmVec::<cl_float>::new(&context, svm_capability);
         sums.reserve(ARRAY_SIZE);
-        for i in 0..ARRAY_SIZE {
-            sums.push(1.0 + 1.0 * i as cl_float);
-        }
 
         let mut results = SvmVec::<cl_float>::new(&context, svm_capability);
         results.reserve(ARRAY_SIZE);
-        for i in 0..ARRAY_SIZE {
-            results.push(i as cl_float);
-        }
+        unsafe { results.set_len(ARRAY_SIZE) };
 
-        let mut events: Vec<cl_event> = Vec::default();
+        let a: cl_float = 300.0;
         if is_fine_grained_svm {
-            let a: cl_float = 300.0;
+            // The input data
+            for _ in 0..ARRAY_SIZE {
+                ones.push(1.0);
+            }
+            for i in 0..ARRAY_SIZE {
+                sums.push(1.0 + 1.0 * i as cl_float);
+            }
 
             // Use the ExecuteKernel builder to set the kernel buffer and
             // cl_float value arguments, before setting the one dimensional
@@ -273,9 +270,8 @@ fn test_opencl_svm_example() {
                 .enqueue_nd_range(&queue)
                 .unwrap();
 
-            // Add the kernel_event to the events list and wait for it to complete
-            events.push(kernel_event.get());
-            event::wait_for_events(&events).unwrap();
+            // Wait for the kernel_event to complete
+            kernel_event.wait().unwrap();
 
             assert_eq!(1300.0, results[ARRAY_SIZE - 1]);
             println!("results back: {}", results[ARRAY_SIZE - 1]);
@@ -287,18 +283,31 @@ fn test_opencl_svm_example() {
             println!("kernel execution duration (ns): {}", duration);
         } else {
             // !is_fine_grained_svm
-            // Map the SVM
-            let map_ones_event = queue
-                .enqueue_svm_map(CL_NON_BLOCKING, CL_MAP_WRITE, &mut ones, &events)
+            unsafe { ones.set_len(ARRAY_SIZE) };
+            unsafe { sums.set_len(ARRAY_SIZE) };
+
+            // Map the input SVM vectors, before setting their data
+            queue
+                .enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut ones, &[])
                 .unwrap();
-            let map_sums_event = queue
-                .enqueue_svm_map(CL_NON_BLOCKING, CL_MAP_WRITE, &mut sums, &events)
+            queue
+                .enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut sums, &[])
                 .unwrap();
 
-            events.push(map_ones_event.get());
-            events.push(map_sums_event.get());
+            // The input data
+            for i in 0..ARRAY_SIZE {
+                ones[i] = 1.0;
+            }
 
-            let a: cl_float = 300.0;
+            for i in 0..ARRAY_SIZE {
+                sums[i] = 1.0 + 1.0 * i as cl_float;
+            }
+
+            let mut events: Vec<cl_event> = Vec::default();
+            let unmap_sums_event = queue.enqueue_svm_unmap(&sums, &[]).unwrap();
+            let unmap_ones_event = queue.enqueue_svm_unmap(&ones, &[]).unwrap();
+            events.push(unmap_sums_event.get());
+            events.push(unmap_ones_event.get());
 
             // Use the ExecuteKernel builder to set the kernel buffer and
             // cl_float value arguments, before setting the one dimensional
@@ -314,15 +323,12 @@ fn test_opencl_svm_example() {
                 .enqueue_nd_range(&queue)
                 .unwrap();
 
-            events.clear();
-            events.push(kernel_event.get());
-            event::wait_for_events(&events).unwrap();
+            // Wait for the kernel_event to complete
+            kernel_event.wait().unwrap();
 
-            events.clear();
-
-            // Blocking SVM map, no need to wait for _map_results_event
+            // Map SVM results before reading them
             let _map_results_event = queue
-                .enqueue_svm_map(CL_BLOCKING, CL_MAP_READ, &mut results, &events)
+                .enqueue_svm_map(CL_BLOCKING, CL_MAP_READ, &mut results, &[])
                 .unwrap();
 
             assert_eq!(1300.0, results[ARRAY_SIZE - 1]);
@@ -336,15 +342,8 @@ fn test_opencl_svm_example() {
 
             /////////////////////////////////////////////////////////////////////
             // Clean up
-
-            let unmap_results_event = queue.enqueue_svm_unmap(&results, &events).unwrap();
-            let unmap_sums_event = queue.enqueue_svm_unmap(&sums, &events).unwrap();
-            let unmap_ones_event = queue.enqueue_svm_unmap(&ones, &events).unwrap();
-            events.push(unmap_results_event.get());
-            events.push(unmap_sums_event.get());
-            events.push(unmap_ones_event.get());
-
-            event::wait_for_events(&events).unwrap();
+            let unmap_results_event = queue.enqueue_svm_unmap(&results, &[]).unwrap();
+            unmap_results_event.wait().unwrap();
             println!("SVM buffers unmapped");
         }
     } else {
