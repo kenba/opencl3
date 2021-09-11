@@ -94,15 +94,11 @@ const ARRAY_SIZE: usize = 8;
 let value_array: [cl_int; ARRAY_SIZE] = [3, 2, 5, 9, 7, 1, 4, 2];
 
 // Copy input data into an OpenCL SVM vector
-let mut test_values = SvmVec::<cl_int>::with_capacity(&context, svm_capability, ARRAY_SIZE);
-for &val in value_array.iter() {
-    test_values.push(val);
-}
+let mut test_values = SvmVec::<cl_int>::allocate(&context, svm_capability, ARRAY_SIZE);
+test_values.clone_from_slice(&value_array);
 
 // The output data, an OpenCL SVM vector
-let mut results =
-    SvmVec::<cl_int>::with_capacity_zeroed(&context, svm_capability, ARRAY_SIZE);
-unsafe { results.set_len(ARRAY_SIZE) };
+let mut results = SvmVec::<cl_int>::allocate_zeroed(&context, svm_capability, ARRAY_SIZE);
 
 // Run the kernel on the input data
 let kernel_event = ExecuteKernel::new(kernel)

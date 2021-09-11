@@ -170,13 +170,15 @@ fn test_opencl_svm_example() {
     // Query OpenCL compute environment
     let opencl_2: &str = "OpenCL 2";
     let opencl_3: &str = "OpenCL 3";
+    let cuda: &str = "CUDA";
 
     // Find an OpenCL SVM, platform and device
     let mut device_id = ptr::null_mut();
     let mut is_svm_capable: bool = false;
     for p in platforms {
         let platform_version = p.version().unwrap();
-        if platform_version.contains(&opencl_2) || platform_version.contains(&opencl_3) {
+        // if platform_version.contains(&opencl_2) || platform_version.contains(&opencl_3) {
+        if platform_version.contains(&cuda) {
             let devices = p
                 .get_devices(CL_DEVICE_TYPE_GPU)
                 .expect("Platform::get_devices failed");
@@ -237,24 +239,19 @@ fn test_opencl_svm_example() {
 
         // The SVM vectors
         const ARRAY_SIZE: usize = 1000;
-        let mut ones = SvmVec::<cl_float>::new(&context, svm_capability);
-        ones.reserve(ARRAY_SIZE);
-
-        let mut sums = SvmVec::<cl_float>::new(&context, svm_capability);
-        sums.reserve(ARRAY_SIZE);
-
-        let mut results = SvmVec::<cl_float>::new(&context, svm_capability);
-        results.reserve(ARRAY_SIZE);
-        unsafe { results.set_len(ARRAY_SIZE) };
+        let mut ones = SvmVec::<cl_float>::allocate(&context, svm_capability, ARRAY_SIZE);
+        let mut sums = SvmVec::<cl_float>::allocate(&context, svm_capability, ARRAY_SIZE);
+        let mut results = SvmVec::<cl_float>::allocate(&context, svm_capability, ARRAY_SIZE);
 
         let a: cl_float = 300.0;
         if is_fine_grained_svm {
             // The input data
-            for _ in 0..ARRAY_SIZE {
-                ones.push(1.0);
-            }
             for i in 0..ARRAY_SIZE {
-                sums.push(1.0 + 1.0 * i as cl_float);
+                ones[i] = 1.0;
+            }
+
+            for i in 0..ARRAY_SIZE {
+                sums[i] = 1.0 + 1.0 * i as cl_float;
             }
 
             // Use the ExecuteKernel builder to set the kernel buffer and
@@ -283,8 +280,8 @@ fn test_opencl_svm_example() {
             println!("kernel execution duration (ns): {}", duration);
         } else {
             // !is_fine_grained_svm
-            unsafe { ones.set_len(ARRAY_SIZE) };
-            unsafe { sums.set_len(ARRAY_SIZE) };
+            // unsafe { ones.set_len(ARRAY_SIZE) };
+            // unsafe { sums.set_len(ARRAY_SIZE) };
 
             // Map the input SVM vectors, before setting their data
             queue

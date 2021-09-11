@@ -163,6 +163,19 @@ impl<'a, T> SvmVec<'a, T> {
         self.len == 0
     }
 
+    /// Whether the vector is fine grained
+    pub fn is_fine_grained(&self) -> bool {
+        self.buf.fine_grain_buffer
+    }
+
+    /// Clear the vector, i.e. empty it.
+    pub fn clear(&mut self) {
+        self.len = 0;
+    }
+
+    /// Set the length of the vector.
+    /// If new_len > len, the new memory will be uninitialised.
+    /// 
     /// # Safety
     /// May fail to grow buf if memory is not available for new_len.
     pub unsafe fn set_len(&mut self, new_len: usize) {
@@ -182,6 +195,25 @@ impl<'a, T> SvmVec<'a, T> {
         }
     }
 
+    /// Construct an SvmVec with the given len of values from a [Context] and
+    /// the svm_capabilities of the device (or devices) in the [Context]. 
+    ///
+    /// return an SvmVec with len values of uninitialised memory.
+    pub fn allocate(
+        context: &'a Context,
+        svm_capabilities: cl_device_svm_capabilities,
+        len: usize,
+    ) -> Self {
+        SvmVec {
+            buf: SvmRawVec::with_capacity(context, svm_capabilities, len),
+            len,
+        }
+    }
+
+    /// Construct an empty SvmVec with the given capacity from a [Context] and
+    /// the svm_capabilities of the device (or devices) in the [Context].  
+    ///
+    /// return an empty SvmVec with the given capacity.
     pub fn with_capacity(
         context: &'a Context,
         svm_capabilities: cl_device_svm_capabilities,
@@ -193,11 +225,48 @@ impl<'a, T> SvmVec<'a, T> {
         }
     }
 
+    /// Construct an SvmVec with the given len of values from a [Context] and
+    /// the svm_capabilities of the device (or devices) in the [Context]. 
+    ///
+    /// # Panics
+    ///
+    /// The function will panic if called on a coarse grain buffer.
+    /// 
+    /// return an SvmVec with len values of zeroed memory.
+    pub fn allocate_zeroed(
+        context: &'a Context,
+        svm_capabilities: cl_device_svm_capabilities,
+        len: usize,
+    ) -> Self {
+        let fine_grain_buffer: bool = svm_capabilities & CL_DEVICE_SVM_FINE_GRAIN_BUFFER != 0;
+        assert!(
+            fine_grain_buffer,
+            "SVM is not fine grained, use `assign` instead."
+        );
+        SvmVec {
+            buf: SvmRawVec::with_capacity_zeroed(context, svm_capabilities, len),
+            len,
+        }
+    }
+
+    /// Construct an SvmVec with the given size of values from a [Context] and
+    /// the svm_capabilities of the device (or devices) in the [Context].  
+    ///
+    /// # Panics
+    ///
+    /// The function will panic if called on a coarse grain buffer.
+    ///
+    /// return an empty SvmVec with the given capacity of zeroed memory.
     pub fn with_capacity_zeroed(
         context: &'a Context,
         svm_capabilities: cl_device_svm_capabilities,
         capacity: usize,
     ) -> Self {
+        let fine_grain_buffer: bool = svm_capabilities & CL_DEVICE_SVM_FINE_GRAIN_BUFFER != 0;
+        assert!(
+            fine_grain_buffer,
+            "SVM is not fine grained, use `with_capacity` instead."
+        );
         SvmVec {
             buf: SvmRawVec::with_capacity_zeroed(context, svm_capabilities, capacity),
             len: 0,
