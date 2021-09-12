@@ -94,12 +94,12 @@ const ARRAY_SIZE: usize = 8;
 let value_array: [cl_int; ARRAY_SIZE] = [3, 2, 5, 9, 7, 1, 4, 2];
 
 // Create an OpenCL SVM vector
-let mut test_values =SvmVec::<cl_int>::allocate(&context, svm_capability, ARRAY_SIZE)
+let mut test_values =SvmVec::<cl_int>::allocate(&context, ARRAY_SIZE)
     .expect("SVM allocation failed");
 
 // Map test_values if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
 if !test_values.is_fine_grained() {
-    queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut test_values, &[]).unwrap();
+    queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut test_values, &[])?;
 }
 
 // Copy input data into the OpenCL SVM vector
@@ -107,12 +107,12 @@ test_values.clone_from_slice(&value_array);
 
 // Unmap test_values if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
 if !test_values.is_fine_grained() {
-    let unmap_test_values_event = queue.enqueue_svm_unmap(&test_values, &[]).unwrap();
-    unmap_test_values_event.wait().unwrap();
+    let unmap_test_values_event = queue.enqueue_svm_unmap(&test_values, &[])?;
+    unmap_test_values_event.wait()?;
 }
 
 // The output data, an OpenCL SVM vector
-let mut results = SvmVec::<cl_int>::allocate_zeroed(&context, svm_capability, ARRAY_SIZE)
+let mut results = SvmVec::<cl_int>::allocate_zeroed(&context, ARRAY_SIZE)
     .expect("SVM allocation failed");
 
 // Run the kernel on the input data
@@ -124,11 +124,11 @@ let kernel_event = ExecuteKernel::new(kernel)
     .unwrap();
 
 // Wait for the kernel to complete execution on the device
-kernel_event.wait().unwrap();
+kernel_event.wait()?;
 
 // Map results if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
 if !results.is_fine_grained() {
-    queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_READ, &mut results, &[]).unwrap();
+    queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_READ, &mut results, &[])?;
 }
 
 // Can access OpenCL SVM directly, no need to map or read the results
@@ -136,8 +136,8 @@ println!("sum results: {:?}", results);
 
 // Unmap results if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
 if !results.is_fine_grained() {
-    let unmap_results_event = queue.enqueue_svm_unmap(&results, &[]).unwrap();
-    unmap_results_event.wait().unwrap();
+    let unmap_results_event = queue.enqueue_svm_unmap(&results, &[])?;
+    unmap_results_event.wait()?;
 }
 ```
 

@@ -146,12 +146,12 @@ fn test_opencl_2_kernel_example() {
         let value_array: [cl_int; ARRAY_SIZE] = [3, 2, 5, 9, 7, 1, 4, 2];
 
         // Copy into an OpenCL SVM vector
-        let mut test_values = SvmVec::<cl_int>::allocate(&context, svm_capability, ARRAY_SIZE)
+        let mut test_values = SvmVec::<cl_int>::allocate(&context, ARRAY_SIZE)
             .expect("SVM allocation failed");
         test_values.clone_from_slice(&value_array);
 
         // The output data, an OpenCL SVM vector
-        let mut results = SvmVec::<cl_int>::allocate_zeroed(&context, svm_capability, ARRAY_SIZE)
+        let mut results = SvmVec::<cl_int>::allocate_zeroed(&context, ARRAY_SIZE)
             .expect("SVM allocation failed");
 
         // Run the sum kernel on the input data

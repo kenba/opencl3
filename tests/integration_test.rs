@@ -237,11 +237,11 @@ fn test_opencl_svm_example() {
 
         // The SVM vectors
         const ARRAY_SIZE: usize = 1000;
-        let mut ones = SvmVec::<cl_float>::allocate(&context, svm_capability, ARRAY_SIZE)
+        let mut ones = SvmVec::<cl_float>::allocate(&context, ARRAY_SIZE)
             .expect("SVM allocation failed");
-        let mut sums = SvmVec::<cl_float>::allocate(&context, svm_capability, ARRAY_SIZE)
+        let mut sums = SvmVec::<cl_float>::allocate(&context, ARRAY_SIZE)
             .expect("SVM allocation failed");
-        let mut results = SvmVec::<cl_float>::allocate(&context, svm_capability, ARRAY_SIZE)
+        let mut results = SvmVec::<cl_float>::allocate(&context, ARRAY_SIZE)
             .expect("SVM allocation failed");
 
         let a: cl_float = 300.0;

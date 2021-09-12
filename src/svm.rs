@@ -169,7 +169,7 @@ impl<'a, T> Drop for SvmRawVec<'a, T> {
 ///
 /// The `is_fine_grained method` can be used to determine whether an `SvmVec` supports
 /// CL_DEVICE_SVM_FINE_GRAIN_BUFFER and should be used to control SVM map and unmap
-/// operations:
+/// operations, e.g.:
 /// ```no_run
 /// # use cl3::device::CL_DEVICE_TYPE_GPU;
 /// # use opencl3::command_queue::CommandQueue;
@@ -180,34 +180,36 @@ impl<'a, T> Drop for SvmRawVec<'a, T> {
 /// # use opencl3::platform::get_platforms;
 /// # use opencl3::svm::SvmVec;
 /// # use opencl3::types::*;
+/// # use opencl3::Result;
 /// 
+/// # fn main() -> Result<()> {
 /// # let platforms = get_platforms().unwrap();
 /// # let devices = platforms[0].get_devices(CL_DEVICE_TYPE_GPU).unwrap();
 /// # let device = Device::new(devices[0]);
 /// # let context = Context::from_device(&device).unwrap();
 /// # let queue = CommandQueue::create(&context, context.default_device(), 0).unwrap();
-/// # let svm_capability = context.get_svm_mem_capability();
 /// // The input data
 /// const ARRAY_SIZE: usize = 8;
 /// let value_array: [cl_int; ARRAY_SIZE] = [3, 2, 5, 9, 7, 1, 4, 2];
 ///
 /// // Create an OpenCL SVM vector
-/// let mut test_values = SvmVec::<cl_int>::allocate(&context, svm_capability, ARRAY_SIZE)
-///     .expect("SVM allocation failed");
+/// let mut test_values = SvmVec::<cl_int>::allocate(&context, ARRAY_SIZE)?;
 ///
-/// // Map test_values if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
+/// // Map test_values if not an CL_MEM_SVM_FINE_GRAIN_BUFFER
 /// if !test_values.is_fine_grained() {
-///     queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut test_values, &[]).unwrap();
+///     queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut test_values, &[])?;
 /// }
 ///
 /// // Copy input data into the OpenCL SVM vector
 /// test_values.clone_from_slice(&value_array);
 ///
-/// // Unmap test_values if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
+/// // Unmap test_values if not an CL_MEM_SVM_FINE_GRAIN_BUFFER
 /// if !test_values.is_fine_grained() {
-///     let unmap_test_values_event = queue.enqueue_svm_unmap(&test_values, &[]).unwrap();
-///     unmap_test_values_event.wait().unwrap();
+///     let unmap_test_values_event = queue.enqueue_svm_unmap(&test_values, &[])?;
+///     unmap_test_values_event.wait()?;
 /// }
+/// # Ok(())
+/// # }
 /// ```
 
 pub struct SvmVec<'a, T> {
@@ -263,48 +265,60 @@ impl<'a, T> SvmVec<'a, T> {
         Ok(())
     }
 
-    /// Construct an empty SvmVec from a [Context] and the svm_capabilities of
-    /// the device (or devices) in the [Context].  
+    /// Construct an empty SvmVec from a [Context].  
     /// The SvmVec has the lifetime of the [Context].
     ///
     /// # Panics
     ///
-    /// The svm_capabilities must include CL_DEVICE_SVM_COARSE_GRAIN_BUFFER or
-    /// CL_DEVICE_SVM_FINE_GRAIN_BUFFER.  
-    /// The svm_capabilities must *not* include CL_DEVICE_SVM_FINE_GRAIN_SYSTEM,
+    /// The cl_device_svm_capabilities of the [Context] must include
+    /// CL_DEVICE_SVM_COARSE_GRAIN_BUFFER or CL_DEVICE_SVM_FINE_GRAIN_BUFFER.  
+    /// The cl_device_svm_capabilities must *not* include CL_DEVICE_SVM_FINE_GRAIN_SYSTEM,
     /// a standard Rust `Vec!` should be used instead.
-    pub fn new(context: &'a Context, svm_capabilities: cl_device_svm_capabilities) -> Self {
+    pub fn new(context: &'a Context) -> Self {
+        let svm_capabilities = context.get_svm_mem_capability();
         SvmVec {
             buf: SvmRawVec::new(context, svm_capabilities),
             len: 0,
         }
     }
 
-    /// Construct an SvmVec with the given len of values from a [Context] and
-    /// the svm_capabilities of the device (or devices) in the [Context].
+    /// Construct an SvmVec with the given len of values from a [Context].
     ///
     /// returns a Result containing an SvmVec with len values of **uninitialised**
     /// memory, or the OpenCL error.
+    ////
+    /// # Panics
+    ///
+    /// The cl_device_svm_capabilities of the [Context] must include
+    /// CL_DEVICE_SVM_COARSE_GRAIN_BUFFER or CL_DEVICE_SVM_FINE_GRAIN_BUFFER.  
+    /// The cl_device_svm_capabilities must *not* include CL_DEVICE_SVM_FINE_GRAIN_SYSTEM,
+    /// a standard Rust `Vec!` should be used instead.
     pub fn allocate(
         context: &'a Context,
-        svm_capabilities: cl_device_svm_capabilities,
         len: usize,
     ) -> Result<Self> {
+        let svm_capabilities = context.get_svm_mem_capability();
         Ok(SvmVec {
             buf: SvmRawVec::with_capacity(context, svm_capabilities, len)?,
             len,
         })
     }
 
-    /// Construct an empty SvmVec with the given capacity from a [Context] and
-    /// the svm_capabilities of the device (or devices) in the [Context].  
+    /// Construct an empty SvmVec with the given capacity from a [Context].
     ///
     /// returns a Result containing an empty SvmVec, or the OpenCL error.
+    ///
+    /// # Panics
+    ///
+    /// The cl_device_svm_capabilities of the [Context] must include
+    /// CL_DEVICE_SVM_COARSE_GRAIN_BUFFER or CL_DEVICE_SVM_FINE_GRAIN_BUFFER.  
+    /// The cl_device_svm_capabilities must *not* include CL_DEVICE_SVM_FINE_GRAIN_SYSTEM,
+    /// a standard Rust `Vec!` should be used instead.
     pub fn with_capacity(
         context: &'a Context,
-        svm_capabilities: cl_device_svm_capabilities,
         capacity: usize,
     ) -> Result<Self> {
+        let svm_capabilities = context.get_svm_mem_capability();
         Ok(SvmVec {
             buf: SvmRawVec::with_capacity(context, svm_capabilities, capacity)?,
             len: 0,
@@ -316,15 +330,16 @@ impl<'a, T> SvmVec<'a, T> {
     ///
     /// # Panics
     ///
-    /// The function will panic if called on a coarse grain buffer.
+    /// The function will panic if the cl_device_svm_capabilities of the [Context]
+    /// does **not** include CL_DEVICE_SVM_FINE_GRAIN_BUFFER.
     ///
     /// returns a Result containing an SvmVec with len values of zeroed
     /// memory, or the OpenCL error.
     pub fn allocate_zeroed(
         context: &'a Context,
-        svm_capabilities: cl_device_svm_capabilities,
         len: usize,
     ) -> Result<Self> {
+        let svm_capabilities = context.get_svm_mem_capability();
         let fine_grain_buffer: bool = svm_capabilities & CL_DEVICE_SVM_FINE_GRAIN_BUFFER != 0;
         assert!(
             fine_grain_buffer,
@@ -333,34 +348,6 @@ impl<'a, T> SvmVec<'a, T> {
         Ok(SvmVec {
             buf: SvmRawVec::with_capacity_zeroed(context, svm_capabilities, len)?,
             len,
-        })
-    }
-
-    /// Construct an SvmVec with the given size of values from a [Context] and
-    /// the svm_capabilities of the device (or devices) in the [Context].  
-    ///
-    /// # Panics
-    ///
-    /// The function will panic if called on a coarse grain buffer.
-    ///
-    /// return an empty SvmVec with the given capacity of zeroed memory.
-    #[deprecated(
-        since = "0.5.0",
-        note = "please use `allocate_zeroed` and `clear` instead"
-    )]
-    pub fn with_capacity_zeroed(
-        context: &'a Context,
-        svm_capabilities: cl_device_svm_capabilities,
-        capacity: usize,
-    ) -> Result<Self> {
-        let fine_grain_buffer: bool = svm_capabilities & CL_DEVICE_SVM_FINE_GRAIN_BUFFER != 0;
-        assert!(
-            fine_grain_buffer,
-            "SVM is not fine grained, use `with_capacity` instead."
-        );
-        Ok(SvmVec {
-            buf: SvmRawVec::with_capacity_zeroed(context, svm_capabilities, capacity)?,
-            len: 0,
         })
     }
 
