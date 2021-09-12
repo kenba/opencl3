@@ -169,14 +169,30 @@ impl<'a, T> Drop for SvmRawVec<'a, T> {
 ///
 /// The `is_fine_grained method` can be used to determine whether an `SvmVec` supports
 /// CL_DEVICE_SVM_FINE_GRAIN_BUFFER and should be used to control SVM map and unmap
-/// operations, e.g.:
-/// ```ignore
+/// operations:
+/// ```no_run
+/// # use cl3::device::CL_DEVICE_TYPE_GPU;
+/// # use opencl3::command_queue::CommandQueue;
+/// # use opencl3::context::Context;
+/// # use opencl3::device::Device;
+/// # use opencl3::kernel::{ExecuteKernel, Kernel};
+/// # use opencl3::memory::{CL_MAP_WRITE};
+/// # use opencl3::platform::get_platforms;
+/// # use opencl3::svm::SvmVec;
+/// # use opencl3::types::*;
+/// 
+/// # let platforms = get_platforms().unwrap();
+/// # let devices = platforms[0].get_devices(CL_DEVICE_TYPE_GPU).unwrap();
+/// # let device = Device::new(devices[0]);
+/// # let context = Context::from_device(&device).unwrap();
+/// # let queue = CommandQueue::create(&context, context.default_device(), 0).unwrap();
+/// # let svm_capability = context.get_svm_mem_capability();
 /// // The input data
 /// const ARRAY_SIZE: usize = 8;
 /// let value_array: [cl_int; ARRAY_SIZE] = [3, 2, 5, 9, 7, 1, 4, 2];
 ///
 /// // Create an OpenCL SVM vector
-/// let mut test_values =SvmVec::<cl_int>::allocate(&context, svm_capability, ARRAY_SIZE)
+/// let mut test_values = SvmVec::<cl_int>::allocate(&context, svm_capability, ARRAY_SIZE)
 ///     .expect("SVM allocation failed");
 ///
 /// // Map test_values if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
