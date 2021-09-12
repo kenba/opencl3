@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![allow(clippy::too_many_arguments)]
+
 pub use cl3::command_queue::*;
 
 use super::context::Context;

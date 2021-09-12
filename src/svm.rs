@@ -13,12 +13,15 @@
 // limitations under the License.
 
 use super::context::Context;
+use super::Result;
 
 use cl3::device::{
-    CL_DEVICE_SVM_COARSE_GRAIN_BUFFER, CL_DEVICE_SVM_FINE_GRAIN_BUFFER,
+    CL_DEVICE_SVM_ATOMICS, CL_DEVICE_SVM_COARSE_GRAIN_BUFFER, CL_DEVICE_SVM_FINE_GRAIN_BUFFER,
     CL_DEVICE_SVM_FINE_GRAIN_SYSTEM,
 };
-use cl3::memory::{svm_alloc, svm_free, CL_MEM_READ_WRITE, CL_MEM_SVM_FINE_GRAIN_BUFFER};
+use cl3::memory::{
+    svm_alloc, svm_free, CL_MEM_READ_WRITE, CL_MEM_SVM_ATOMICS, CL_MEM_SVM_FINE_GRAIN_BUFFER,
+};
 use cl3::types::{cl_device_svm_capabilities, cl_svm_mem_flags, cl_uint};
 use libc::c_void;
 use std::fmt;
@@ -34,6 +37,7 @@ struct SvmRawVec<'a, T> {
     cap: usize,
     context: &'a Context,
     fine_grain_buffer: bool,
+    atomics: bool,
 }
 
 unsafe impl<'a, T: Send> Send for SvmRawVec<'a, T> {}
@@ -52,11 +56,13 @@ impl<'a, T> SvmRawVec<'a, T> {
         assert!(!fine_grain_system, "SVM supports system memory, use Vec!");
 
         let fine_grain_buffer: bool = svm_capabilities & CL_DEVICE_SVM_FINE_GRAIN_BUFFER != 0;
+        let atomics: bool = fine_grain_buffer && (svm_capabilities & CL_DEVICE_SVM_ATOMICS != 0);
         SvmRawVec {
             ptr: ptr::null_mut(),
             cap: 0,
             context,
             fine_grain_buffer,
+            atomics,
         }
     }
 
@@ -64,25 +70,25 @@ impl<'a, T> SvmRawVec<'a, T> {
         context: &'a Context,
         svm_capabilities: cl_device_svm_capabilities,
         capacity: usize,
-    ) -> Self {
+    ) -> Result<Self> {
         let mut v = Self::new(context, svm_capabilities);
-        v.grow(capacity);
+        v.grow(capacity)?;
 
-        v
+        Ok(v)
     }
 
     fn with_capacity_zeroed(
         context: &'a Context,
         svm_capabilities: cl_device_svm_capabilities,
         capacity: usize,
-    ) -> Self {
-        let mut v = Self::with_capacity(context, svm_capabilities, capacity);
+    ) -> Result<Self> {
+        let mut v = Self::with_capacity(context, svm_capabilities, capacity)?;
         v.zero(capacity);
 
-        v
+        Ok(v)
     }
 
-    fn grow(&mut self, count: usize) {
+    fn grow(&mut self, count: usize) -> Result<()> {
         let elem_size = mem::size_of::<T>();
 
         let mut new_cap = count;
@@ -97,7 +103,11 @@ impl<'a, T> SvmRawVec<'a, T> {
         assert!(size <= (isize::MAX as usize) / 2, "capacity overflow");
 
         let svm_mem_flags: cl_svm_mem_flags = if self.fine_grain_buffer {
-            CL_MEM_SVM_FINE_GRAIN_BUFFER | CL_MEM_READ_WRITE
+            if self.atomics {
+                CL_MEM_SVM_FINE_GRAIN_BUFFER | CL_MEM_READ_WRITE | CL_MEM_SVM_ATOMICS
+            } else {
+                CL_MEM_SVM_FINE_GRAIN_BUFFER | CL_MEM_READ_WRITE
+            }
         } else {
             CL_MEM_READ_WRITE
         };
@@ -107,9 +117,7 @@ impl<'a, T> SvmRawVec<'a, T> {
             svm_mem_flags,
             size,
             alignment as cl_uint,
-        )
-        .expect("Error: clSVMAlloc");
-        assert!(!ptr.is_null(), "svm_alloc failed");
+        )?;
 
         // reallocation, copy old data to new pointer and free old memory
         if 0 < self.cap {
@@ -119,6 +127,8 @@ impl<'a, T> SvmRawVec<'a, T> {
 
         self.ptr = ptr as *mut T;
         self.cap = new_cap;
+
+        Ok(())
     }
 
     fn zero(&mut self, count: usize) {
@@ -135,9 +145,55 @@ impl<'a, T> Drop for SvmRawVec<'a, T> {
     }
 }
 
-/// An OpenCL Shared Virtual Memory (SVM) vector.  
+/// An OpenCL Shared Virtual Memory (SVM) vector.
 /// It has the lifetime of the [Context] that it was constructed from.  
 /// Note: T cannot be a "zero sized type" (ZST).
+/// 
+/// There are three types of Shared Virtual Memory:
+/// - CL_DEVICE_SVM_COARSE_GRAIN_BUFFER: OpenCL buffer memory objects can be shared.
+/// - CL_DEVICE_SVM_FINE_GRAIN_BUFFER: individual memory objects in an OpenCL buffer can be shared.
+/// - CL_DEVICE_SVM_FINE_GRAIN_SYSTEM: individual memory objects *anywhere* in **host** memory can be shared.
+///
+/// This `SvmVec` struct is designed to support CL_DEVICE_SVM_COARSE_GRAIN_BUFFER
+/// and CL_DEVICE_SVM_FINE_GRAIN_BUFFER.  
+/// A [Context] that supports CL_DEVICE_SVM_FINE_GRAIN_SYSTEM can (and should!)
+/// use a standard Rust vector instead.
+///
+/// Intel provided an excellent overview of Shared Virtual Memory here:
+/// [OpenCL 2.0 Shared Virtual Memory Overview](https://software.intel.com/content/www/us/en/develop/articles/opencl-20-shared-virtual-memory-overview.html).  
+/// A PDF version is available here: [SVM Overview](../docs/svmoverview.pdf).
+///
+/// To summarise, a CL_DEVICE_SVM_COARSE_GRAIN_BUFFER requires the SVM to be *mapped*
+/// before being read or written by the host and *unmapped* afterward, while
+/// CL_DEVICE_SVM_FINE_GRAIN_BUFFER can be used like a standard Rust vector.
+///
+/// The `is_fine_grained method` can be used to determine whether an `SvmVec` supports
+/// CL_DEVICE_SVM_FINE_GRAIN_BUFFER and should be used to control SVM map and unmap
+/// operations, e.g.:
+/// ```ignore
+/// // The input data
+/// const ARRAY_SIZE: usize = 8;
+/// let value_array: [cl_int; ARRAY_SIZE] = [3, 2, 5, 9, 7, 1, 4, 2];
+///
+/// // Create an OpenCL SVM vector
+/// let mut test_values =SvmVec::<cl_int>::allocate(&context, svm_capability, ARRAY_SIZE)
+///     .expect("SVM allocation failed");
+///
+/// // Map test_values if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
+/// if !test_values.is_fine_grained() {
+///     queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut test_values, &[]).unwrap();
+/// }
+///
+/// // Copy input data into the OpenCL SVM vector
+/// test_values.clone_from_slice(&value_array);
+///
+/// // Unmap test_values if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
+/// if !test_values.is_fine_grained() {
+///     let unmap_test_values_event = queue.enqueue_svm_unmap(&test_values, &[]).unwrap();
+///     unmap_test_values_event.wait().unwrap();
+/// }
+/// ```
+
 pub struct SvmVec<'a, T> {
     buf: SvmRawVec<'a, T>,
     len: usize,
@@ -168,6 +224,11 @@ impl<'a, T> SvmVec<'a, T> {
         self.buf.fine_grain_buffer
     }
 
+    /// Whether the vector can use atomics
+    pub fn has_atomics(&self) -> bool {
+        self.buf.atomics
+    }
+
     /// Clear the vector, i.e. empty it.
     pub fn clear(&mut self) {
         self.len = 0;
@@ -175,19 +236,27 @@ impl<'a, T> SvmVec<'a, T> {
 
     /// Set the length of the vector.
     /// If new_len > len, the new memory will be uninitialised.
-    /// 
+    ///
     /// # Safety
     /// May fail to grow buf if memory is not available for new_len.
-    pub unsafe fn set_len(&mut self, new_len: usize) {
+    pub fn set_len(&mut self, new_len: usize) -> Result<()> {
         if self.cap() < new_len {
-            self.buf.grow(new_len);
+            self.buf.grow(new_len)?;
         }
         self.len = new_len;
+        Ok(())
     }
 
     /// Construct an empty SvmVec from a [Context] and the svm_capabilities of
     /// the device (or devices) in the [Context].  
     /// The SvmVec has the lifetime of the [Context].
+    ///
+    /// # Panics
+    ///
+    /// The svm_capabilities must include CL_DEVICE_SVM_COARSE_GRAIN_BUFFER or
+    /// CL_DEVICE_SVM_FINE_GRAIN_BUFFER.  
+    /// The svm_capabilities must *not* include CL_DEVICE_SVM_FINE_GRAIN_SYSTEM,
+    /// a standard Rust `Vec!` should be used instead.
     pub fn new(context: &'a Context, svm_capabilities: cl_device_svm_capabilities) -> Self {
         SvmVec {
             buf: SvmRawVec::new(context, svm_capabilities),
@@ -196,57 +265,59 @@ impl<'a, T> SvmVec<'a, T> {
     }
 
     /// Construct an SvmVec with the given len of values from a [Context] and
-    /// the svm_capabilities of the device (or devices) in the [Context]. 
+    /// the svm_capabilities of the device (or devices) in the [Context].
     ///
-    /// return an SvmVec with len values of uninitialised memory.
+    /// returns a Result containing an SvmVec with len values of **uninitialised**
+    /// memory, or the OpenCL error.
     pub fn allocate(
         context: &'a Context,
         svm_capabilities: cl_device_svm_capabilities,
         len: usize,
-    ) -> Self {
-        SvmVec {
-            buf: SvmRawVec::with_capacity(context, svm_capabilities, len),
+    ) -> Result<Self> {
+        Ok(SvmVec {
+            buf: SvmRawVec::with_capacity(context, svm_capabilities, len)?,
             len,
-        }
+        })
     }
 
     /// Construct an empty SvmVec with the given capacity from a [Context] and
     /// the svm_capabilities of the device (or devices) in the [Context].  
     ///
-    /// return an empty SvmVec with the given capacity.
+    /// returns a Result containing an empty SvmVec, or the OpenCL error.
     pub fn with_capacity(
         context: &'a Context,
         svm_capabilities: cl_device_svm_capabilities,
         capacity: usize,
-    ) -> Self {
-        SvmVec {
-            buf: SvmRawVec::with_capacity(context, svm_capabilities, capacity),
+    ) -> Result<Self> {
+        Ok(SvmVec {
+            buf: SvmRawVec::with_capacity(context, svm_capabilities, capacity)?,
             len: 0,
-        }
+        })
     }
 
     /// Construct an SvmVec with the given len of values from a [Context] and
-    /// the svm_capabilities of the device (or devices) in the [Context]. 
+    /// the svm_capabilities of the device (or devices) in the [Context].
     ///
     /// # Panics
     ///
     /// The function will panic if called on a coarse grain buffer.
-    /// 
-    /// return an SvmVec with len values of zeroed memory.
+    ///
+    /// returns a Result containing an SvmVec with len values of zeroed
+    /// memory, or the OpenCL error.
     pub fn allocate_zeroed(
         context: &'a Context,
         svm_capabilities: cl_device_svm_capabilities,
         len: usize,
-    ) -> Self {
+    ) -> Result<Self> {
         let fine_grain_buffer: bool = svm_capabilities & CL_DEVICE_SVM_FINE_GRAIN_BUFFER != 0;
         assert!(
             fine_grain_buffer,
-            "SVM is not fine grained, use `assign` instead."
+            "SVM is not fine grained, use `allocate` instead."
         );
-        SvmVec {
-            buf: SvmRawVec::with_capacity_zeroed(context, svm_capabilities, len),
+        Ok(SvmVec {
+            buf: SvmRawVec::with_capacity_zeroed(context, svm_capabilities, len)?,
             len,
-        }
+        })
     }
 
     /// Construct an SvmVec with the given size of values from a [Context] and
@@ -257,30 +328,44 @@ impl<'a, T> SvmVec<'a, T> {
     /// The function will panic if called on a coarse grain buffer.
     ///
     /// return an empty SvmVec with the given capacity of zeroed memory.
+    #[deprecated(
+        since = "0.5.0",
+        note = "please use `allocate_zeroed` and `clear` instead"
+    )]
     pub fn with_capacity_zeroed(
         context: &'a Context,
         svm_capabilities: cl_device_svm_capabilities,
         capacity: usize,
-    ) -> Self {
+    ) -> Result<Self> {
         let fine_grain_buffer: bool = svm_capabilities & CL_DEVICE_SVM_FINE_GRAIN_BUFFER != 0;
         assert!(
             fine_grain_buffer,
             "SVM is not fine grained, use `with_capacity` instead."
         );
-        SvmVec {
-            buf: SvmRawVec::with_capacity_zeroed(context, svm_capabilities, capacity),
+        Ok(SvmVec {
+            buf: SvmRawVec::with_capacity_zeroed(context, svm_capabilities, capacity)?,
             len: 0,
-        }
+        })
     }
 
-    /// Reserve vector capacity.
-    pub fn reserve(&mut self, capacity: usize) {
-        self.buf.grow(capacity);
+    /// Reserve vector capacity.  
+    /// returns an empty Result or the OpenCL error.
+    pub fn reserve(&mut self, capacity: usize) -> Result<()> {
+        self.buf.grow(capacity)
     }
 
+    /// Push a value onto the vector.
+    ///
+    /// # Panics
+    ///
+    /// The function will panic if a coarse grain buffer attempts to grow the vector.
     pub fn push(&mut self, elem: T) {
         if self.len == self.cap() {
-            self.buf.grow(self.len + 1);
+            assert!(
+                self.is_fine_grained(),
+                "SVM is not fine grained, cannot grow the vector."
+            );
+            self.buf.grow(self.len + 1).unwrap();
         }
 
         unsafe {
@@ -291,6 +376,7 @@ impl<'a, T> SvmVec<'a, T> {
         self.len += 1;
     }
 
+    /// Pop a value from the vector.
     pub fn pop(&mut self) -> Option<T> {
         if self.len == 0 {
             None
@@ -300,10 +386,20 @@ impl<'a, T> SvmVec<'a, T> {
         }
     }
 
+    /// Insert a value into the vector at index.
+    ///
+    /// # Panics
+    ///
+    /// The function will panic if the index is out of bounds or
+    /// if a coarse grain buffer attempts to grow the vector.
     pub fn insert(&mut self, index: usize, elem: T) {
         assert!(index <= self.len, "index out of bounds");
         if self.cap() == self.len {
-            self.buf.grow(self.len + 1);
+            assert!(
+                self.is_fine_grained(),
+                "SVM is not fine grained, cannot grow the vector."
+            );
+            self.buf.grow(self.len + 1).unwrap();
         }
 
         unsafe {
@@ -319,6 +415,11 @@ impl<'a, T> SvmVec<'a, T> {
         }
     }
 
+    /// Remove a value from the vector at index.
+    ///
+    /// # Panics
+    ///
+    /// The function will panic if the index is out of bounds.
     pub fn remove(&mut self, index: usize) -> T {
         assert!(index < self.len, "index out of bounds");
         unsafe {
@@ -333,6 +434,7 @@ impl<'a, T> SvmVec<'a, T> {
         }
     }
 
+    /// Drain the vector.
     pub fn drain(&mut self) -> Drain<T> {
         unsafe {
             let iter = RawValIter::new(self);

@@ -93,12 +93,27 @@ let queue = CommandQueue::create_with_properties(
 const ARRAY_SIZE: usize = 8;
 let value_array: [cl_int; ARRAY_SIZE] = [3, 2, 5, 9, 7, 1, 4, 2];
 
-// Copy input data into an OpenCL SVM vector
-let mut test_values = SvmVec::<cl_int>::allocate(&context, svm_capability, ARRAY_SIZE);
+// Create an OpenCL SVM vector
+let mut test_values =SvmVec::<cl_int>::allocate(&context, svm_capability, ARRAY_SIZE)
+    .expect("SVM allocation failed");
+
+// Map test_values if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
+if !test_values.is_fine_grained() {
+    queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut test_values, &[]).unwrap();
+}
+
+// Copy input data into the OpenCL SVM vector
 test_values.clone_from_slice(&value_array);
 
+// Unmap test_values if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
+if !test_values.is_fine_grained() {
+    let unmap_test_values_event = queue.enqueue_svm_unmap(&test_values, &[]).unwrap();
+    unmap_test_values_event.wait().unwrap();
+}
+
 // The output data, an OpenCL SVM vector
-let mut results = SvmVec::<cl_int>::allocate_zeroed(&context, svm_capability, ARRAY_SIZE);
+let mut results = SvmVec::<cl_int>::allocate_zeroed(&context, svm_capability, ARRAY_SIZE)
+    .expect("SVM allocation failed");
 
 // Run the kernel on the input data
 let kernel_event = ExecuteKernel::new(kernel)
@@ -111,8 +126,19 @@ let kernel_event = ExecuteKernel::new(kernel)
 // Wait for the kernel to complete execution on the device
 kernel_event.wait().unwrap();
 
+// Map results if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
+if !results.is_fine_grained() {
+    queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_READ, &mut results, &[]).unwrap();
+}
+
 // Can access OpenCL SVM directly, no need to map or read the results
 println!("sum results: {:?}", results);
+
+// Unmap results if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
+if !results.is_fine_grained() {
+    let unmap_results_event = queue.enqueue_svm_unmap(&results, &[]).unwrap();
+    unmap_results_event.wait().unwrap();
+}
 ```
 
 ## Use
@@ -122,7 +148,7 @@ hardware driver(s) are installed, see
 [OpenCL Installation](https://github.com/kenba/cl3/tree/main/docs/opencl_installation.md).
 
 `opencl3` supports OpenCL 1.2 and 2.0 ICD loaders by default. If you have an
-OpenCL 2.0 ICD loader then add the following to your project's `Cargo.toml`:
+OpenCL 2.0 ICD loader then just add the following to your project's `Cargo.toml`:
 
 ```toml
 [dependencies]
@@ -130,13 +156,13 @@ opencl3 = "0.4"
 ```
 
 If your OpenCL ICD loader supports higher versions of OpenCL then add the
-appropriate features to opencl3, e.g. for an OpenCL 2.2 ICD loader add the
+appropriate features to opencl3, e.g. for an OpenCL 3.0 ICD loader add the
 following to your project's `Cargo.toml` instead:
 
 ```toml
 [dependencies.opencl3]
 version = "0.4"
-features = ["CL_VERSION_2_1", "CL_VERSION_2_2"]
+features = ["CL_VERSION_2_1", "CL_VERSION_2_2", "CL_VERSION_3_0"]
 ```
 
 For examples on how to use the library see the integration tests in
@@ -149,13 +175,14 @@ See [OpenCL Description](https://github.com/kenba/opencl3/tree/main/docs/opencl_
 The API has changed considerably since version `0.1` of the library, with the
 aim of making the library more consistent and easier to use.
 
-The most recent change is to features, to enable running on older OpenCL ICDs that don't even support OpenCL 1.2, see issue [#30](https://github.com/kenba/opencl3/issues/30).
+The most recent change is to [SvmVec](src/svm.rs) to provide better support for
+coarse grain buffer Shared Virtual Memory now that Nvidia has started supporting it,
+see [Nvidia OpenCL](https://developer.nvidia.com/opencl).
 
-The biggest change is that [Context](src/context.rs) no longer contains:
-Programs, Kernels and Command Queues.  
+[Context](src/context.rs) no longer contains: Programs, Kernels and Command Queues.
 They must now be built separately, as shown in the example above.
 
-Note; it is now recommended to call the `Program::create_and_build_from_*` methods
+It is now recommended to call the `Program::create_and_build_from_*` methods
 to build programs since they will return the build log if there is a build failure.
 
 The OpenCL function calls now return an error type with a Display trait that
