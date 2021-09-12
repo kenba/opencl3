@@ -161,7 +161,7 @@ impl<'a, T> Drop for SvmRawVec<'a, T> {
 ///
 /// Intel provided an excellent overview of Shared Virtual Memory here:
 /// [OpenCL 2.0 Shared Virtual Memory Overview](https://software.intel.com/content/www/us/en/develop/articles/opencl-20-shared-virtual-memory-overview.html).  
-/// A PDF version is available here: [SVM Overview](../docs/svmoverview.pdf).
+/// A PDF version is available here: [SVM Overview](https://github.com/kenba/opencl3/blob/main/docs/svmoverview.pdf).
 ///
 /// To summarise, a CL_DEVICE_SVM_COARSE_GRAIN_BUFFER requires the SVM to be *mapped*
 /// before being read or written by the host and *unmapped* afterward, while
