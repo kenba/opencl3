@@ -154,7 +154,7 @@ OpenCL 2.0 ICD loader then just add the following to your project's `Cargo.toml`
 
 ```toml
 [dependencies]
-opencl3 = "0.4"
+opencl3 = "0.5"
 ```
 
 If your OpenCL ICD loader supports higher versions of OpenCL then add the
@@ -163,7 +163,7 @@ following to your project's `Cargo.toml` instead:
 
 ```toml
 [dependencies.opencl3]
-version = "0.4"
+version = "0.5"
 features = ["CL_VERSION_2_1", "CL_VERSION_2_2", "CL_VERSION_3_0"]
 ```
 
