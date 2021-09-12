@@ -23,6 +23,7 @@ use opencl3::memory::{Buffer, CL_MEM_READ_ONLY, CL_MEM_WRITE_ONLY};
 use opencl3::platform::get_platforms;
 use opencl3::program::Program;
 use opencl3::types::{cl_event, cl_float, CL_BLOCKING, CL_NON_BLOCKING};
+use opencl3::Result;
 use std::ptr;
 
 const PROGRAM_SOURCE: &str = r#"
@@ -39,8 +40,8 @@ const KERNEL_NAME: &str = "saxpy_float";
 
 #[test]
 #[ignore]
-fn test_opencl_1_2_example() {
-    let platforms = get_platforms().unwrap();
+fn test_opencl_1_2_example() -> Result<()> {
+    let platforms = get_platforms()?;
     assert!(0 < platforms.len());
 
     // Get the first platform
@@ -51,7 +52,7 @@ fn test_opencl_1_2_example() {
         .expect("Platform::get_devices failed");
     assert!(0 < devices.len());
 
-    let platform_name = platform.name().unwrap();
+    let platform_name = platform.name()?;
     println!("Platform Name: {:?}", platform_name);
 
     // Create OpenCL context from the first device
@@ -94,25 +95,16 @@ fn test_opencl_1_2_example() {
 
     // Create OpenCL device buffers
     let mut x =
-        Buffer::<cl_float>::create(&context, CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())
-            .unwrap();
+        Buffer::<cl_float>::create(&context, CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())?;
     let mut y =
-        Buffer::<cl_float>::create(&context, CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())
-            .unwrap();
-    let z = Buffer::<cl_float>::create(&context, CL_MEM_READ_ONLY, ARRAY_SIZE, ptr::null_mut())
-        .unwrap();
-
-    let mut events: Vec<cl_event> = Vec::default();
+        Buffer::<cl_float>::create(&context, CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())?;
+    let z = Buffer::<cl_float>::create(&context, CL_MEM_READ_ONLY, ARRAY_SIZE, ptr::null_mut())?;
 
     // Blocking write
-    let _x_write_event = queue
-        .enqueue_write_buffer(&mut x, CL_BLOCKING, 0, &ones, &events)
-        .unwrap();
+    let _x_write_event = queue.enqueue_write_buffer(&mut x, CL_BLOCKING, 0, &ones, &[])?;
 
     // Non-blocking write, wait for y_write_event
-    let y_write_event = queue
-        .enqueue_write_buffer(&mut y, CL_NON_BLOCKING, 0, &sums, &events)
-        .unwrap();
+    let y_write_event = queue.enqueue_write_buffer(&mut y, CL_NON_BLOCKING, 0, &sums, &[])?;
 
     // a value for the kernel function
     let a: cl_float = 300.0;
@@ -128,42 +120,42 @@ fn test_opencl_1_2_example() {
         .set_arg(&a)
         .set_global_work_size(ARRAY_SIZE)
         .set_wait_event(&y_write_event)
-        .enqueue_nd_range(&queue)
-        .unwrap();
+        .enqueue_nd_range(&queue)?;
+
+    let mut events: Vec<cl_event> = Vec::default();
     events.push(kernel_event.get());
 
     // Create a results array to hold the results from the OpenCL device
     // and enqueue a read command to read the device buffer into the array
     // after the kernel event completes.
     let mut results: [cl_float; ARRAY_SIZE] = [0.0; ARRAY_SIZE];
-    let _event = queue
-        .enqueue_read_buffer(&z, CL_NON_BLOCKING, 0, &mut results, &events)
-        .unwrap();
-    events.clear();
+    let _event = queue.enqueue_read_buffer(&z, CL_NON_BLOCKING, 0, &mut results, &events)?;
 
     // Block until all commands on the queue have completed
-    queue.finish().unwrap();
+    queue.finish()?;
 
     assert_eq!(1300.0, results[ARRAY_SIZE - 1]);
     println!("results back: {}", results[ARRAY_SIZE - 1]);
 
     // Calculate the kernel duration, from the kernel_event
-    let start_time = kernel_event.profiling_command_start().unwrap();
-    let end_time = kernel_event.profiling_command_end().unwrap();
+    let start_time = kernel_event.profiling_command_start()?;
+    let end_time = kernel_event.profiling_command_end()?;
     let duration = end_time - start_time;
     println!("kernel execution duration (ns): {}", duration);
+
+    Ok(())
 }
 
 #[cfg(feature = "CL_VERSION_2_0")]
 #[test]
 #[ignore]
-fn test_opencl_svm_example() {
+fn test_opencl_svm_example() -> Result<()> {
     use cl3::device::{CL_DEVICE_SVM_COARSE_GRAIN_BUFFER, CL_DEVICE_SVM_FINE_GRAIN_BUFFER};
     use opencl3::command_queue::CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
     use opencl3::memory::{CL_MAP_READ, CL_MAP_WRITE};
     use opencl3::svm::SvmVec;
 
-    let platforms = get_platforms().unwrap();
+    let platforms = get_platforms()?;
     assert!(0 < platforms.len());
 
     /////////////////////////////////////////////////////////////////////
@@ -175,7 +167,7 @@ fn test_opencl_svm_example() {
     let mut device_id = ptr::null_mut();
     let mut is_svm_capable: bool = false;
     for p in platforms {
-        let platform_version = p.version().unwrap();
+        let platform_version = p.version()?;
         if platform_version.contains(&opencl_2) || platform_version.contains(&opencl_3) {
             let devices = p
                 .get_devices(CL_DEVICE_TYPE_GPU)
@@ -237,12 +229,12 @@ fn test_opencl_svm_example() {
 
         // The SVM vectors
         const ARRAY_SIZE: usize = 1000;
-        let mut ones = SvmVec::<cl_float>::allocate(&context, ARRAY_SIZE)
-            .expect("SVM allocation failed");
-        let mut sums = SvmVec::<cl_float>::allocate(&context, ARRAY_SIZE)
-            .expect("SVM allocation failed");
-        let mut results = SvmVec::<cl_float>::allocate(&context, ARRAY_SIZE)
-            .expect("SVM allocation failed");
+        let mut ones =
+            SvmVec::<cl_float>::allocate(&context, ARRAY_SIZE).expect("SVM allocation failed");
+        let mut sums =
+            SvmVec::<cl_float>::allocate(&context, ARRAY_SIZE).expect("SVM allocation failed");
+        let mut results =
+            SvmVec::<cl_float>::allocate(&context, ARRAY_SIZE).expect("SVM allocation failed");
 
         let a: cl_float = 300.0;
         if is_fine_grained_svm {
@@ -255,6 +247,10 @@ fn test_opencl_svm_example() {
                 sums[i] = 1.0 + 1.0 * i as cl_float;
             }
 
+            // Make ones and sums immutable
+            let ones = ones;
+            let sums = sums;
+
             // Use the ExecuteKernel builder to set the kernel buffer and
             // cl_float value arguments, before setting the one dimensional
             // global_work_size for the call to enqueue_nd_range.
@@ -265,18 +261,17 @@ fn test_opencl_svm_example() {
                 .set_arg_svm(sums.as_ptr())
                 .set_arg(&a)
                 .set_global_work_size(ARRAY_SIZE)
-                .enqueue_nd_range(&queue)
-                .unwrap();
+                .enqueue_nd_range(&queue)?;
 
             // Wait for the kernel_event to complete
-            kernel_event.wait().unwrap();
+            kernel_event.wait()?;
 
             assert_eq!(1300.0, results[ARRAY_SIZE - 1]);
             println!("results back: {}", results[ARRAY_SIZE - 1]);
 
             // Calculate the kernel duration, from the kernel_event
-            let start_time = kernel_event.profiling_command_start().unwrap();
-            let end_time = kernel_event.profiling_command_end().unwrap();
+            let start_time = kernel_event.profiling_command_start()?;
+            let end_time = kernel_event.profiling_command_end()?;
             let duration = end_time - start_time;
             println!("kernel execution duration (ns): {}", duration);
         } else {
@@ -285,12 +280,8 @@ fn test_opencl_svm_example() {
             // unsafe { sums.set_len(ARRAY_SIZE) };
 
             // Map the input SVM vectors, before setting their data
-            queue
-                .enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut ones, &[])
-                .unwrap();
-            queue
-                .enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut sums, &[])
-                .unwrap();
+            queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut ones, &[])?;
+            queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut sums, &[])?;
 
             // The input data
             for i in 0..ARRAY_SIZE {
@@ -301,9 +292,13 @@ fn test_opencl_svm_example() {
                 sums[i] = 1.0 + 1.0 * i as cl_float;
             }
 
+            // Make ones and sums immutable
+            let ones = ones;
+            let sums = sums;
+
             let mut events: Vec<cl_event> = Vec::default();
-            let unmap_sums_event = queue.enqueue_svm_unmap(&sums, &[]).unwrap();
-            let unmap_ones_event = queue.enqueue_svm_unmap(&ones, &[]).unwrap();
+            let unmap_sums_event = queue.enqueue_svm_unmap(&sums, &[])?;
+            let unmap_ones_event = queue.enqueue_svm_unmap(&ones, &[])?;
             events.push(unmap_sums_event.get());
             events.push(unmap_ones_event.get());
 
@@ -318,33 +313,33 @@ fn test_opencl_svm_example() {
                 .set_arg(&a)
                 .set_global_work_size(ARRAY_SIZE)
                 .set_event_wait_list(&events)
-                .enqueue_nd_range(&queue)
-                .unwrap();
+                .enqueue_nd_range(&queue)?;
 
             // Wait for the kernel_event to complete
-            kernel_event.wait().unwrap();
+            kernel_event.wait()?;
 
             // Map SVM results before reading them
-            let _map_results_event = queue
-                .enqueue_svm_map(CL_BLOCKING, CL_MAP_READ, &mut results, &[])
-                .unwrap();
+            let _map_results_event =
+                queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_READ, &mut results, &[])?;
 
             assert_eq!(1300.0, results[ARRAY_SIZE - 1]);
             println!("results back: {}", results[ARRAY_SIZE - 1]);
 
             // Calculate the kernel duration from the kernel_event
-            let start_time = kernel_event.profiling_command_start().unwrap();
-            let end_time = kernel_event.profiling_command_end().unwrap();
+            let start_time = kernel_event.profiling_command_start()?;
+            let end_time = kernel_event.profiling_command_end()?;
             let duration = end_time - start_time;
             println!("kernel execution duration (ns): {}", duration);
 
             /////////////////////////////////////////////////////////////////////
             // Clean up
-            let unmap_results_event = queue.enqueue_svm_unmap(&results, &[]).unwrap();
-            unmap_results_event.wait().unwrap();
+            let unmap_results_event = queue.enqueue_svm_unmap(&results, &[])?;
+            unmap_results_event.wait()?;
             println!("SVM buffers unmapped");
         }
     } else {
         println!("OpenCL SVM capable device not found")
     }
+
+    Ok(())
 }

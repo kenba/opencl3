@@ -148,7 +148,7 @@ impl<'a, T> Drop for SvmRawVec<'a, T> {
 /// An OpenCL Shared Virtual Memory (SVM) vector.
 /// It has the lifetime of the [Context] that it was constructed from.  
 /// Note: T cannot be a "zero sized type" (ZST).
-/// 
+///
 /// There are three types of Shared Virtual Memory:
 /// - CL_DEVICE_SVM_COARSE_GRAIN_BUFFER: OpenCL buffer memory objects can be shared.
 /// - CL_DEVICE_SVM_FINE_GRAIN_BUFFER: individual memory objects in an OpenCL buffer can be shared.
@@ -181,7 +181,7 @@ impl<'a, T> Drop for SvmRawVec<'a, T> {
 /// # use opencl3::svm::SvmVec;
 /// # use opencl3::types::*;
 /// # use opencl3::Result;
-/// 
+///
 /// # fn main() -> Result<()> {
 /// # let platforms = get_platforms().unwrap();
 /// # let devices = platforms[0].get_devices(CL_DEVICE_TYPE_GPU).unwrap();
@@ -293,10 +293,7 @@ impl<'a, T> SvmVec<'a, T> {
     /// CL_DEVICE_SVM_COARSE_GRAIN_BUFFER or CL_DEVICE_SVM_FINE_GRAIN_BUFFER.  
     /// The cl_device_svm_capabilities must *not* include CL_DEVICE_SVM_FINE_GRAIN_SYSTEM,
     /// a standard Rust `Vec!` should be used instead.
-    pub fn allocate(
-        context: &'a Context,
-        len: usize,
-    ) -> Result<Self> {
+    pub fn allocate(context: &'a Context, len: usize) -> Result<Self> {
         let svm_capabilities = context.get_svm_mem_capability();
         Ok(SvmVec {
             buf: SvmRawVec::with_capacity(context, svm_capabilities, len)?,
@@ -314,10 +311,7 @@ impl<'a, T> SvmVec<'a, T> {
     /// CL_DEVICE_SVM_COARSE_GRAIN_BUFFER or CL_DEVICE_SVM_FINE_GRAIN_BUFFER.  
     /// The cl_device_svm_capabilities must *not* include CL_DEVICE_SVM_FINE_GRAIN_SYSTEM,
     /// a standard Rust `Vec!` should be used instead.
-    pub fn with_capacity(
-        context: &'a Context,
-        capacity: usize,
-    ) -> Result<Self> {
+    pub fn with_capacity(context: &'a Context, capacity: usize) -> Result<Self> {
         let svm_capabilities = context.get_svm_mem_capability();
         Ok(SvmVec {
             buf: SvmRawVec::with_capacity(context, svm_capabilities, capacity)?,
@@ -335,10 +329,7 @@ impl<'a, T> SvmVec<'a, T> {
     ///
     /// returns a Result containing an SvmVec with len values of zeroed
     /// memory, or the OpenCL error.
-    pub fn allocate_zeroed(
-        context: &'a Context,
-        len: usize,
-    ) -> Result<Self> {
+    pub fn allocate_zeroed(context: &'a Context, len: usize) -> Result<Self> {
         let svm_capabilities = context.get_svm_mem_capability();
         let fine_grain_buffer: bool = svm_capabilities & CL_DEVICE_SVM_FINE_GRAIN_BUFFER != 0;
         assert!(

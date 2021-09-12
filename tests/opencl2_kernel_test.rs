@@ -25,6 +25,7 @@ use opencl3::platform::get_platforms;
 use opencl3::program::{Program, CL_STD_2_0};
 use opencl3::svm::SvmVec;
 use opencl3::types::cl_int;
+use opencl3::Result;
 use std::ptr;
 
 // The OpenCL kernels in PROGRAM_SOURCE below use built-in work-group functions:
@@ -63,8 +64,8 @@ const INCLUSIVE_SCAN_KERNEL_NAME: &str = "inclusive_scan_int";
 
 #[test]
 #[ignore]
-fn test_opencl_2_kernel_example() {
-    let platforms = get_platforms().unwrap();
+fn test_opencl_2_kernel_example() -> Result<()> {
+    let platforms = get_platforms()?;
     assert!(0 < platforms.len());
 
     /////////////////////////////////////////////////////////////////////
@@ -76,7 +77,7 @@ fn test_opencl_2_kernel_example() {
     let mut device_id = ptr::null_mut();
     let mut is_fine_grained_svm: bool = false;
     for p in platforms {
-        let platform_version = p.version().unwrap();
+        let platform_version = p.version()?;
         if platform_version.contains(&opencl_2) || platform_version.contains(&opencl_3) {
             let devices = p
                 .get_devices(CL_DEVICE_TYPE_GPU)
@@ -97,8 +98,8 @@ fn test_opencl_2_kernel_example() {
     if is_fine_grained_svm {
         // Create OpenCL context from the OpenCL svm device
         let device = Device::new(device_id);
-        let vendor = device.vendor().unwrap();
-        let vendor_id = device.vendor_id().unwrap();
+        let vendor = device.vendor()?;
+        let vendor_id = device.vendor_id()?;
         println!("OpenCL device vendor name: {}", vendor);
         println!("OpenCL device vendor id: {:X}", vendor_id);
 
@@ -113,10 +114,10 @@ fn test_opencl_2_kernel_example() {
             .expect("Program::create_and_build_from_source failed");
 
         // Create the kernels from the OpenCL program source.
-        let kernels = create_program_kernels(&program).unwrap();
+        let kernels = create_program_kernels(&program)?;
         assert!(0 < kernels.len());
 
-        let kernel_0_name = kernels[0].function_name().unwrap();
+        let kernel_0_name = kernels[0].function_name()?;
         println!("OpenCL kernel_0_name: {}", kernel_0_name);
 
         let sum_kernel = if SUM_KERNEL_NAME == kernel_0_name {
@@ -146,24 +147,26 @@ fn test_opencl_2_kernel_example() {
         let value_array: [cl_int; ARRAY_SIZE] = [3, 2, 5, 9, 7, 1, 4, 2];
 
         // Copy into an OpenCL SVM vector
-        let mut test_values = SvmVec::<cl_int>::allocate(&context, ARRAY_SIZE)
-            .expect("SVM allocation failed");
+        let mut test_values =
+            SvmVec::<cl_int>::allocate(&context, ARRAY_SIZE).expect("SVM allocation failed");
         test_values.clone_from_slice(&value_array);
 
+        // Make test_values immutable
+        let test_values = test_values;
+
         // The output data, an OpenCL SVM vector
-        let mut results = SvmVec::<cl_int>::allocate_zeroed(&context, ARRAY_SIZE)
-            .expect("SVM allocation failed");
+        let mut results =
+            SvmVec::<cl_int>::allocate_zeroed(&context, ARRAY_SIZE).expect("SVM allocation failed");
 
         // Run the sum kernel on the input data
         let sum_kernel_event = ExecuteKernel::new(sum_kernel)
             .set_arg_svm(results.as_mut_ptr())
             .set_arg_svm(test_values.as_ptr())
             .set_global_work_size(ARRAY_SIZE)
-            .enqueue_nd_range(&queue)
-            .unwrap();
+            .enqueue_nd_range(&queue)?;
 
         // Wait for the kernel to complete execution on the device
-        sum_kernel_event.wait().unwrap();
+        sum_kernel_event.wait()?;
 
         // Can access OpenCL SVM directly, no need to map or read the results
         println!("sum results: {:?}", results);
@@ -175,10 +178,9 @@ fn test_opencl_2_kernel_example() {
             .set_arg_svm(results.as_mut_ptr())
             .set_arg_svm(test_values.as_ptr())
             .set_global_work_size(ARRAY_SIZE)
-            .enqueue_nd_range(&queue)
-            .unwrap();
+            .enqueue_nd_range(&queue)?;
 
-        kernel_event.wait().unwrap();
+        kernel_event.wait()?;
 
         println!("inclusive_scan results: {:?}", results);
         assert_eq!(value_array[0], results[0]);
@@ -186,4 +188,6 @@ fn test_opencl_2_kernel_example() {
     } else {
         println!("OpenCL fine grained SVM capable device not found");
     }
+
+    Ok(())
 }

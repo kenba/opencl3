@@ -105,6 +105,9 @@ if !test_values.is_fine_grained() {
 // Copy input data into the OpenCL SVM vector
 test_values.clone_from_slice(&value_array);
 
+// Make test_values immutable
+let test_values = test_values;
+
 // Unmap test_values if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
 if !test_values.is_fine_grained() {
     let unmap_test_values_event = queue.enqueue_svm_unmap(&test_values, &[])?;
@@ -112,7 +115,7 @@ if !test_values.is_fine_grained() {
 }
 
 // The output data, an OpenCL SVM vector
-let mut results = SvmVec::<cl_int>::allocate_zeroed(&context, ARRAY_SIZE)
+let mut results = SvmVec::<cl_int>::allocate(&context, ARRAY_SIZE)
     .expect("SVM allocation failed");
 
 // Run the kernel on the input data
@@ -120,8 +123,7 @@ let kernel_event = ExecuteKernel::new(kernel)
     .set_arg_svm(results.as_mut_ptr())
     .set_arg_svm(test_values.as_ptr())
     .set_global_work_size(ARRAY_SIZE)
-    .enqueue_nd_range(&queue)
-    .unwrap();
+    .enqueue_nd_range(&queue)?;
 
 // Wait for the kernel to complete execution on the device
 kernel_event.wait()?;
