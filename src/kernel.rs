@@ -375,7 +375,7 @@ impl<'a> ExecuteKernel<'a> {
     /// * `size` - the size of the local memory buffer in bytes.
     ///
     /// returns a reference to self.
-    pub fn set_arg_local_buffer<T>(&mut self, size: size_t) -> &mut Self {
+    pub fn set_arg_local_buffer(&mut self, size: size_t) -> &mut Self {
         assert!(
             self.arg_index < self.num_args,
             "ExecuteKernel::set_arg_local_buffer too many args"
