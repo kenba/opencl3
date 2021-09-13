@@ -50,7 +50,17 @@ The tests provide examples of how the crate may be used, e.g. see:
 
 The library is designed to support events and OpenCL 2 features such as Shared Virtual Memory (SVM) and kernel built-in work-group functions, e.g.:
 
-```rust no-run
+```rust
+use opencl3::types::CL_BLOCKING;
+use opencl3::memory::{CL_MAP_READ,CL_MAP_WRITE};
+use opencl3::error_codes::{cl_int, ClError};
+use opencl3::device::{CL_DEVICE_TYPE_GPU, Device};
+use opencl3::program::{CL_STD_2_0, Program};
+use opencl3::context::Context;
+use opencl3::kernel::{Kernel, ExecuteKernel};
+use opencl3::command_queue::{CL_QUEUE_PROFILING_ENABLE, CommandQueue};
+use opencl3::svm::SvmVec;
+
 const PROGRAM_SOURCE: &str = r#"
 kernel void inclusive_scan_int (global int* output,
                                 global int const* values)
@@ -71,6 +81,15 @@ kernel void inclusive_scan_int (global int* output,
 }"#;
 
 const KERNEL_NAME: &str = "inclusive_scan_int";
+
+fn main() -> Result<(), ClError> {
+
+// Find a usable platform and device for this application
+let platforms = opencl3::platform::get_platforms()?;
+let platform = platforms.first().expect("no OpenCL platforms");
+let device = *platform.get_devices(CL_DEVICE_TYPE_GPU)?
+    .first().expect("no device found in platform");
+let device = Device::new(device);
 
 // Create a Context on an OpenCL device
 let context = Context::from_device(&device).expect("Context::from_device failed");
@@ -119,7 +138,7 @@ let mut results = SvmVec::<cl_int>::allocate(&context, ARRAY_SIZE)
     .expect("SVM allocation failed");
 
 // Run the kernel on the input data
-let kernel_event = ExecuteKernel::new(kernel)
+let kernel_event = ExecuteKernel::new(&kernel)
     .set_arg_svm(results.as_mut_ptr())
     .set_arg_svm(test_values.as_ptr())
     .set_global_work_size(ARRAY_SIZE)
@@ -140,6 +159,9 @@ println!("sum results: {:?}", results);
 if !results.is_fine_grained() {
     let unmap_results_event = queue.enqueue_svm_unmap(&results, &[])?;
     unmap_results_event.wait()?;
+}
+
+Ok(())
 }
 ```
 
