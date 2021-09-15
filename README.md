@@ -61,9 +61,9 @@ use opencl3::kernel::{Kernel, ExecuteKernel};
 use opencl3::command_queue::{CL_QUEUE_PROFILING_ENABLE, CommandQueue};
 
 const PROGRAM_SOURCE: &str = r#"
-__kernel void vector_add(__global int *a,
-                         __global int *b,
-                         __global int *c)
+kernel void vector_add(global int *a,
+                       global int *b,
+                       global int *c)
 {
     uint i = get_global_id(0);
     c[i] = a[i] + b[i];
