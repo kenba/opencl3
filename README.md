@@ -51,117 +51,90 @@ The tests provide examples of how the crate may be used, e.g. see:
 The library is designed to support events and OpenCL 2 features such as Shared Virtual Memory (SVM) and kernel built-in work-group functions, e.g.:
 
 ```rust
-use opencl3::types::CL_BLOCKING;
-use opencl3::memory::{CL_MAP_READ,CL_MAP_WRITE};
-use opencl3::error_codes::{cl_int, ClError};
+use opencl3::types::CL_TRUE;
+use opencl3::memory::{CL_MEM_READ_ONLY, CL_MEM_WRITE_ONLY, Buffer};
+use opencl3::error_codes::ClError;
 use opencl3::device::{CL_DEVICE_TYPE_GPU, Device};
-use opencl3::program::{CL_STD_2_0, Program};
+use opencl3::program::{CL_STD_3_0, Program};
 use opencl3::context::Context;
 use opencl3::kernel::{Kernel, ExecuteKernel};
 use opencl3::command_queue::{CL_QUEUE_PROFILING_ENABLE, CommandQueue};
-use opencl3::svm::SvmVec;
 
 const PROGRAM_SOURCE: &str = r#"
-kernel void inclusive_scan_int (global int* output,
-                                global int const* values)
+__kernel void vector_add(__global int *a,
+                         __global int *b,
+                         __global int *c)
 {
-    int sum = 0;
-    size_t lid = get_local_id(0);
-    size_t lsize = get_local_size(0);
+    uint i = get_global_id(0);
+    c[i] = a[i] + b[i];
+}
+"#;
 
-    size_t num_groups = get_num_groups(0);
-    for (size_t i = 0u; i < num_groups; ++i)
-    {
-        size_t lidx = i * lsize + lid;
-        int value = work_group_scan_inclusive_add(values[lidx]);
-        output[lidx] = sum + value;
+const KERNEL_NAME: &str = "vector_add";
 
-        sum += work_group_broadcast(value, lsize - 1);
-    }
-}"#;
-
-const KERNEL_NAME: &str = "inclusive_scan_int";
+const LENGTH: usize = 8;
+const A: [i32; LENGTH] = [1,2,3,4,5,6,7,8];
+const B: [i32; LENGTH] = [2,3,4,5,6,7,8,9];
 
 fn main() -> Result<(), ClError> {
+    // Find a usable platform and device for this application
+    let platform = opencl3::platform::get_platforms()?.pop()
+        .expect("get_platforms failed");
+    let device = platform.get_devices(CL_DEVICE_TYPE_GPU)?.pop()
+        .expect("get_devices failed");
+    let device = Device::new(device);
 
-// Find a usable platform and device for this application
-let platforms = opencl3::platform::get_platforms()?;
-let platform = platforms.first().expect("no OpenCL platforms");
-let device = *platform.get_devices(CL_DEVICE_TYPE_GPU)?
-    .first().expect("no device found in platform");
-let device = Device::new(device);
+    // Create a Context on an OpenCL device
+    let context = Context::from_device(&device)
+        .expect("Context::from_device failed");
 
-// Create a Context on an OpenCL device
-let context = Context::from_device(&device).expect("Context::from_device failed");
+    // Compile the OpenCL program source and create the kernel
+    let program = Program::create_and_build_from_source(&context, PROGRAM_SOURCE, CL_STD_3_0)
+        .expect("Program::create_and_build_from_source failed");
+    let kernel = Kernel::create(&program, KERNEL_NAME)
+        .expect("Kernel::create failed");
 
-// Build the OpenCL program source and create the kernel.
-let program = Program::create_and_build_from_source(&context, PROGRAM_SOURCE, CL_STD_2_0)
-    .expect("Program::create_and_build_from_source failed");
-let kernel = Kernel::create(&program, KERNEL_NAME).expect("Kernel::create failed");
+    // Create a command_queue on the Context's only device
+    let queue = CommandQueue::create_with_properties(
+        &context,
+        context.default_device(),
+        CL_QUEUE_PROFILING_ENABLE,
+        0)
+        .expect("CommandQueue::create_with_properties failed");
 
-// Create a command_queue on the Context's device
-let queue = CommandQueue::create_with_properties(
-    &context,
-    context.default_device(),
-    CL_QUEUE_PROFILING_ENABLE,
-    0,
-)
-.expect("CommandQueue::create_with_properties failed");
+    // Create input and output Buffers
+    println!("  {:?}\n  {:?}\n+ ------------------------", A, B);
+    let mut a = Buffer::create(&context, CL_MEM_READ_ONLY, LENGTH, std::ptr::null_mut())
+        .expect("Buffer::create failed (a)");
+    let mut b = Buffer::create(&context, CL_MEM_READ_ONLY, LENGTH, std::ptr::null_mut())
+        .expect("Buffer::create failed (b)");
+    let mut c = Buffer::create(&context, CL_MEM_WRITE_ONLY, LENGTH, std::ptr::null_mut())
+        .expect("Buffer::create failed (c)");
 
-// The input data
-const ARRAY_SIZE: usize = 8;
-let value_array: [cl_int; ARRAY_SIZE] = [3, 2, 5, 9, 7, 1, 4, 2];
+    // Write to the input buffers
+    queue.enqueue_write_buffer(&mut a, CL_TRUE, 0, &A, &[])
+        .expect("enqueue_write_buffer failed (a)");
+    queue.enqueue_write_buffer(&mut b, CL_TRUE, 0, &B, &[])
+        .expect("enqueue_write_buffer failed (b)");
 
-// Create an OpenCL SVM vector
-let mut test_values =SvmVec::<cl_int>::allocate(&context, ARRAY_SIZE)
-    .expect("SVM allocation failed");
+    // Launch the kernel with the IO buffers
+    let kernel_event = ExecuteKernel::new(&kernel)
+        .set_arg(&a)
+        .set_arg(&b)
+        .set_arg(&c)
+        .set_global_work_size(LENGTH)
+        .enqueue_nd_range(&queue)?;
 
-// Map test_values if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
-if !test_values.is_fine_grained() {
-    queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut test_values, &[])?;
-}
+    // Block until work items are processed
+    kernel_event.wait()?;
 
-// Copy input data into the OpenCL SVM vector
-test_values.clone_from_slice(&value_array);
+    // Read from output buffer
+    let mut output = [0; LENGTH];
+    queue.enqueue_read_buffer(&mut c, CL_TRUE, 0, &mut output, &[])
+        .expect("enqueue_read_buffer failed (c)");
+    println!("= {:?}", output);
 
-// Make test_values immutable
-let test_values = test_values;
-
-// Unmap test_values if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
-if !test_values.is_fine_grained() {
-    let unmap_test_values_event = queue.enqueue_svm_unmap(&test_values, &[])?;
-    unmap_test_values_event.wait()?;
-}
-
-// The output data, an OpenCL SVM vector
-let mut results = SvmVec::<cl_int>::allocate(&context, ARRAY_SIZE)
-    .expect("SVM allocation failed");
-
-// Run the kernel on the input data
-let kernel_event = ExecuteKernel::new(&kernel)
-    .set_arg_svm(results.as_mut_ptr())
-    .set_arg_svm(test_values.as_ptr())
-    .set_global_work_size(ARRAY_SIZE)
-    .enqueue_nd_range(&queue)?;
-
-// Wait for the kernel to complete execution on the device
-kernel_event.wait()?;
-
-// Map results if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
-if !results.is_fine_grained() {
-    queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_READ, &mut results, &[])?;
-}
-
-// Can access OpenCL SVM directly, no need to map or read the results
-println!("sum results: {:?}", results);
-
-// Unmap results if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
-if !results.is_fine_grained() {
-    let unmap_results_event = queue.enqueue_svm_unmap(&results, &[])?;
-    unmap_results_event.wait()?;
-}
-
-Ok(())
+    Ok(())
 }
 ```
 
