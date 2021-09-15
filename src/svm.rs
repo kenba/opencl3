@@ -24,6 +24,8 @@ use cl3::memory::{
 };
 use cl3::types::{cl_device_svm_capabilities, cl_svm_mem_flags, cl_uint};
 use libc::c_void;
+#[cfg(feature = "serde")]
+use serde::ser::{Serialize, SerializeSeq, Serializer};
 use std::fmt;
 use std::fmt::Debug;
 use std::iter::IntoIterator;
@@ -31,6 +33,8 @@ use std::marker::PhantomData;
 use std::mem;
 use std::ops::{Deref, DerefMut};
 use std::ptr;
+#[allow(unused_imports)]
+use std::result;
 
 struct SvmRawVec<'a, T> {
     ptr: *mut T,
@@ -484,6 +488,24 @@ impl<'a, T> DerefMut for SvmVec<'a, T> {
 impl<'a, T: Debug> fmt::Debug for SvmVec<'a, T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Debug::fmt(&**self, f)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'a, T> Serialize for SvmVec<'a, T>
+where
+    T: Serialize,
+{
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(self.len()))?;
+
+        for element in self.iter() {
+            seq.serialize_element(element)?;
+        }
+        seq.end()
     }
 }
 
