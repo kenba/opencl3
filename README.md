@@ -119,7 +119,7 @@ let mut results = SvmVec::<cl_int>::allocate(&context, ARRAY_SIZE)
     .expect("SVM allocation failed");
 
 // Run the kernel on the input data
-let kernel_event = ExecuteKernel::new(kernel)
+let kernel_event = ExecuteKernel::new(&kernel)
     .set_arg_svm(results.as_mut_ptr())
     .set_arg_svm(test_values.as_ptr())
     .set_global_work_size(ARRAY_SIZE)
