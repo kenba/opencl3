@@ -221,9 +221,16 @@ run them:
 cargo test -- --test-threads=1 --show-output --ignored
 ```
 
+## Contribution
+
+If you want to contribute through code or documentation, the [Contributing](CONTRIBUTING.md) guide is the best place to start. If you have any questions, please feel free to ask.
+Just please abide by our [Code of Conduct](CODE_OF_CONDUCT.md).
+
 ## License
 
 Licensed under the Apache License, Version 2.0, as per Khronos Group OpenCL.  
 You may obtain a copy of the License at: http://www.apache.org/licenses/LICENSE-2.0
 
-OpenCL and the OpenCL logo are trademarks of Apple Inc. used under license by Khronos.
+Any contribution intentionally submitted for inclusion in the work by you shall be licensed  as defined in the Apache-2.0 license above, without any additional terms or conditions, unless you explicitly state otherwise.
+
+OpenCL and the OpenCL logo are trademarks of Apple Inc. used by permission by Khronos.
