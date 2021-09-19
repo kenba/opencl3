@@ -13,7 +13,10 @@
 // limitations under the License.
 
 pub use cl3::device::*;
-pub use cl3::ffi::cl_ext::{cl_amd_device_topology, CL_LUID_SIZE_KHR, CL_UUID_SIZE_KHR};
+pub use cl3::ffi::cl_ext::{
+    cl_amd_device_topology, cl_device_feature_capabilities_intel,
+    cl_device_integer_dot_product_acceleration_properties_khr, CL_LUID_SIZE_KHR, CL_UUID_SIZE_KHR,
+};
 
 use super::Result;
 #[allow(unused_imports)]
@@ -769,6 +772,32 @@ impl Device {
         .to_ulong())
     }
 
+    pub fn integer_dot_product_acceleration_properties_8bit_khr(
+        &self,
+    ) -> Result<cl_device_integer_dot_product_acceleration_properties_khr> {
+        let value = get_device_info(
+            self.id(),
+            DeviceInfo::CL_DEVICE_INTEGER_DOT_PRODUCT_ACCELERATION_PROPERTIES_8BIT_KHR,
+        )?
+        .to_vec_uchar();
+        Ok(get_device_integer_dot_product_acceleration_properties_khr(
+            &value,
+        ))
+    }
+
+    pub fn integer_dot_product_acceleration_properties_4x8bit_packed_khr(
+        &self,
+    ) -> Result<cl_device_integer_dot_product_acceleration_properties_khr> {
+        let value = get_device_info(
+            self.id(),
+            DeviceInfo::CL_DEVICE_INTEGER_DOT_PRODUCT_ACCELERATION_PROPERTIES_4x8BIT_PACKED_KHR,
+        )?
+        .to_vec_uchar();
+        Ok(get_device_integer_dot_product_acceleration_properties_khr(
+            &value,
+        ))
+    }
+
     pub fn compute_capability_major_nv(&self) -> Result<cl_uint> {
         Ok(
             get_device_info(self.id(), DeviceInfo::CL_DEVICE_COMPUTE_CAPABILITY_MAJOR_NV)?
@@ -919,6 +948,46 @@ impl Device {
 
     pub fn pcie_id_amd(&self) -> Result<cl_uint> {
         Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PCIE_ID_AMD)?.to_uint())
+    }
+
+    pub fn device_ip_version_intel(&self) -> Result<cl_uint> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IP_VERSION_INTEL)?.to_uint())
+    }
+
+    pub fn device_id_intel(&self) -> Result<cl_uint> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_ID_INTEL)?.to_uint())
+    }
+
+    pub fn device_num_slices_intel(&self) -> Result<cl_uint> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NUM_SLICES_INTEL)?.to_uint())
+    }
+
+    pub fn device_num_sub_slices_per_slice_intel(&self) -> Result<cl_uint> {
+        Ok(get_device_info(
+            self.id(),
+            DeviceInfo::CL_DEVICE_NUM_SUB_SLICES_PER_SLICE_INTEL,
+        )?
+        .to_uint())
+    }
+
+    pub fn device_num_eus_per_sub_slice_intel(&self) -> Result<cl_uint> {
+        Ok(
+            get_device_info(self.id(), DeviceInfo::CL_DEVICE_NUM_EUS_PER_SUB_SLICE_INTEL)?
+                .to_uint(),
+        )
+    }
+
+    pub fn device_num_threads_per_eu_intel(&self) -> Result<cl_uint> {
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NUM_THREADS_PER_EU_INTEL)?.to_uint())
+    }
+
+    pub fn device_feature_capabilities_intel(
+        &self,
+    ) -> Result<cl_device_feature_capabilities_intel> {
+        Ok(
+            get_device_info(self.id(), DeviceInfo::CL_DEVICE_FEATURE_CAPABILITIES_INTEL)?
+                .to_ulong(),
+        )
     }
 
     /// Determine if the device supports the given half floating point capability.  
@@ -1737,6 +1806,32 @@ mod tests {
             ),
         };
 
+        match device.integer_dot_product_acceleration_properties_8bit_khr() {
+            Ok(value) => {
+                println!(
+                    "CL_DEVICE_INTEGER_DOT_PRODUCT_ACCELERATION_PROPERTIES_8BIT_KHR: {:?}",
+                    value
+                )
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_INTEGER_DOT_PRODUCT_ACCELERATION_PROPERTIES_8BIT_KHR: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.integer_dot_product_acceleration_properties_4x8bit_packed_khr() {
+            Ok(value) => {
+                println!(
+                    "CL_DEVICE_INTEGER_DOT_PRODUCT_ACCELERATION_PROPERTIES_4x8BIT_PACKED_KHR: {:?}",
+                    value
+                )
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_INTEGER_DOT_PRODUCT_ACCELERATION_PROPERTIES_4x8BIT_PACKED_KHR: {:?}, {}",
+                e, e
+            ),
+        };
+
         match device.compute_capability_major_nv() {
             Ok(value) => {
                 println!("CL_DEVICE_COMPUTE_CAPABILITY_MAJOR_NV: {}", value)
@@ -2005,6 +2100,67 @@ mod tests {
                 println!("CL_DEVICE_PCIE_ID_AMD: {}", value)
             }
             Err(e) => println!("OpenCL error, CL_DEVICE_PCIE_ID_AMD: {:?}, {}", e, e),
+        };
+
+        match device.device_ip_version_intel() {
+            Ok(value) => {
+                println!("CL_DEVICE_IP_VERSION_INTEL: {}", value)
+            }
+            Err(e) => println!("OpenCL error, CL_DEVICE_IP_VERSION_INTEL: {:?}, {}", e, e),
+        };
+
+        match device.device_id_intel() {
+            Ok(value) => {
+                println!("CL_DEVICE_ID_INTEL: {}", value)
+            }
+            Err(e) => println!("OpenCL error, CL_DEVICE_ID_INTEL: {:?}, {}", e, e),
+        };
+
+        match device.device_num_slices_intel() {
+            Ok(value) => {
+                println!("CL_DEVICE_NUM_SLICES_INTEL: {}", value)
+            }
+            Err(e) => println!("OpenCL error, CL_DEVICE_NUM_SLICES_INTEL: {:?}, {}", e, e),
+        };
+
+        match device.device_num_sub_slices_per_slice_intel() {
+            Ok(value) => {
+                println!("CL_DEVICE_NUM_SUB_SLICES_PER_SLICE_INTEL: {}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_NUM_SUB_SLICES_PER_SLICE_INTEL: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.device_num_eus_per_sub_slice_intel() {
+            Ok(value) => {
+                println!("CL_DEVICE_NUM_EUS_PER_SUB_SLICE_INTEL: {}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_NUM_EUS_PER_SUB_SLICE_INTEL: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.device_num_threads_per_eu_intel() {
+            Ok(value) => {
+                println!("CL_DEVICE_NUM_THREADS_PER_EU_INTEL: {}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_NUM_THREADS_PER_EU_INTEL: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.device_feature_capabilities_intel() {
+            Ok(value) => {
+                println!("CL_DEVICE_FEATURE_CAPABILITIES_INTEL: {:?}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_FEATURE_CAPABILITIES_INTEL: {:?}, {}",
+                e, e
+            ),
         };
     }
 }
