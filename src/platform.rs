@@ -150,7 +150,7 @@ impl Platform {
     pub fn profile(&self) -> Result<String> {
         Ok(
             platform::get_platform_info(self.id(), platform::PlatformInfo::CL_PLATFORM_PROFILE)?
-                .to_string(),
+                .into(),
         )
     }
 
@@ -159,7 +159,7 @@ impl Platform {
     pub fn version(&self) -> Result<String> {
         Ok(
             platform::get_platform_info(self.id(), platform::PlatformInfo::CL_PLATFORM_VERSION)?
-                .to_string(),
+                .into(),
         )
     }
 
@@ -167,7 +167,7 @@ impl Platform {
     pub fn name(&self) -> Result<String> {
         Ok(
             platform::get_platform_info(self.id(), platform::PlatformInfo::CL_PLATFORM_NAME)?
-                .to_string(),
+                .into(),
         )
     }
 
@@ -175,7 +175,7 @@ impl Platform {
     pub fn vendor(&self) -> Result<String> {
         Ok(
             platform::get_platform_info(self.id(), platform::PlatformInfo::CL_PLATFORM_VENDOR)?
-                .to_string(),
+                .into(),
         )
     }
 
@@ -183,7 +183,7 @@ impl Platform {
     pub fn extensions(&self) -> Result<String> {
         Ok(
             platform::get_platform_info(self.id(), platform::PlatformInfo::CL_PLATFORM_EXTENSIONS)?
-                .to_string(),
+                .into(),
         )
     }
 

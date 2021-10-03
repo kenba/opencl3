@@ -327,27 +327,27 @@ impl Device {
     }
 
     pub fn name(&self) -> Result<String> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NAME)?.to_string())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NAME)?.into())
     }
 
     pub fn vendor(&self) -> Result<String> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_VENDOR)?.to_string())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_VENDOR)?.into())
     }
 
     pub fn driver_version(&self) -> Result<String> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DRIVER_VERSION)?.to_string())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DRIVER_VERSION)?.into())
     }
 
     pub fn profile(&self) -> Result<String> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PROFILE)?.to_string())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PROFILE)?.into())
     }
 
     pub fn version(&self) -> Result<String> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_VERSION)?.to_string())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_VERSION)?.into())
     }
 
     pub fn extensions(&self) -> Result<String> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_EXTENSIONS)?.to_string())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_EXTENSIONS)?.into())
     }
 
     pub fn platform(&self) -> Result<cl_platform_id> {
@@ -407,7 +407,7 @@ impl Device {
     }
 
     pub fn opencl_c_version(&self) -> Result<String> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_OPENCL_C_VERSION)?.to_string())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_OPENCL_C_VERSION)?.into())
     }
 
     /// CL_VERSION_1_2
@@ -420,7 +420,7 @@ impl Device {
 
     /// CL_VERSION_1_2
     pub fn built_in_kernels(&self) -> Result<String> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_BUILT_IN_KERNELS)?.to_string())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_BUILT_IN_KERNELS)?.into())
     }
 
     /// CL_VERSION_1_2
@@ -601,7 +601,7 @@ impl Device {
 
     /// CL_VERSION_2_1
     pub fn il_version(&self) -> Result<String> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IL_VERSION)?.to_string())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IL_VERSION)?.into())
     }
 
     /// CL_VERSION_2_1
@@ -761,7 +761,7 @@ impl Device {
             self.id(),
             DeviceInfo::CL_DEVICE_LATEST_CONFORMANCE_VERSION_PASSED,
         )?
-        .to_string())
+        .into())
     }
 
     pub fn integer_dot_product_capabilities_khr(&self) -> Result<cl_ulong> {
@@ -855,7 +855,7 @@ impl Device {
     }
 
     pub fn board_name_amd(&self) -> Result<String> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_BOARD_NAME_AMD)?.to_string())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_BOARD_NAME_AMD)?.into())
     }
 
     pub fn global_free_memory_amd(&self) -> Result<size_t> {
