@@ -124,41 +124,38 @@ impl Device {
     /// The OpenCL device type, see
     /// [Device Types](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#device-types-table).  
     pub fn dev_type(&self) -> Result<cl_device_type> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_TYPE)?.to_ulong())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_TYPE)?.into())
     }
 
     /// A unique device vendor identifier: a [PCI vendor ID](https://www.pcilookup.com/)
     /// or a Khronos vendor ID if the vendor does not have a PCI vendor ID.  
     pub fn vendor_id(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_VENDOR_ID)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_VENDOR_ID)?.into())
     }
 
     /// The number of parallel compute units on the device, minimum 1.  
     pub fn max_compute_units(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_COMPUTE_UNITS)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_COMPUTE_UNITS)?.into())
     }
 
     /// Maximum dimensions for global and local work-item IDs, minimum 3
     /// if device is not CL_DEVICE_TYPE_CUSTOM.  
     pub fn max_work_item_dimensions(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS)?.into())
     }
 
     /// Maximum number of work-items for each dimension of a work-group,
     /// minimum [1, 1, 1] if device is not CL_DEVICE_TYPE_CUSTOM.  
     pub fn max_work_group_size(&self) -> Result<size_t> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_WORK_GROUP_SIZE)?.to_size())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_WORK_GROUP_SIZE)?.into())
     }
 
     pub fn max_work_item_sizes(&self) -> Result<Vec<size_t>> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_WORK_ITEM_SIZES)?.to_vec_size())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_WORK_ITEM_SIZES)?.into())
     }
 
     pub fn max_preferred_vector_width_char(&self) -> Result<cl_uint> {
-        Ok(
-            get_device_info(self.id(), DeviceInfo::CL_DEVICE_PREFERRED_VECTOR_WIDTH_CHAR)?
-                .to_uint(),
-        )
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PREFERRED_VECTOR_WIDTH_CHAR)?.into())
     }
 
     pub fn max_preferred_vector_width_short(&self) -> Result<cl_uint> {
@@ -166,18 +163,15 @@ impl Device {
             self.id(),
             DeviceInfo::CL_DEVICE_PREFERRED_VECTOR_WIDTH_SHORT,
         )?
-        .to_uint())
+        .into())
     }
 
     pub fn max_preferred_vector_width_int(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PREFERRED_VECTOR_WIDTH_INT)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PREFERRED_VECTOR_WIDTH_INT)?.into())
     }
 
     pub fn max_preferred_vector_width_long(&self) -> Result<cl_uint> {
-        Ok(
-            get_device_info(self.id(), DeviceInfo::CL_DEVICE_PREFERRED_VECTOR_WIDTH_LONG)?
-                .to_uint(),
-        )
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PREFERRED_VECTOR_WIDTH_LONG)?.into())
     }
 
     pub fn max_preferred_vector_width_float(&self) -> Result<cl_uint> {
@@ -185,7 +179,7 @@ impl Device {
             self.id(),
             DeviceInfo::CL_DEVICE_PREFERRED_VECTOR_WIDTH_FLOAT,
         )?
-        .to_uint())
+        .into())
     }
 
     pub fn max_preferred_vector_width_double(&self) -> Result<cl_uint> {
@@ -193,137 +187,143 @@ impl Device {
             self.id(),
             DeviceInfo::CL_DEVICE_PREFERRED_VECTOR_WIDTH_DOUBLE,
         )?
-        .to_uint())
+        .into())
     }
 
     pub fn max_clock_frequency(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_CLOCK_FREQUENCY)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_CLOCK_FREQUENCY)?.into())
     }
 
     pub fn address_bits(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_ADDRESS_BITS)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_ADDRESS_BITS)?.into())
     }
 
     pub fn max_read_image_args(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_READ_IMAGE_ARGS)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_READ_IMAGE_ARGS)?.into())
     }
 
     pub fn max_write_image_args(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_WRITE_IMAGE_ARGS)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_WRITE_IMAGE_ARGS)?.into())
     }
 
     pub fn max_mem_alloc_size(&self) -> Result<cl_ulong> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_MEM_ALLOC_SIZE)?.to_ulong())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_MEM_ALLOC_SIZE)?.into())
     }
 
     pub fn image2d_max_width(&self) -> Result<size_t> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE2D_MAX_WIDTH)?.to_size())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE2D_MAX_WIDTH)?.into())
     }
 
     pub fn image2d_max_height(&self) -> Result<size_t> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE2D_MAX_HEIGHT)?.to_size())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE2D_MAX_HEIGHT)?.into())
     }
 
     pub fn image3d_max_width(&self) -> Result<size_t> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE3D_MAX_WIDTH)?.to_size())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE3D_MAX_WIDTH)?.into())
     }
 
     pub fn image3d_max_height(&self) -> Result<size_t> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE3D_MAX_HEIGHT)?.to_size())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE3D_MAX_HEIGHT)?.into())
     }
 
     pub fn image3d_max_depth(&self) -> Result<size_t> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE3D_MAX_DEPTH)?.to_size())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE3D_MAX_DEPTH)?.into())
     }
 
     pub fn image_support(&self) -> Result<bool> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE_SUPPORT)?.to_uint() != CL_FALSE)
+        Ok(cl_uint::from(get_device_info(
+            self.id(),
+            DeviceInfo::CL_DEVICE_IMAGE_SUPPORT,
+        )?) != CL_FALSE)
     }
 
     pub fn max_parameter_size(&self) -> Result<size_t> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_PARAMETER_SIZE)?.to_size())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_PARAMETER_SIZE)?.into())
     }
 
     pub fn max_device_samples(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_SAMPLERS)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_SAMPLERS)?.into())
     }
 
     pub fn mem_base_addr_align(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MEM_BASE_ADDR_ALIGN)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MEM_BASE_ADDR_ALIGN)?.into())
     }
 
     pub fn min_data_type_align_size(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MIN_DATA_TYPE_ALIGN_SIZE)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MIN_DATA_TYPE_ALIGN_SIZE)?.into())
     }
 
     pub fn single_fp_config(&self) -> Result<cl_ulong> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_SINGLE_FP_CONFIG)?.to_ulong())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_SINGLE_FP_CONFIG)?.into())
     }
 
     pub fn global_mem_cache_type(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_GLOBAL_MEM_CACHE_TYPE)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_GLOBAL_MEM_CACHE_TYPE)?.into())
     }
 
     pub fn global_mem_cacheline_size(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE)?.into())
     }
 
     pub fn global_mem_cache_size(&self) -> Result<cl_ulong> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_GLOBAL_MEM_CACHE_SIZE)?.to_ulong())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_GLOBAL_MEM_CACHE_SIZE)?.into())
     }
 
     pub fn global_mem_size(&self) -> Result<cl_ulong> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_GLOBAL_MEM_SIZE)?.to_ulong())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_GLOBAL_MEM_SIZE)?.into())
     }
 
     pub fn max_constant_buffer_size(&self) -> Result<cl_ulong> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE)?.to_ulong())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE)?.into())
     }
 
     pub fn max_constant_args(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_CONSTANT_ARGS)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_CONSTANT_ARGS)?.into())
     }
 
     pub fn local_mem_type(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_LOCAL_MEM_TYPE)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_LOCAL_MEM_TYPE)?.into())
     }
 
     pub fn local_mem_size(&self) -> Result<cl_ulong> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_LOCAL_MEM_SIZE)?.to_ulong())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_LOCAL_MEM_SIZE)?.into())
     }
 
     pub fn error_correction_support(&self) -> Result<bool> {
-        Ok(
-            get_device_info(self.id(), DeviceInfo::CL_DEVICE_ERROR_CORRECTION_SUPPORT)?.to_uint()
-                != CL_FALSE,
-        )
+        Ok(cl_uint::from(get_device_info(
+            self.id(),
+            DeviceInfo::CL_DEVICE_ERROR_CORRECTION_SUPPORT,
+        )?) != CL_FALSE)
     }
 
     pub fn profiling_timer_resolution(&self) -> Result<size_t> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PROFILING_TIMER_RESOLUTION)?.to_size())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PROFILING_TIMER_RESOLUTION)?.into())
     }
 
     pub fn endian_little(&self) -> Result<bool> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_ENDIAN_LITTLE)?.to_uint() != CL_FALSE)
+        Ok(cl_uint::from(get_device_info(
+            self.id(),
+            DeviceInfo::CL_DEVICE_ENDIAN_LITTLE,
+        )?) != CL_FALSE)
     }
 
     pub fn available(&self) -> Result<bool> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_AVAILABLE)?.to_uint() != CL_FALSE)
+        Ok(cl_uint::from(get_device_info(self.id(), DeviceInfo::CL_DEVICE_AVAILABLE)?) != CL_FALSE)
     }
 
     pub fn compiler_available(&self) -> Result<bool> {
-        Ok(
-            get_device_info(self.id(), DeviceInfo::CL_DEVICE_COMPILER_AVAILABLE)?.to_uint()
-                != CL_FALSE,
-        )
+        Ok(cl_uint::from(get_device_info(
+            self.id(),
+            DeviceInfo::CL_DEVICE_COMPILER_AVAILABLE,
+        )?) != CL_FALSE)
     }
 
     pub fn execution_capabilities(&self) -> Result<cl_ulong> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_EXECUTION_CAPABILITIES)?.to_ulong())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_EXECUTION_CAPABILITIES)?.into())
     }
 
     pub fn queue_on_host_properties(&self) -> Result<cl_ulong> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_QUEUE_ON_HOST_PROPERTIES)?.to_ulong())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_QUEUE_ON_HOST_PROPERTIES)?.into())
     }
 
     pub fn name(&self) -> Result<String> {
@@ -351,59 +351,59 @@ impl Device {
     }
 
     pub fn platform(&self) -> Result<cl_platform_id> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PLATFORM)?.to_ptr() as cl_platform_id)
+        Ok(
+            intptr_t::from(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PLATFORM)?)
+                as cl_platform_id,
+        )
     }
 
     /// CL_VERSION_1_2
     pub fn double_fp_config(&self) -> Result<cl_ulong> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_DOUBLE_FP_CONFIG)?.to_ulong())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_DOUBLE_FP_CONFIG)?.into())
     }
 
     pub fn half_fp_config(&self) -> Result<cl_ulong> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_HALF_FP_CONFIG)?.to_ulong())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_HALF_FP_CONFIG)?.into())
     }
 
     pub fn preferred_vector_width_half(&self) -> Result<cl_uint> {
-        Ok(
-            get_device_info(self.id(), DeviceInfo::CL_DEVICE_PREFERRED_VECTOR_WIDTH_HALF)?
-                .to_uint(),
-        )
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PREFERRED_VECTOR_WIDTH_HALF)?.into())
     }
 
     // DEPRECATED 2.0
     pub fn host_unified_memory(&self) -> Result<bool> {
-        Ok(
-            get_device_info(self.id(), DeviceInfo::CL_DEVICE_HOST_UNIFIED_MEMORY)?.to_uint()
-                != CL_FALSE,
-        )
+        Ok(cl_uint::from(get_device_info(
+            self.id(),
+            DeviceInfo::CL_DEVICE_HOST_UNIFIED_MEMORY,
+        )?) != CL_FALSE)
     }
 
     pub fn native_vector_width_char(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR)?.into())
     }
 
     pub fn native_vector_width_short(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NATIVE_VECTOR_WIDTH_SHORT)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NATIVE_VECTOR_WIDTH_SHORT)?.into())
     }
 
     pub fn native_vector_width_int(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NATIVE_VECTOR_WIDTH_INT)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NATIVE_VECTOR_WIDTH_INT)?.into())
     }
 
     pub fn native_vector_width_long(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NATIVE_VECTOR_WIDTH_LONG)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NATIVE_VECTOR_WIDTH_LONG)?.into())
     }
 
     pub fn native_vector_width_float(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NATIVE_VECTOR_WIDTH_FLOAT)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NATIVE_VECTOR_WIDTH_FLOAT)?.into())
     }
 
     pub fn native_vector_width_double(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NATIVE_VECTOR_WIDTH_DOUBLE)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NATIVE_VECTOR_WIDTH_DOUBLE)?.into())
     }
 
     pub fn native_vector_width_half(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NATIVE_VECTOR_WIDTH_HALF)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NATIVE_VECTOR_WIDTH_HALF)?.into())
     }
 
     pub fn opencl_c_version(&self) -> Result<String> {
@@ -412,10 +412,10 @@ impl Device {
 
     /// CL_VERSION_1_2
     pub fn linker_available(&self) -> Result<bool> {
-        Ok(
-            get_device_info(self.id(), DeviceInfo::CL_DEVICE_LINKER_AVAILABLE)?.to_uint()
-                != CL_FALSE,
-        )
+        Ok(cl_uint::from(get_device_info(
+            self.id(),
+            DeviceInfo::CL_DEVICE_LINKER_AVAILABLE,
+        )?) != CL_FALSE)
     }
 
     /// CL_VERSION_1_2
@@ -425,67 +425,63 @@ impl Device {
 
     /// CL_VERSION_1_2
     pub fn image_max_buffer_size(&self) -> Result<size_t> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE_MAX_BUFFER_SIZE)?.to_size())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE_MAX_BUFFER_SIZE)?.into())
     }
 
     /// CL_VERSION_1_2
     pub fn image_max_array_size(&self) -> Result<size_t> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE_MAX_ARRAY_SIZE)?.to_size())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE_MAX_ARRAY_SIZE)?.into())
     }
 
     /// CL_VERSION_1_2
     pub fn parent_device(&self) -> Result<cl_device_id> {
-        Ok(
-            get_device_info(self.id(), DeviceInfo::CL_DEVICE_PARENT_DEVICE)?.to_ptr()
-                as cl_device_id,
-        )
+        Ok(intptr_t::from(get_device_info(
+            self.id(),
+            DeviceInfo::CL_DEVICE_PARENT_DEVICE,
+        )?) as cl_device_id)
     }
 
     /// CL_VERSION_1_2
     pub fn partition_max_sub_devices(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PARTITION_MAX_SUB_DEVICES)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PARTITION_MAX_SUB_DEVICES)?.into())
     }
 
     /// CL_VERSION_1_2
     pub fn partition_properties(&self) -> Result<Vec<intptr_t>> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PARTITION_PROPERTIES)?.to_vec_intptr())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PARTITION_PROPERTIES)?.into())
     }
 
     /// CL_VERSION_1_2
     pub fn partition_affinity_domain(&self) -> Result<Vec<cl_ulong>> {
-        Ok(
-            get_device_info(self.id(), DeviceInfo::CL_DEVICE_PARTITION_AFFINITY_DOMAIN)?
-                .to_vec_ulong(),
-        )
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PARTITION_AFFINITY_DOMAIN)?.into())
     }
 
     /// CL_VERSION_1_2
     pub fn partition_type(&self) -> Result<Vec<intptr_t>> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PARTITION_TYPE)?.to_vec_intptr())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PARTITION_TYPE)?.into())
     }
 
     /// CL_VERSION_1_2
     pub fn reference_count(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_REFERENCE_COUNT)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_REFERENCE_COUNT)?.into())
     }
 
     /// CL_VERSION_1_2
     pub fn preferred_interop_user_sync(&self) -> Result<bool> {
-        Ok(
-            get_device_info(self.id(), DeviceInfo::CL_DEVICE_PREFERRED_INTEROP_USER_SYNC)?
-                .to_uint()
-                != CL_FALSE,
-        )
+        Ok(cl_uint::from(get_device_info(
+            self.id(),
+            DeviceInfo::CL_DEVICE_PREFERRED_INTEROP_USER_SYNC,
+        )?) != CL_FALSE)
     }
 
     /// CL_VERSION_1_2
     pub fn printf_buffer_size(&self) -> Result<size_t> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PRINTF_BUFFER_SIZE)?.to_size())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PRINTF_BUFFER_SIZE)?.into())
     }
 
     /// CL_VERSION_2_0
     pub fn image_pitch_alignment(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE_PITCH_ALIGNMENT)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IMAGE_PITCH_ALIGNMENT)?.into())
     }
 
     /// CL_VERSION_2_0
@@ -494,25 +490,22 @@ impl Device {
             self.id(),
             DeviceInfo::CL_DEVICE_IMAGE_BASE_ADDRESS_ALIGNMENT,
         )?
-        .to_uint())
+        .into())
     }
 
     /// CL_VERSION_2_0
     pub fn max_read_write_image_args(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_READ_WRITE_IMAGE_ARGS)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_READ_WRITE_IMAGE_ARGS)?.into())
     }
 
     /// CL_VERSION_2_0
     pub fn max_global_variable_size(&self) -> Result<size_t> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_GLOBAL_VARIABLE_SIZE)?.to_size())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_GLOBAL_VARIABLE_SIZE)?.into())
     }
 
     /// CL_VERSION_2_0
     pub fn queue_on_device_properties(&self) -> Result<Vec<intptr_t>> {
-        Ok(
-            get_device_info(self.id(), DeviceInfo::CL_DEVICE_QUEUE_ON_DEVICE_PROPERTIES)?
-                .to_vec_intptr(),
-        )
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_QUEUE_ON_DEVICE_PROPERTIES)?.into())
     }
 
     /// CL_VERSION_2_0
@@ -521,27 +514,27 @@ impl Device {
             self.id(),
             DeviceInfo::CL_DEVICE_QUEUE_ON_DEVICE_PREFERRED_SIZE,
         )?
-        .to_size())
+        .into())
     }
 
     /// CL_VERSION_2_0
     pub fn queue_on_device_max_size(&self) -> Result<size_t> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_QUEUE_ON_DEVICE_MAX_SIZE)?.to_size())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_QUEUE_ON_DEVICE_MAX_SIZE)?.into())
     }
 
     /// CL_VERSION_2_0
     pub fn max_on_device_queues(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_ON_DEVICE_QUEUES)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_ON_DEVICE_QUEUES)?.into())
     }
 
     /// CL_VERSION_2_0
     pub fn max_on_device_events(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_ON_DEVICE_EVENTS)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_ON_DEVICE_EVENTS)?.into())
     }
 
     /// CL_VERSION_2_0
     pub fn svm_capabilities(&self) -> Result<cl_device_svm_capabilities> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_SVM_CAPABILITIES)?.to_ulong())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_SVM_CAPABILITIES)?.into())
     }
 
     /// CL_VERSION_2_0
@@ -550,12 +543,12 @@ impl Device {
             self.id(),
             DeviceInfo::CL_DEVICE_GLOBAL_VARIABLE_PREFERRED_TOTAL_SIZE,
         )?
-        .to_size())
+        .into())
     }
 
     /// CL_VERSION_2_0
     pub fn max_pipe_args(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_PIPE_ARGS)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_PIPE_ARGS)?.into())
     }
 
     /// CL_VERSION_2_0
@@ -564,12 +557,12 @@ impl Device {
             self.id(),
             DeviceInfo::CL_DEVICE_PIPE_MAX_ACTIVE_RESERVATIONS,
         )?
-        .to_uint())
+        .into())
     }
 
     /// CL_VERSION_2_0
     pub fn pipe_max_packet_size(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PIPE_MAX_PACKET_SIZE)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PIPE_MAX_PACKET_SIZE)?.into())
     }
 
     /// CL_VERSION_2_0
@@ -578,7 +571,7 @@ impl Device {
             self.id(),
             DeviceInfo::CL_DEVICE_PREFERRED_PLATFORM_ATOMIC_ALIGNMENT,
         )?
-        .to_uint())
+        .into())
     }
 
     /// CL_VERSION_2_0
@@ -587,7 +580,7 @@ impl Device {
             self.id(),
             DeviceInfo::CL_DEVICE_PREFERRED_GLOBAL_ATOMIC_ALIGNMENT,
         )?
-        .to_uint())
+        .into())
     }
 
     /// CL_VERSION_2_0
@@ -596,7 +589,7 @@ impl Device {
             self.id(),
             DeviceInfo::CL_DEVICE_PREFERRED_LOCAL_ATOMIC_ALIGNMENT,
         )?
-        .to_uint())
+        .into())
     }
 
     /// CL_VERSION_2_1
@@ -606,38 +599,30 @@ impl Device {
 
     /// CL_VERSION_2_1
     pub fn max_num_sub_groups(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_NUM_SUB_GROUPS)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_NUM_SUB_GROUPS)?.into())
     }
 
     /// CL_VERSION_2_1
     pub fn sub_group_independent_forward_progress(&self) -> Result<bool> {
-        Ok(get_device_info(
+        Ok(cl_uint::from(get_device_info(
             self.id(),
             DeviceInfo::CL_DEVICE_SUB_GROUP_INDEPENDENT_FORWARD_PROGRESS,
-        )?
-        .to_uint()
-            != CL_FALSE)
+        )?) != CL_FALSE)
     }
 
     /// CL_VERSION_3_0
     pub fn numeric_version(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NUMERIC_VERSION)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NUMERIC_VERSION)?.into())
     }
 
     /// CL_VERSION_3_0
     pub fn extensions_with_version(&self) -> Result<Vec<cl_name_version>> {
-        Ok(
-            get_device_info(self.id(), DeviceInfo::CL_DEVICE_EXTENSIONS_WITH_VERSION)?
-                .to_vec_name_version(),
-        )
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_EXTENSIONS_WITH_VERSION)?.into())
     }
 
     /// CL_VERSION_3_0
     pub fn ils_with_version(&self) -> Result<Vec<cl_name_version>> {
-        Ok(
-            get_device_info(self.id(), DeviceInfo::CL_DEVICE_ILS_WITH_VERSION)?
-                .to_vec_name_version(),
-        )
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_ILS_WITH_VERSION)?.into())
     }
 
     /// CL_VERSION_3_0
@@ -646,38 +631,30 @@ impl Device {
             self.id(),
             DeviceInfo::CL_DEVICE_BUILT_IN_KERNELS_WITH_VERSION,
         )?
-        .to_vec_name_version())
+        .into())
     }
 
     /// CL_VERSION_3_0
     pub fn atomic_memory_capabilities(&self) -> Result<cl_ulong> {
-        Ok(
-            get_device_info(self.id(), DeviceInfo::CL_DEVICE_ATOMIC_MEMORY_CAPABILITIES)?
-                .to_ulong(),
-        )
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_ATOMIC_MEMORY_CAPABILITIES)?.into())
     }
 
     /// CL_VERSION_3_0
     pub fn atomic_fence_capabilities(&self) -> Result<cl_ulong> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_ATOMIC_FENCE_CAPABILITIES)?.to_ulong())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_ATOMIC_FENCE_CAPABILITIES)?.into())
     }
 
     /// CL_VERSION_3_0
     pub fn non_uniform_work_group_support(&self) -> Result<bool> {
-        Ok(get_device_info(
+        Ok(cl_uint::from(get_device_info(
             self.id(),
             DeviceInfo::CL_DEVICE_NON_UNIFORM_WORK_GROUP_SUPPORT,
-        )?
-        .to_uint()
-            != CL_FALSE)
+        )?) != CL_FALSE)
     }
 
     /// CL_VERSION_3_0
     pub fn opencl_c_all_versions(&self) -> Result<Vec<cl_name_version>> {
-        Ok(
-            get_device_info(self.id(), DeviceInfo::CL_DEVICE_OPENCL_C_ALL_VERSIONS)?
-                .to_vec_name_version(),
-        )
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_OPENCL_C_ALL_VERSIONS)?.into())
     }
 
     /// CL_VERSION_3_0
@@ -686,73 +663,66 @@ impl Device {
             self.id(),
             DeviceInfo::CL_DEVICE_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
         )?
-        .to_size())
+        .into())
     }
 
     /// CL_VERSION_3_0
     pub fn work_group_collective_functions_support(&self) -> Result<bool> {
-        Ok(get_device_info(
+        Ok(cl_uint::from(get_device_info(
             self.id(),
             DeviceInfo::CL_DEVICE_WORK_GROUP_COLLECTIVE_FUNCTIONS_SUPPORT,
-        )?
-        .to_uint()
-            != CL_FALSE)
+        )?) != CL_FALSE)
     }
 
     /// CL_VERSION_3_0
     pub fn generic_address_space_support(&self) -> Result<bool> {
-        Ok(get_device_info(
+        Ok(cl_uint::from(get_device_info(
             self.id(),
             DeviceInfo::CL_DEVICE_GENERIC_ADDRESS_SPACE_SUPPORT,
-        )?
-        .to_uint()
-            != CL_FALSE)
+        )?) != CL_FALSE)
     }
 
     /// CL_VERSION_3_0
     pub fn uuid_khr(&self) -> Result<Vec<u8>> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_UUID_KHR)?.to_vec_uchar())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_UUID_KHR)?.into())
     }
 
     /// CL_VERSION_3_0
     pub fn driver_uuid_khr(&self) -> Result<Vec<u8>> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DRIVER_UUID_KHR)?.to_vec_uchar())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DRIVER_UUID_KHR)?.into())
     }
 
     /// CL_VERSION_3_0
     pub fn luid_valid_khr(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_LUID_VALID_KHR)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_LUID_VALID_KHR)?.into())
     }
 
     /// CL_VERSION_3_0
     pub fn luid_khr(&self) -> Result<Vec<u8>> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_LUID_KHR)?.to_vec_uchar())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_LUID_KHR)?.into())
     }
 
     /// CL_VERSION_3_0
     pub fn node_mask_khr(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NODE_MASK_KHR)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NODE_MASK_KHR)?.into())
     }
 
     /// CL_VERSION_3_0
     pub fn opencl_c_features(&self) -> Result<Vec<cl_name_version>> {
-        Ok(
-            get_device_info(self.id(), DeviceInfo::CL_DEVICE_OPENCL_C_FEATURES)?
-                .to_vec_name_version(),
-        )
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_OPENCL_C_FEATURES)?.into())
     }
 
     /// CL_VERSION_3_0
     pub fn device_enqueue_capabilities(&self) -> Result<cl_ulong> {
-        Ok(
-            get_device_info(self.id(), DeviceInfo::CL_DEVICE_DEVICE_ENQUEUE_CAPABILITIES)?
-                .to_ulong(),
-        )
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_DEVICE_ENQUEUE_CAPABILITIES)?.into())
     }
 
     /// CL_VERSION_3_0
     pub fn pipe_support(&self) -> Result<bool> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PIPE_SUPPORT)?.to_uint() != CL_FALSE)
+        Ok(cl_uint::from(get_device_info(
+            self.id(),
+            DeviceInfo::CL_DEVICE_PIPE_SUPPORT,
+        )?) != CL_FALSE)
     }
 
     /// CL_VERSION_3_0
@@ -769,17 +739,17 @@ impl Device {
             self.id(),
             DeviceInfo::CL_DEVICE_INTEGER_DOT_PRODUCT_CAPABILITIES_KHR,
         )?
-        .to_ulong())
+        .into())
     }
 
     pub fn integer_dot_product_acceleration_properties_8bit_khr(
         &self,
     ) -> Result<cl_device_integer_dot_product_acceleration_properties_khr> {
-        let value = get_device_info(
+        let value: Vec<u8> = get_device_info(
             self.id(),
             DeviceInfo::CL_DEVICE_INTEGER_DOT_PRODUCT_ACCELERATION_PROPERTIES_8BIT_KHR,
         )?
-        .to_vec_uchar();
+        .into();
         Ok(get_device_integer_dot_product_acceleration_properties_khr(
             &value,
         ))
@@ -788,64 +758,58 @@ impl Device {
     pub fn integer_dot_product_acceleration_properties_4x8bit_packed_khr(
         &self,
     ) -> Result<cl_device_integer_dot_product_acceleration_properties_khr> {
-        let value = get_device_info(
+        let value: Vec<u8> = get_device_info(
             self.id(),
             DeviceInfo::CL_DEVICE_INTEGER_DOT_PRODUCT_ACCELERATION_PROPERTIES_4x8BIT_PACKED_KHR,
         )?
-        .to_vec_uchar();
+        .into();
         Ok(get_device_integer_dot_product_acceleration_properties_khr(
             &value,
         ))
     }
 
     pub fn compute_capability_major_nv(&self) -> Result<cl_uint> {
-        Ok(
-            get_device_info(self.id(), DeviceInfo::CL_DEVICE_COMPUTE_CAPABILITY_MAJOR_NV)?
-                .to_uint(),
-        )
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_COMPUTE_CAPABILITY_MAJOR_NV)?.into())
     }
 
     pub fn compute_capability_minor_nv(&self) -> Result<cl_uint> {
-        Ok(
-            get_device_info(self.id(), DeviceInfo::CL_DEVICE_COMPUTE_CAPABILITY_MINOR_NV)?
-                .to_uint(),
-        )
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_COMPUTE_CAPABILITY_MINOR_NV)?.into())
     }
 
     pub fn registers_per_block_nv(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_REGISTERS_PER_BLOCK_NV)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_REGISTERS_PER_BLOCK_NV)?.into())
     }
 
     pub fn wrap_size_nv(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_WARP_SIZE_NV)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_WARP_SIZE_NV)?.into())
     }
 
     pub fn gpu_overlap_nv(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_GPU_OVERLAP_NV)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_GPU_OVERLAP_NV)?.into())
     }
 
     pub fn compute_kernel_exec_timeout_nv(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_KERNEL_EXEC_TIMEOUT_NV)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_KERNEL_EXEC_TIMEOUT_NV)?.into())
     }
 
     pub fn integrated_memory_nv(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_INTEGRATED_MEMORY_NV)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_INTEGRATED_MEMORY_NV)?.into())
     }
 
     pub fn pci_bus_id_nv(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PCI_BUS_ID_NV)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PCI_BUS_ID_NV)?.into())
     }
 
     pub fn pci_slot_id_nv(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PCI_SLOT_ID_NV)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PCI_SLOT_ID_NV)?.into())
     }
 
     pub fn profiling_timer_offset_amd(&self) -> Result<size_t> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PROFILING_TIMER_OFFSET_AMD)?.to_size())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PROFILING_TIMER_OFFSET_AMD)?.into())
     }
 
     pub fn topology_amd(&self) -> Result<cl_amd_device_topology> {
-        let value = get_device_info(self.id(), DeviceInfo::CL_DEVICE_TOPOLOGY_AMD)?.to_vec_uchar();
+        let value: Vec<u8> = get_device_info(self.id(), DeviceInfo::CL_DEVICE_TOPOLOGY_AMD)?.into();
         Ok(get_amd_device_topology(&value))
     }
 
@@ -859,27 +823,27 @@ impl Device {
     }
 
     pub fn global_free_memory_amd(&self) -> Result<size_t> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_GLOBAL_FREE_MEMORY_AMD)?.to_size())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_GLOBAL_FREE_MEMORY_AMD)?.into())
     }
 
     pub fn simd_per_compute_unit_amd(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_SIMD_PER_COMPUTE_UNIT_AMD)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_SIMD_PER_COMPUTE_UNIT_AMD)?.into())
     }
 
     pub fn simd_width_amd(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_SIMD_WIDTH_AMD)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_SIMD_WIDTH_AMD)?.into())
     }
 
     pub fn simd_instruction_width_amd(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_SIMD_INSTRUCTION_WIDTH_AMD)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_SIMD_INSTRUCTION_WIDTH_AMD)?.into())
     }
 
     pub fn wavefront_width_amd(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_WAVEFRONT_WIDTH_AMD)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_WAVEFRONT_WIDTH_AMD)?.into())
     }
 
     pub fn global_mem_channels_amd(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_GLOBAL_MEM_CHANNELS_AMD)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_GLOBAL_MEM_CHANNELS_AMD)?.into())
     }
 
     pub fn global_mem_channel_banks_amd(&self) -> Result<cl_uint> {
@@ -887,7 +851,7 @@ impl Device {
             self.id(),
             DeviceInfo::CL_DEVICE_GLOBAL_MEM_CHANNEL_BANKS_AMD,
         )?
-        .to_uint())
+        .into())
     }
 
     pub fn global_mem_channel_bank_width_amd(&self) -> Result<cl_uint> {
@@ -895,7 +859,7 @@ impl Device {
             self.id(),
             DeviceInfo::CL_DEVICE_GLOBAL_MEM_CHANNEL_BANK_WIDTH_AMD,
         )?
-        .to_uint())
+        .into())
     }
 
     pub fn local_mem_size_per_compute_unit_amd(&self) -> Result<cl_uint> {
@@ -903,27 +867,27 @@ impl Device {
             self.id(),
             DeviceInfo::CL_DEVICE_LOCAL_MEM_SIZE_PER_COMPUTE_UNIT_AMD,
         )?
-        .to_uint())
+        .into())
     }
 
     pub fn local_mem_banks_amd(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_LOCAL_MEM_BANKS_AMD)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_LOCAL_MEM_BANKS_AMD)?.into())
     }
 
     pub fn thread_trace_supported_amd(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_THREAD_TRACE_SUPPORTED_AMD)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_THREAD_TRACE_SUPPORTED_AMD)?.into())
     }
 
     pub fn gfxip_major_amd(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_GFXIP_MAJOR_AMD)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_GFXIP_MAJOR_AMD)?.into())
     }
 
     pub fn gfxip_minor_amd(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_GFXIP_MINOR_AMD)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_GFXIP_MINOR_AMD)?.into())
     }
 
     pub fn available_async_queues_amd(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_AVAILABLE_ASYNC_QUEUES_AMD)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_AVAILABLE_ASYNC_QUEUES_AMD)?.into())
     }
 
     pub fn preferred_work_group_size_amd(&self) -> Result<size_t> {
@@ -931,11 +895,11 @@ impl Device {
             self.id(),
             DeviceInfo::CL_DEVICE_PREFERRED_WORK_GROUP_SIZE_AMD,
         )?
-        .to_size())
+        .into())
     }
 
     pub fn max_work_group_size_amd(&self) -> Result<size_t> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_WORK_GROUP_SIZE_AMD)?.to_size())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_MAX_WORK_GROUP_SIZE_AMD)?.into())
     }
 
     pub fn preferred_constant_buffer_size_amd(&self) -> Result<size_t> {
@@ -943,23 +907,23 @@ impl Device {
             self.id(),
             DeviceInfo::CL_DEVICE_PREFERRED_CONSTANT_BUFFER_SIZE_AMD,
         )?
-        .to_size())
+        .into())
     }
 
     pub fn pcie_id_amd(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PCIE_ID_AMD)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_PCIE_ID_AMD)?.into())
     }
 
     pub fn device_ip_version_intel(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IP_VERSION_INTEL)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_IP_VERSION_INTEL)?.into())
     }
 
     pub fn device_id_intel(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_ID_INTEL)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_ID_INTEL)?.into())
     }
 
     pub fn device_num_slices_intel(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NUM_SLICES_INTEL)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NUM_SLICES_INTEL)?.into())
     }
 
     pub fn device_num_sub_slices_per_slice_intel(&self) -> Result<cl_uint> {
@@ -967,27 +931,21 @@ impl Device {
             self.id(),
             DeviceInfo::CL_DEVICE_NUM_SUB_SLICES_PER_SLICE_INTEL,
         )?
-        .to_uint())
+        .into())
     }
 
     pub fn device_num_eus_per_sub_slice_intel(&self) -> Result<cl_uint> {
-        Ok(
-            get_device_info(self.id(), DeviceInfo::CL_DEVICE_NUM_EUS_PER_SUB_SLICE_INTEL)?
-                .to_uint(),
-        )
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NUM_EUS_PER_SUB_SLICE_INTEL)?.into())
     }
 
     pub fn device_num_threads_per_eu_intel(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NUM_THREADS_PER_EU_INTEL)?.to_uint())
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_NUM_THREADS_PER_EU_INTEL)?.into())
     }
 
     pub fn device_feature_capabilities_intel(
         &self,
     ) -> Result<cl_device_feature_capabilities_intel> {
-        Ok(
-            get_device_info(self.id(), DeviceInfo::CL_DEVICE_FEATURE_CAPABILITIES_INTEL)?
-                .to_ulong(),
-        )
+        Ok(get_device_info(self.id(), DeviceInfo::CL_DEVICE_FEATURE_CAPABILITIES_INTEL)?.into())
     }
 
     /// Determine if the device supports the given half floating point capability.  

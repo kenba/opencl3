@@ -1231,49 +1231,43 @@ impl CommandQueue {
     }
 
     pub fn context(&self) -> Result<cl_context> {
-        Ok(
-            get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_CONTEXT)?.to_ptr()
-                as cl_context,
-        )
+        Ok(isize::from(get_command_queue_info(
+            self.queue,
+            CommandQueueInfo::CL_QUEUE_CONTEXT,
+        )?) as cl_context)
     }
 
     pub fn device(&self) -> Result<cl_device_id> {
-        Ok(
-            get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_DEVICE)?.to_ptr()
-                as cl_device_id,
-        )
+        Ok(isize::from(get_command_queue_info(
+            self.queue,
+            CommandQueueInfo::CL_QUEUE_DEVICE,
+        )?) as cl_device_id)
     }
 
     pub fn reference_count(&self) -> Result<cl_uint> {
-        Ok(
-            get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_REFERENCE_COUNT)?
-                .to_uint(),
-        )
+        Ok(get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_REFERENCE_COUNT)?.into())
     }
 
     pub fn properties(&self) -> Result<cl_ulong> {
-        Ok(get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_PROPERTIES)?.to_ulong())
+        Ok(get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_PROPERTIES)?.into())
     }
 
     /// CL_VERSION_2_0
     pub fn size(&self) -> Result<cl_uint> {
-        Ok(get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_SIZE)?.to_uint())
+        Ok(get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_SIZE)?.into())
     }
 
     /// CL_VERSION_2_1
     pub fn device_default(&self) -> Result<cl_device_id> {
-        Ok(
-            get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_DEVICE_DEFAULT)?.to_ptr()
-                as cl_device_id,
-        )
+        Ok(isize::from(get_command_queue_info(
+            self.queue,
+            CommandQueueInfo::CL_QUEUE_DEVICE_DEFAULT,
+        )?) as cl_device_id)
     }
 
     /// CL_VERSION_3_0
     pub fn properties_array(&self) -> Result<Vec<cl_ulong>> {
-        Ok(
-            get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_PROPERTIES_ARRAY)?
-                .to_vec_ulong(),
-        )
+        Ok(get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_PROPERTIES_ARRAY)?.into())
     }
 }
 

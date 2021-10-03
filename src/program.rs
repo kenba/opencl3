@@ -419,19 +419,22 @@ impl Program {
     }
 
     pub fn get_reference_count(&self) -> Result<cl_uint> {
-        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_REFERENCE_COUNT)?.to_uint())
+        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_REFERENCE_COUNT)?.into())
     }
 
     pub fn get_context(&self) -> Result<cl_context> {
-        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_CONTEXT)?.to_ptr() as cl_context)
+        Ok(intptr_t::from(get_program_info(
+            self.program,
+            ProgramInfo::CL_PROGRAM_CONTEXT,
+        )?) as cl_context)
     }
 
     pub fn get_num_devices(&self) -> Result<cl_uint> {
-        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_NUM_DEVICES)?.to_uint())
+        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_NUM_DEVICES)?.into())
     }
 
     pub fn get_devices(&self) -> Result<Vec<intptr_t>> {
-        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_DEVICES)?.to_vec_intptr())
+        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_DEVICES)?.into())
     }
 
     pub fn get_source(&self) -> Result<String> {
@@ -439,15 +442,15 @@ impl Program {
     }
 
     pub fn get_binary_sizes(&self) -> Result<Vec<size_t>> {
-        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_BINARY_SIZES)?.to_vec_size())
+        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_BINARY_SIZES)?.into())
     }
 
     pub fn get_binaries(&self) -> Result<Vec<Vec<cl_uchar>>> {
-        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_BINARIES)?.to_vec_vec_uchar())
+        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_BINARIES)?.into())
     }
 
     pub fn get_num_kernels(&self) -> Result<size_t> {
-        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_NUM_KERNELS)?.to_size())
+        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_NUM_KERNELS)?.into())
     }
 
     pub fn get_kernel_names(&self) -> Result<String> {
@@ -461,22 +464,18 @@ impl Program {
 
     /// CL_VERSION_2_2
     pub fn get_program_scope_global_ctors_present(&self) -> Result<bool> {
-        Ok(get_program_info(
+        Ok(cl_uint::from(get_program_info(
             self.program,
             ProgramInfo::CL_PROGRAM_SCOPE_GLOBAL_CTORS_PRESENT,
-        )?
-        .to_uint()
-            != CL_FALSE)
+        )?) != CL_FALSE)
     }
 
     /// CL_VERSION_2_2
     pub fn get_program_scope_global_dtors_present(&self) -> Result<bool> {
-        Ok(get_program_info(
+        Ok(cl_uint::from(get_program_info(
             self.program,
             ProgramInfo::CL_PROGRAM_SCOPE_GLOBAL_DTORS_PRESENT,
-        )?
-        .to_uint()
-            != CL_FALSE)
+        )?) != CL_FALSE)
     }
 
     pub fn get_build_status(&self, device: cl_device_id) -> Result<cl_int> {
@@ -485,7 +484,7 @@ impl Program {
             device,
             ProgramBuildInfo::CL_PROGRAM_BUILD_STATUS,
         )?
-        .to_int())
+        .into())
     }
 
     pub fn get_build_options(&self, device: cl_device_id) -> Result<String> {
@@ -510,7 +509,7 @@ impl Program {
             device,
             ProgramBuildInfo::CL_PROGRAM_BINARY_TYPE,
         )?
-        .to_uint())
+        .into())
     }
 
     /// CL_VERSION_2_0
@@ -520,7 +519,7 @@ impl Program {
             device,
             ProgramBuildInfo::CL_PROGRAM_BUILD_GLOBAL_VARIABLE_TOTAL_SIZE,
         )?
-        .to_size())
+        .into())
     }
 }
 

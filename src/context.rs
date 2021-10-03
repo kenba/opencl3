@@ -44,11 +44,10 @@ use std::ptr;
 pub fn get_current_device_for_gl_context_khr(
     properties: &[cl_context_properties],
 ) -> Result<cl_device_id> {
-    let device = gl::get_gl_context_info_khr(
+    let device = intptr_t::from(gl::get_gl_context_info_khr(
         properties.as_ptr() as *mut cl_context_properties,
         gl::GlContextInfo::CL_CURRENT_DEVICE_FOR_GL_CONTEXT_KHR,
-    )?
-    .to_ptr() as cl_device_id;
+    )?) as cl_device_id;
     Ok(device)
 }
 
@@ -62,11 +61,11 @@ pub fn get_current_device_for_gl_context_khr(
 pub fn get_devices_for_gl_context_khr(
     properties: &[cl_context_properties],
 ) -> Result<Vec<cl_device_id>> {
-    let dev_ptrs = gl::get_gl_context_info_khr(
+    let dev_ptrs: Vec<intptr_t> = gl::get_gl_context_info_khr(
         properties.as_ptr() as *mut cl_context_properties,
         gl::GlContextInfo::CL_DEVICES_FOR_GL_CONTEXT_KHR,
     )?
-    .to_vec_intptr();
+    .into();
     let devices = dev_ptrs
         .iter()
         .map(|ptr| *ptr as cl_device_id)
@@ -188,9 +187,8 @@ impl Context {
         };
         let context =
             context::create_context_from_type(device_type, properties_ptr, pfn_notify, user_data)?;
-        let dev_ptrs =
-            context::get_context_info(context, context::ContextInfo::CL_CONTEXT_DEVICES)?
-                .to_vec_intptr();
+        let dev_ptrs: Vec<intptr_t> =
+            context::get_context_info(context, context::ContextInfo::CL_CONTEXT_DEVICES)?.into();
         let devices = dev_ptrs
             .iter()
             .map(|ptr| *ptr as cl_device_id)
@@ -280,13 +278,13 @@ impl Context {
             self.context,
             context::ContextInfo::CL_CONTEXT_REFERENCE_COUNT,
         )?
-        .to_uint())
+        .into())
     }
 
     pub fn properties(&self) -> Result<Vec<intptr_t>> {
         Ok(
             context::get_context_info(self.context, context::ContextInfo::CL_CONTEXT_PROPERTIES)?
-                .to_vec_intptr(),
+                .into(),
         )
     }
 

@@ -195,7 +195,7 @@ impl Platform {
             self.id(),
             platform::PlatformInfo::CL_PLATFORM_HOST_TIMER_RESOLUTION,
         )?
-        .to_ulong())
+        .into())
     }
 
     /// The detailed (major, minor, patch) version supported by the platform.  
@@ -205,7 +205,7 @@ impl Platform {
             self.id(),
             platform::PlatformInfo::CL_PLATFORM_NUMERIC_VERSION,
         )?
-        .to_uint())
+        .into())
     }
 
     /// An array of description (name and version) structures that lists all the
@@ -216,7 +216,7 @@ impl Platform {
             self.id(),
             platform::PlatformInfo::CL_PLATFORM_EXTENSIONS_WITH_VERSION,
         )?
-        .to_vec_name_version())
+        .into())
     }
 
     /// Unload an OpenCL compiler for a platform.

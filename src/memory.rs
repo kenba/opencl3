@@ -58,54 +58,54 @@ pub trait ClMem {
     fn get_mut(&mut self) -> cl_mem;
 
     fn mem_type(&self) -> Result<cl_mem_object_type> {
-        Ok(memory::get_mem_object_info(self.get(), MemInfo::CL_MEM_TYPE)?.to_uint())
+        Ok(memory::get_mem_object_info(self.get(), MemInfo::CL_MEM_TYPE)?.into())
     }
 
     fn flags(&self) -> Result<cl_mem_flags> {
-        Ok(memory::get_mem_object_info(self.get(), MemInfo::CL_MEM_FLAGS)?.to_ulong())
+        Ok(memory::get_mem_object_info(self.get(), MemInfo::CL_MEM_FLAGS)?.into())
     }
 
     fn size(&self) -> Result<size_t> {
-        Ok(memory::get_mem_object_info(self.get(), MemInfo::CL_MEM_SIZE)?.to_size())
+        Ok(memory::get_mem_object_info(self.get(), MemInfo::CL_MEM_SIZE)?.into())
     }
 
     fn host_ptr(&self) -> Result<intptr_t> {
-        Ok(memory::get_mem_object_info(self.get(), MemInfo::CL_MEM_HOST_PTR)?.to_ptr())
+        Ok(memory::get_mem_object_info(self.get(), MemInfo::CL_MEM_HOST_PTR)?.into())
     }
 
     fn map_count(&self) -> Result<cl_uint> {
-        Ok(memory::get_mem_object_info(self.get(), MemInfo::CL_MEM_MAP_COUNT)?.to_uint())
+        Ok(memory::get_mem_object_info(self.get(), MemInfo::CL_MEM_MAP_COUNT)?.into())
     }
 
     fn reference_count(&self) -> Result<cl_uint> {
-        Ok(memory::get_mem_object_info(self.get(), MemInfo::CL_MEM_REFERENCE_COUNT)?.to_uint())
+        Ok(memory::get_mem_object_info(self.get(), MemInfo::CL_MEM_REFERENCE_COUNT)?.into())
     }
 
     fn context(&self) -> Result<cl_context> {
-        Ok(
-            memory::get_mem_object_info(self.get(), MemInfo::CL_MEM_CONTEXT)?.to_ptr()
-                as cl_context,
-        )
+        Ok(intptr_t::from(memory::get_mem_object_info(
+            self.get(),
+            MemInfo::CL_MEM_CONTEXT,
+        )?) as cl_context)
     }
 
     fn associated_memobject(&self) -> Result<cl_mem> {
-        Ok(
-            memory::get_mem_object_info(self.get(), MemInfo::CL_MEM_ASSOCIATED_MEMOBJECT)?.to_ptr()
-                as cl_mem,
-        )
+        Ok(intptr_t::from(memory::get_mem_object_info(
+            self.get(),
+            MemInfo::CL_MEM_ASSOCIATED_MEMOBJECT,
+        )?) as cl_mem)
     }
 
     fn offset(&self) -> Result<size_t> {
-        Ok(memory::get_mem_object_info(self.get(), MemInfo::CL_MEM_OFFSET)?.to_size())
+        Ok(memory::get_mem_object_info(self.get(), MemInfo::CL_MEM_OFFSET)?.into())
     }
 
     fn uses_svm_pointer(&self) -> Result<cl_uint> {
-        Ok(memory::get_mem_object_info(self.get(), MemInfo::CL_MEM_USES_SVM_POINTER)?.to_uint())
+        Ok(memory::get_mem_object_info(self.get(), MemInfo::CL_MEM_USES_SVM_POINTER)?.into())
     }
 
     /// CL_VERSION_3_0
     fn properties(&self) -> Result<Vec<cl_ulong>> {
-        Ok(memory::get_mem_object_info(self.get(), MemInfo::CL_MEM_PROPERTIES)?.to_vec_ulong())
+        Ok(memory::get_mem_object_info(self.get(), MemInfo::CL_MEM_PROPERTIES)?.into())
     }
 
     /// Query an OpenGL object used to create an OpenCL memory object.  
@@ -606,61 +606,64 @@ impl Image {
     }
 
     pub fn format(&self) -> Result<Vec<cl_image_format>> {
-        Ok(memory::get_image_info(self.image, ImageInfo::CL_IMAGE_FORMAT)?.to_vec_image_format())
+        Ok(memory::get_image_info(self.image, ImageInfo::CL_IMAGE_FORMAT)?.into())
     }
 
     pub fn element_size(&self) -> Result<size_t> {
-        Ok(memory::get_image_info(self.image, ImageInfo::CL_IMAGE_ELEMENT_SIZE)?.to_size())
+        Ok(memory::get_image_info(self.image, ImageInfo::CL_IMAGE_ELEMENT_SIZE)?.into())
     }
 
     pub fn row_pitch(&self) -> Result<size_t> {
-        Ok(memory::get_image_info(self.image, ImageInfo::CL_IMAGE_ROW_PITCH)?.to_size())
+        Ok(memory::get_image_info(self.image, ImageInfo::CL_IMAGE_ROW_PITCH)?.into())
     }
 
     pub fn slice_pitch(&self) -> Result<size_t> {
-        Ok(memory::get_image_info(self.image, ImageInfo::CL_IMAGE_SLICE_PITCH)?.to_size())
+        Ok(memory::get_image_info(self.image, ImageInfo::CL_IMAGE_SLICE_PITCH)?.into())
     }
 
     pub fn width(&self) -> Result<size_t> {
-        Ok(memory::get_image_info(self.image, ImageInfo::CL_IMAGE_WIDTH)?.to_size())
+        Ok(memory::get_image_info(self.image, ImageInfo::CL_IMAGE_WIDTH)?.into())
     }
 
     pub fn height(&self) -> Result<size_t> {
-        Ok(memory::get_image_info(self.image, ImageInfo::CL_IMAGE_HEIGHT)?.to_size())
+        Ok(memory::get_image_info(self.image, ImageInfo::CL_IMAGE_HEIGHT)?.into())
     }
 
     pub fn depth(&self) -> Result<size_t> {
-        Ok(memory::get_image_info(self.image, ImageInfo::CL_IMAGE_DEPTH)?.to_size())
+        Ok(memory::get_image_info(self.image, ImageInfo::CL_IMAGE_DEPTH)?.into())
     }
     pub fn array_size(&self) -> Result<size_t> {
-        Ok(memory::get_image_info(self.image, ImageInfo::CL_IMAGE_ARRAY_SIZE)?.to_size())
+        Ok(memory::get_image_info(self.image, ImageInfo::CL_IMAGE_ARRAY_SIZE)?.into())
     }
 
     pub fn buffer(&self) -> Result<cl_mem> {
-        Ok(memory::get_image_info(self.image, ImageInfo::CL_IMAGE_BUFFER)?.to_ptr() as cl_mem)
+        Ok(intptr_t::from(memory::get_image_info(
+            self.image,
+            ImageInfo::CL_IMAGE_BUFFER,
+        )?) as cl_mem)
     }
 
     pub fn num_mip_levels(&self) -> Result<cl_uint> {
-        Ok(memory::get_image_info(self.image, ImageInfo::CL_IMAGE_NUM_MIP_LEVELS)?.to_uint())
+        Ok(memory::get_image_info(self.image, ImageInfo::CL_IMAGE_NUM_MIP_LEVELS)?.into())
     }
 
     pub fn num_samples(&self) -> Result<cl_uint> {
-        Ok(memory::get_image_info(self.image, ImageInfo::CL_IMAGE_NUM_SAMPLES)?.to_uint())
+        Ok(memory::get_image_info(self.image, ImageInfo::CL_IMAGE_NUM_SAMPLES)?.into())
     }
 
     ///  Get information about the GL texture target associated with a memory object.
     pub fn gl_texture_target(&self) -> Result<cl_uint> {
-        Ok(gl::get_gl_texture_info(self.image, gl::TextureInfo::CL_GL_TEXTURE_TARGET)?.to_uint())
+        Ok(gl::get_gl_texture_info(self.image, gl::TextureInfo::CL_GL_TEXTURE_TARGET)?.into())
     }
 
     /// Get information about the GL mipmap level associated with a memory object.
     pub fn gl_mipmap_level(&self) -> Result<cl_int> {
-        Ok(gl::get_gl_texture_info(self.image, gl::TextureInfo::CL_GL_MIPMAP_LEVEL)?.to_int())
+        Ok(gl::get_gl_texture_info(self.image, gl::TextureInfo::CL_GL_MIPMAP_LEVEL)?.into())
     }
 
     ///  Get information about the GL number of samples associated with a memory object.
     pub fn gl_num_samples(&self) -> Result<cl_int> {
-        Ok(gl::get_gl_texture_info(self.image, gl::TextureInfo::CL_GL_NUM_SAMPLES)?.to_int())
+        Ok(gl::get_gl_texture_info(self.image, gl::TextureInfo::CL_GL_NUM_SAMPLES)?.into())
     }
 }
 
@@ -720,24 +723,22 @@ impl Sampler {
                 self.get(),
                 sampler::SamplerInfo::CL_SAMPLER_REFERENCE_COUNT,
             )?
-            .to_uint(),
+            .into(),
         )
     }
 
     pub fn context(&self) -> Result<cl_context> {
-        Ok(
-            sampler::get_sampler_info(self.get(), sampler::SamplerInfo::CL_SAMPLER_CONTEXT)?
-                .to_ptr() as cl_context,
-        )
+        Ok(intptr_t::from(sampler::get_sampler_info(
+            self.get(),
+            sampler::SamplerInfo::CL_SAMPLER_CONTEXT,
+        )?) as cl_context)
     }
 
     pub fn normalized_coords(&self) -> Result<bool> {
-        Ok(sampler::get_sampler_info(
+        Ok(cl_uint::from(sampler::get_sampler_info(
             self.get(),
             sampler::SamplerInfo::CL_SAMPLER_NORMALIZED_COORDS,
-        )?
-        .to_uint()
-            != CL_FALSE)
+        )?) != CL_FALSE)
     }
 
     pub fn addressing_mode(&self) -> Result<cl_addressing_mode> {
@@ -746,21 +747,21 @@ impl Sampler {
                 self.get(),
                 sampler::SamplerInfo::CL_SAMPLER_ADDRESSING_MODE,
             )?
-            .to_uint(),
+            .into(),
         )
     }
 
     pub fn filter_mode(&self) -> Result<cl_filter_mode> {
         Ok(
             sampler::get_sampler_info(self.get(), sampler::SamplerInfo::CL_SAMPLER_FILTER_MODE)?
-                .to_uint(),
+                .into(),
         )
     }
 
     pub fn sampler_properties(&self) -> Result<Vec<intptr_t>> {
         Ok(
             sampler::get_sampler_info(self.get(), sampler::SamplerInfo::CL_SAMPLER_PROPERTIES)?
-                .to_vec_intptr(),
+                .into(),
         )
     }
 }
@@ -810,15 +811,15 @@ impl Pipe {
     }
 
     pub fn pipe_packet_size(&self) -> Result<cl_uint> {
-        Ok(memory::get_pipe_info(self.get(), PipeInfo::CL_PIPE_PACKET_SIZE)?.to_uint())
+        Ok(memory::get_pipe_info(self.get(), PipeInfo::CL_PIPE_PACKET_SIZE)?.into())
     }
 
     pub fn pipe_max_packets(&self) -> Result<cl_uint> {
-        Ok(memory::get_pipe_info(self.get(), PipeInfo::CL_PIPE_MAX_PACKETS)?.to_uint())
+        Ok(memory::get_pipe_info(self.get(), PipeInfo::CL_PIPE_MAX_PACKETS)?.into())
     }
 
     pub fn pipe_properties(&self) -> Result<Vec<intptr_t>> {
-        Ok(memory::get_pipe_info(self.get(), PipeInfo::CL_PIPE_PROPERTIES)?.to_vec_intptr())
+        Ok(memory::get_pipe_info(self.get(), PipeInfo::CL_PIPE_PROPERTIES)?.into())
     }
 }
 

@@ -152,19 +152,19 @@ impl Kernel {
     }
 
     pub fn num_args(&self) -> Result<cl_uint> {
-        Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_NUM_ARGS)?.to_uint())
+        Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_NUM_ARGS)?.into())
     }
 
     pub fn reference_count(&self) -> Result<cl_uint> {
-        Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_REFERENCE_COUNT)?.to_uint())
+        Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_REFERENCE_COUNT)?.into())
     }
 
     pub fn context(&self) -> Result<cl_context> {
-        Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_CONTEXT)?.to_ptr() as cl_context)
+        Ok(isize::from(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_CONTEXT)?) as cl_context)
     }
 
     pub fn program(&self) -> Result<cl_program> {
-        Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_PROGRAM)?.to_ptr() as cl_program)
+        Ok(isize::from(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_PROGRAM)?) as cl_program)
     }
 
     pub fn attributes(&self) -> Result<String> {
@@ -178,7 +178,7 @@ impl Kernel {
             arg_indx,
             KernelArgInfo::CL_KERNEL_ARG_ADDRESS_QUALIFIER,
         )?
-        .to_uint())
+        .into())
     }
 
     #[cfg(feature = "CL_VERSION_1_2")]
@@ -188,7 +188,7 @@ impl Kernel {
             arg_indx,
             KernelArgInfo::CL_KERNEL_ARG_ACCESS_QUALIFIER,
         )?
-        .to_uint())
+        .into())
     }
 
     #[cfg(feature = "CL_VERSION_1_2")]
@@ -198,7 +198,7 @@ impl Kernel {
             arg_indx,
             KernelArgInfo::CL_KERNEL_ARG_TYPE_QUALIFIER,
         )?
-        .to_ulong())
+        .into())
     }
 
     #[cfg(feature = "CL_VERSION_1_2")]
@@ -222,7 +222,7 @@ impl Kernel {
             device,
             KernelWorkGroupInfo::CL_KERNEL_WORK_GROUP_SIZE,
         )?
-        .to_size())
+        .into())
     }
 
     pub fn get_compile_work_group_size(&self, device: cl_device_id) -> Result<Vec<size_t>> {
@@ -231,7 +231,7 @@ impl Kernel {
             device,
             KernelWorkGroupInfo::CL_KERNEL_COMPILE_WORK_GROUP_SIZE,
         )?
-        .to_vec_size())
+        .into())
     }
 
     pub fn get_local_mem_size(&self, device: cl_device_id) -> Result<cl_ulong> {
@@ -240,7 +240,7 @@ impl Kernel {
             device,
             KernelWorkGroupInfo::CL_KERNEL_LOCAL_MEM_SIZE,
         )?
-        .to_ulong())
+        .into())
     }
 
     pub fn get_work_group_size_multiple(&self, device: cl_device_id) -> Result<size_t> {
@@ -249,7 +249,7 @@ impl Kernel {
             device,
             KernelWorkGroupInfo::CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
         )?
-        .to_size())
+        .into())
     }
 
     pub fn get_private_mem_size(&self, device: cl_device_id) -> Result<cl_ulong> {
@@ -258,7 +258,7 @@ impl Kernel {
             device,
             KernelWorkGroupInfo::CL_KERNEL_PRIVATE_MEM_SIZE,
         )?
-        .to_ulong())
+        .into())
     }
 
     #[cfg(feature = "cl_khr_subgroups")]
