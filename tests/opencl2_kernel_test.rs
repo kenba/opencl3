@@ -16,11 +16,14 @@
 
 extern crate opencl3;
 
-use cl3::device::{CL_DEVICE_SVM_FINE_GRAIN_BUFFER, CL_DEVICE_TYPE_GPU};
+use cl3::device::{
+    CL_DEVICE_SVM_FINE_GRAIN_BUFFER, CL_DEVICE_SVM_FINE_GRAIN_SYSTEM, CL_DEVICE_TYPE_ALL,
+    CL_DEVICE_TYPE_GPU,
+};
 use opencl3::command_queue::CommandQueue;
 use opencl3::context::Context;
 use opencl3::device::Device;
-use opencl3::kernel::{create_program_kernels, ExecuteKernel};
+use opencl3::kernel::{create_program_kernels, ExecuteKernel, Kernel};
 use opencl3::platform::get_platforms;
 use opencl3::program::{Program, CL_STD_2_0};
 use opencl3::svm::SvmVec;
@@ -149,7 +152,7 @@ fn test_opencl_2_kernel_example() -> Result<()> {
         // Copy into an OpenCL SVM vector
         let mut test_values =
             SvmVec::<cl_int>::allocate(&context, ARRAY_SIZE).expect("SVM allocation failed");
-        test_values.clone_from_slice(&value_array);
+        test_values.copy_from_slice(&value_array);
 
         // Make test_values immutable
         let test_values = test_values;
@@ -187,6 +190,102 @@ fn test_opencl_2_kernel_example() -> Result<()> {
         assert_eq!(33, results[ARRAY_SIZE - 1]);
     } else {
         println!("OpenCL fine grained SVM capable device not found");
+    }
+
+    Ok(())
+}
+
+#[test]
+#[ignore]
+fn test_opencl_2_system_svm_example() -> Result<()> {
+    let platforms = get_platforms()?;
+    assert!(0 < platforms.len());
+
+    /////////////////////////////////////////////////////////////////////
+    // Query OpenCL compute environment
+    let opencl_2: &str = "OpenCL 2";
+    let opencl_3: &str = "OpenCL 3";
+
+    // Find an OpenCL fine grained SVM, platform and device
+    let mut device_id = ptr::null_mut();
+    let mut is_fine_grained_system_svm: bool = false;
+    for p in platforms {
+        let platform_version = p.version()?;
+
+        if platform_version.contains(&opencl_2) || platform_version.contains(&opencl_3) {
+            let devices = p
+                .get_devices(CL_DEVICE_TYPE_ALL)
+                .expect("Platform::get_devices failed");
+
+            for dev_id in devices {
+                let device = Device::new(dev_id);
+                let svm_mem_capability = device.svm_mem_capability();
+                is_fine_grained_system_svm =
+                    0 < svm_mem_capability & CL_DEVICE_SVM_FINE_GRAIN_SYSTEM;
+                if is_fine_grained_system_svm {
+                    device_id = dev_id;
+                    break;
+                }
+            }
+        }
+    }
+
+    if is_fine_grained_system_svm {
+        // Create OpenCL context from the OpenCL svm device
+        let device = Device::new(device_id);
+        let vendor = device.vendor().expect("Device.vendor failed");
+        let vendor_id = device.vendor_id().expect("Device.vendor_id failed");
+        println!("OpenCL device vendor name: {}", vendor);
+        println!("OpenCL device vendor id: {:X}", vendor_id);
+
+        /////////////////////////////////////////////////////////////////////
+        // Initialise OpenCL compute environment
+
+        // Create a Context on the OpenCL svm device
+        let context = Context::from_device(&device).expect("Context::from_device failed");
+
+        // Build the OpenCL program source and create the kernel.
+        let program = Program::create_and_build_from_source(&context, PROGRAM_SOURCE, "")
+            .expect("Program::create_and_build_from_source failed");
+
+        let kernel = Kernel::create(&program, SUM_KERNEL_NAME).expect("Kernel::create failed");
+
+        // Create a command_queue on the Context's device
+        let queue = CommandQueue::create_with_properties(&context, context.default_device(), 0, 0)
+            .expect("CommandQueue::create_with_properties failed");
+
+        // The input data
+        const ARRAY_SIZE: usize = 8;
+        let value_array: [cl_int; ARRAY_SIZE] = [3, 2, 5, 9, 7, 1, 4, 2];
+
+        // Copy into an OpenCL SVM vector
+        let mut test_values =
+            SvmVec::<cl_int>::allocate(&context, ARRAY_SIZE).expect("SVM allocation failed");
+        test_values.copy_from_slice(&value_array);
+
+        // Make test_values immutable
+        let test_values = test_values;
+
+        // The output data, an OpenCL SVM vector
+        let mut results =
+            SvmVec::<cl_int>::allocate_zeroed(&context, ARRAY_SIZE).expect("SVM allocation failed");
+
+        // Run the sum kernel on the input data
+        let sum_kernel_event = ExecuteKernel::new(&kernel)
+            .set_arg_svm(results.as_mut_ptr())
+            .set_arg_svm(test_values.as_ptr())
+            .set_global_work_size(ARRAY_SIZE)
+            .enqueue_nd_range(&queue)?;
+
+        // Wait for the kernel to complete execution on the device
+        sum_kernel_event.wait()?;
+
+        // Can access OpenCL SVM directly, no need to map or read the results
+        println!("sum results: {:?}", results);
+        assert_eq!(33, results[0]);
+        assert_eq!(0, results[ARRAY_SIZE - 1]);
+    } else {
+        println!("OpenCL fine grained system SVM device not found")
     }
 
     Ok(())

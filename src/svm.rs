@@ -26,6 +26,7 @@ use cl3::types::{cl_device_svm_capabilities, cl_svm_mem_flags, cl_uint};
 use libc::c_void;
 #[cfg(feature = "serde")]
 use serde::ser::{Serialize, SerializeSeq, Serializer};
+use std::alloc::{self, Layout};
 use std::fmt;
 use std::fmt::Debug;
 use std::iter::IntoIterator;
@@ -41,6 +42,7 @@ struct SvmRawVec<'a, T> {
     cap: usize,
     context: &'a Context,
     fine_grain_buffer: bool,
+    fine_grain_system: bool,
     atomics: bool,
 }
 
@@ -56,16 +58,16 @@ impl<'a, T> SvmRawVec<'a, T> {
             "No OpenCL SVM, use OpenCL buffers"
         );
 
-        let fine_grain_system: bool = svm_capabilities & CL_DEVICE_SVM_FINE_GRAIN_SYSTEM != 0;
-        assert!(!fine_grain_system, "SVM supports system memory, use Vec!");
-
         let fine_grain_buffer: bool = svm_capabilities & CL_DEVICE_SVM_FINE_GRAIN_BUFFER != 0;
-        let atomics: bool = fine_grain_buffer && (svm_capabilities & CL_DEVICE_SVM_ATOMICS != 0);
+        let fine_grain_system: bool = svm_capabilities & CL_DEVICE_SVM_FINE_GRAIN_SYSTEM != 0;
+        let atomics: bool = (fine_grain_buffer || fine_grain_system)
+            && (svm_capabilities & CL_DEVICE_SVM_ATOMICS != 0);
         SvmRawVec {
             ptr: ptr::null_mut(),
             cap: 0,
             context,
             fine_grain_buffer,
+            fine_grain_system,
             atomics,
         }
     }
@@ -106,27 +108,44 @@ impl<'a, T> SvmRawVec<'a, T> {
         // Ensure within capacity.
         assert!(size <= (isize::MAX as usize) / 2, "capacity overflow");
 
-        let svm_mem_flags: cl_svm_mem_flags = if self.fine_grain_buffer {
-            if self.atomics {
-                CL_MEM_SVM_FINE_GRAIN_BUFFER | CL_MEM_READ_WRITE | CL_MEM_SVM_ATOMICS
-            } else {
-                CL_MEM_SVM_FINE_GRAIN_BUFFER | CL_MEM_READ_WRITE
+        // allocation, determine whether to use svm_alloc or not
+        let ptr = if self.fine_grain_system {
+            let new_layout = Layout::array::<T>(new_cap).unwrap();
+            let new_ptr = unsafe { alloc::alloc(new_layout) as *mut c_void };
+            if new_ptr.is_null() {
+                alloc::handle_alloc_error(new_layout);
             }
+            new_ptr
         } else {
-            CL_MEM_READ_WRITE
+            let svm_mem_flags: cl_svm_mem_flags = if self.fine_grain_buffer {
+                if self.atomics {
+                    CL_MEM_SVM_FINE_GRAIN_BUFFER | CL_MEM_READ_WRITE | CL_MEM_SVM_ATOMICS
+                } else {
+                    CL_MEM_SVM_FINE_GRAIN_BUFFER | CL_MEM_READ_WRITE
+                }
+            } else {
+                CL_MEM_READ_WRITE
+            };
+            let alignment = mem::align_of::<T>();
+            svm_alloc(
+                self.context.get(),
+                svm_mem_flags,
+                size,
+                alignment as cl_uint,
+            )?
         };
-        let alignment = mem::align_of::<T>();
-        let ptr = svm_alloc(
-            self.context.get(),
-            svm_mem_flags,
-            size,
-            alignment as cl_uint,
-        )?;
 
         // reallocation, copy old data to new pointer and free old memory
         if 0 < self.cap {
             unsafe { ptr::copy(self.ptr, ptr as *mut T, self.cap) };
-            svm_free(self.context.get(), self.ptr as *mut c_void);
+            if self.fine_grain_system {
+                let layout = Layout::array::<T>(self.cap).unwrap();
+                unsafe {
+                    alloc::dealloc(self.ptr as *mut u8, layout);
+                }
+            } else {
+                svm_free(self.context.get(), self.ptr as *mut c_void);
+            }
         }
 
         self.ptr = ptr as *mut T;
@@ -143,7 +162,14 @@ impl<'a, T> SvmRawVec<'a, T> {
 impl<'a, T> Drop for SvmRawVec<'a, T> {
     fn drop(&mut self) {
         if !self.ptr.is_null() {
-            svm_free(self.context.get(), self.ptr as *mut c_void);
+            if self.fine_grain_system {
+                let layout = Layout::array::<T>(self.cap).unwrap();
+                unsafe {
+                    alloc::dealloc(self.ptr as *mut u8, layout);
+                }
+            } else {
+                svm_free(self.context.get(), self.ptr as *mut c_void);
+            }
             self.ptr = ptr::null_mut();
         }
     }
@@ -241,9 +267,19 @@ impl<'a, T> SvmVec<'a, T> {
         self.len == 0
     }
 
+    /// Whether the vector is fine grain buffer
+    pub fn is_fine_grain_buffer(&self) -> bool {
+        self.buf.fine_grain_buffer
+    }
+
+    /// Whether the vector is fine grain system
+    pub fn is_fine_grain_system(&self) -> bool {
+        self.buf.fine_grain_system
+    }
+
     /// Whether the vector is fine grained
     pub fn is_fine_grained(&self) -> bool {
-        self.buf.fine_grain_buffer
+        self.buf.fine_grain_buffer || self.buf.fine_grain_system
     }
 
     /// Whether the vector can use atomics
