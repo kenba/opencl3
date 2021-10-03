@@ -148,7 +148,7 @@ impl Kernel {
     }
 
     pub fn function_name(&self) -> Result<String> {
-        Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_FUNCTION_NAME)?.to_string())
+        Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_FUNCTION_NAME)?.into())
     }
 
     pub fn num_args(&self) -> Result<cl_uint> {
@@ -168,7 +168,7 @@ impl Kernel {
     }
 
     pub fn attributes(&self) -> Result<String> {
-        Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_ATTRIBUTES)?.to_string())
+        Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_ATTRIBUTES)?.into())
     }
 
     #[cfg(feature = "CL_VERSION_1_2")]
@@ -208,15 +208,12 @@ impl Kernel {
             arg_indx,
             KernelArgInfo::CL_KERNEL_ARG_TYPE_NAME,
         )?
-        .to_string())
+        .into())
     }
 
     #[cfg(feature = "CL_VERSION_1_2")]
     pub fn get_arg_name(&self, arg_indx: cl_uint) -> Result<String> {
-        Ok(
-            get_kernel_arg_info(self.kernel, arg_indx, KernelArgInfo::CL_KERNEL_ARG_NAME)?
-                .to_string(),
-        )
+        Ok(get_kernel_arg_info(self.kernel, arg_indx, KernelArgInfo::CL_KERNEL_ARG_NAME)?.into())
     }
 
     pub fn get_work_group_size(&self, device: cl_device_id) -> Result<size_t> {

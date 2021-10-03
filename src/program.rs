@@ -240,18 +240,17 @@ impl Program {
         sources: &[&str],
         options: &str,
     ) -> result::Result<Program, String> {
-        let mut program =
-            Program::create_from_sources(context, sources).map_err(|e| e.to_string())?;
+        let mut program = Program::create_from_sources(context, sources).map_err(String::from)?;
         match program.build(context.devices(), options) {
             Ok(_) => Ok(program),
             Err(e) => {
                 if CL_BUILD_PROGRAM_FAILURE == e.0 {
                     let log = program
                         .get_build_log(context.devices()[0])
-                        .map_err(|e| e.to_string())?;
-                    Err(e.to_string() + ", build log: " + &log)
+                        .map_err(String::from)?;
+                    Err(String::from(e) + ", build log: " + &log)
                 } else {
-                    Err(e.to_string())
+                    Err(String::from(e))
                 }
             }
         }
@@ -436,7 +435,7 @@ impl Program {
     }
 
     pub fn get_source(&self) -> Result<String> {
-        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_SOURCE)?.to_string())
+        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_SOURCE)?.into())
     }
 
     pub fn get_binary_sizes(&self) -> Result<Vec<size_t>> {
@@ -452,12 +451,12 @@ impl Program {
     }
 
     pub fn get_kernel_names(&self) -> Result<String> {
-        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_KERNEL_NAMES)?.to_string())
+        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_KERNEL_NAMES)?.into())
     }
 
     /// CL_VERSION_2_1
     pub fn get_program_il(&self) -> Result<String> {
-        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_IL)?.to_string())
+        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_IL)?.into())
     }
 
     /// CL_VERSION_2_2
@@ -495,13 +494,13 @@ impl Program {
             device,
             ProgramBuildInfo::CL_PROGRAM_BUILD_OPTIONS,
         )?
-        .to_string())
+        .into())
     }
 
     pub fn get_build_log(&self, device: cl_device_id) -> Result<String> {
         Ok(
             get_program_build_info(self.program, device, ProgramBuildInfo::CL_PROGRAM_BUILD_LOG)?
-                .to_string(),
+                .into(),
         )
     }
 
