@@ -18,6 +18,7 @@ pub use cl3::ffi::cl_ext::{
     cl_device_integer_dot_product_acceleration_properties_khr, CL_LUID_SIZE_KHR, CL_UUID_SIZE_KHR,
 };
 
+use super::platform::get_platforms;
 use super::Result;
 #[allow(unused_imports)]
 use cl3::types::{
@@ -26,19 +27,16 @@ use cl3::types::{
 };
 use libc::{intptr_t, size_t};
 
-/// A text representation of an OpenCL device type, see:
-/// [Device Types](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#device-types-table).
-pub fn device_type_text(dev_type: cl_device_type) -> &'static str {
-    match dev_type {
-        CL_DEVICE_TYPE_DEFAULT => "CL_DEVICE_TYPE_DEFAULT",
-        CL_DEVICE_TYPE_CPU => "CL_DEVICE_TYPE_CPU",
-        CL_DEVICE_TYPE_GPU => "CL_DEVICE_TYPE_GPU",
-        CL_DEVICE_TYPE_ACCELERATOR => "CL_DEVICE_TYPE_ACCELERATOR",
-        CL_DEVICE_TYPE_CUSTOM => "CL_DEVICE_TYPE_CUSTOM",
-        CL_DEVICE_TYPE_ALL => "CL_DEVICE_TYPE_ALL",
+/// Get the ids of all available devices of the given type.
+pub fn get_all_devices(device_type: cl_device_type) -> Result<Vec<cl_device_id>> {
+    let mut device_ids = Vec::<cl_device_id>::new();
 
-        _ => "COMBINED_DEVICE_TYPE",
+    let platforms = get_platforms()?;
+    for platform in platforms {
+        let mut devices = platform.get_devices(device_type)?;
+        device_ids.append(&mut devices);
     }
+    Ok(device_ids)
 }
 
 #[cfg(feature = "CL_VERSION_1_2")]
