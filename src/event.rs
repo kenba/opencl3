@@ -27,6 +27,18 @@ pub struct Event {
     event: cl_event,
 }
 
+impl From<cl_event> for Event {
+    fn from(event: cl_event) -> Self {
+        Event { event }
+    }
+}
+
+impl From<Event> for cl_event {
+    fn from(value: Event) -> Self {
+        value.event as cl_event
+    }
+}
+
 impl Drop for Event {
     fn drop(&mut self) {
         release_event(self.event).expect("Error: clReleaseEvent");

@@ -126,6 +126,12 @@ pub struct Buffer<T> {
     _type: PhantomData<T>,
 }
 
+impl<T> From<Buffer<T>> for cl_mem {
+    fn from(value: Buffer<T>) -> Self {
+        value.buffer
+    }
+}
+
 impl<T> ClMem for Buffer<T> {
     fn get(&self) -> cl_mem {
         self.buffer
@@ -282,6 +288,12 @@ impl<T> Buffer<T> {
 #[derive(Debug)]
 pub struct Image {
     image: cl_mem,
+}
+
+impl From<Image> for cl_mem {
+    fn from(value: Image) -> Self {
+        value.image
+    }
 }
 
 impl ClMem for Image {
@@ -676,6 +688,12 @@ pub struct Sampler {
     sampler: cl_sampler,
 }
 
+impl From<Sampler> for cl_sampler {
+    fn from(value: Sampler) -> Self {
+        value.sampler
+    }
+}
+
 impl Drop for Sampler {
     fn drop(&mut self) {
         sampler::release_sampler(self.sampler).expect("Error: clReleaseSampler");
@@ -774,6 +792,12 @@ impl Sampler {
 #[derive(Debug)]
 pub struct Pipe {
     pipe: cl_mem,
+}
+
+impl From<Pipe> for cl_mem {
+    fn from(value: Pipe) -> Self {
+        value.pipe as cl_mem
+    }
 }
 
 #[cfg(feature = "CL_VERSION_2_0")]

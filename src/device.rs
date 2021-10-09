@@ -46,6 +46,20 @@ pub struct SubDevice {
 }
 
 #[cfg(feature = "CL_VERSION_1_2")]
+impl From<cl_device_id> for SubDevice {
+    fn from(id: cl_device_id) -> Self {
+        SubDevice { id }
+    }
+}
+
+#[cfg(feature = "CL_VERSION_1_2")]
+impl From<SubDevice> for cl_device_id {
+    fn from(value: SubDevice) -> Self {
+        value.id
+    }
+}
+
+#[cfg(feature = "CL_VERSION_1_2")]
 impl Drop for SubDevice {
     fn drop(&mut self) {
         release_device(self.id()).expect("Error: clReleaseDevice");
@@ -73,6 +87,18 @@ impl SubDevice {
 #[derive(Copy, Clone, Debug)]
 pub struct Device {
     id: intptr_t,
+}
+
+impl From<cl_device_id> for Device {
+    fn from(value: cl_device_id) -> Self {
+        Device { id: value as intptr_t }
+    }
+}
+
+impl From<Device> for cl_device_id {
+    fn from(value: Device) -> Self {
+        value.id as cl_device_id
+    }
 }
 
 unsafe impl Send for Device {}

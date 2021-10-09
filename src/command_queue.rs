@@ -55,6 +55,12 @@ pub struct CommandQueue {
     max_work_item_dimensions: cl_uint,
 }
 
+impl From<CommandQueue> for cl_command_queue {
+    fn from(value: CommandQueue) -> Self {
+        value.queue
+    }
+}
+
 impl Drop for CommandQueue {
     fn drop(&mut self) {
         release_command_queue(self.queue).expect("Error: clReleaseCommandQueue")

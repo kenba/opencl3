@@ -81,6 +81,12 @@ pub struct Context {
     devices: Vec<cl_device_id>,
 }
 
+impl From<Context> for cl_context {
+    fn from(value: Context) -> Self {
+        value.context
+    }
+}
+
 impl Drop for Context {
     fn drop(&mut self) {
         self.devices.clear();

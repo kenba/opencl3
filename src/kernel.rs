@@ -38,6 +38,12 @@ pub struct Kernel {
     kernel: cl_kernel,
 }
 
+impl From<Kernel> for cl_kernel {
+    fn from(value: Kernel) -> Self {
+        value.kernel
+    }
+}
+
 #[cfg(feature = "CL_VERSION_2_1")]
 impl Clone for Kernel {
     /// Clone an OpenCL kernel object.  

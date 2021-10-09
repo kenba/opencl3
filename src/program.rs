@@ -87,6 +87,12 @@ pub struct Program {
     kernel_names: String,
 }
 
+impl From<Program> for cl_program {
+    fn from(value: Program) -> Self {
+        value.program as cl_program
+    }
+}
+
 impl Drop for Program {
     fn drop(&mut self) {
         release_program(self.program).expect("Error: clReleaseProgram");

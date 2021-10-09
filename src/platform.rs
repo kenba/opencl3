@@ -50,6 +50,18 @@ pub struct Platform {
     id: intptr_t,
 }
 
+impl From<cl_platform_id> for Platform {
+    fn from(value: cl_platform_id) -> Self {
+        Platform { id: value as intptr_t }
+    }
+}
+
+impl From<Platform> for cl_platform_id {
+    fn from(value: Platform) -> Self {
+        value.id as cl_platform_id
+    }
+}
+
 unsafe impl Send for Platform {}
 unsafe impl Sync for Platform {}
 
@@ -63,7 +75,7 @@ impl Platform {
         self.id as cl_platform_id
     }
 
-    /// Get the list of available devices of the given type on the Platform.
+    /// Get the ids of available devices of the given type on the Platform.
     /// # Examples
     /// ```
     /// use opencl3::platform::get_platforms;
