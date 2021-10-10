@@ -1,5 +1,14 @@
 # Releases
 
+## Version 0.5.3 (2021-10-10)
+
+### New Features
+
+* Issue [#38](https://github.com/kenba/opencl3/issues/38) Add SVM fine grain system support.
+* Issue [#40](https://github.com/kenba/opencl3/issues/40) Replace all calls to `to_string` with `from` or `into`.
+* Issue [#42](https://github.com/kenba/opencl3/issues/42) add `From` traits.
+* Add `get_all_devices` function.
+
 ## Version 0.5.2 (2021-09-19)
 
 ```toml
