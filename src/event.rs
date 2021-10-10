@@ -70,29 +70,26 @@ impl Event {
 
     pub fn command_execution_status(&self) -> Result<CommandExecutionStatus> {
         Ok(CommandExecutionStatus(
-            get_event_info(self.event, EventInfo::CL_EVENT_COMMAND_EXECUTION_STATUS)?.into(),
+            get_event_info(self.event, CL_EVENT_COMMAND_EXECUTION_STATUS)?.into(),
         ))
     }
 
     pub fn command_type(&self) -> Result<EventCommandType> {
         Ok(EventCommandType(
-            get_event_info(self.event, EventInfo::CL_EVENT_COMMAND_TYPE)?.into(),
+            get_event_info(self.event, CL_EVENT_COMMAND_TYPE)?.into(),
         ))
     }
 
     pub fn reference_count(&self) -> Result<cl_uint> {
-        Ok(get_event_info(self.event, EventInfo::CL_EVENT_REFERENCE_COUNT)?.into())
+        Ok(get_event_info(self.event, CL_EVENT_REFERENCE_COUNT)?.into())
     }
 
     pub fn command_queue(&self) -> Result<cl_command_queue> {
-        Ok(isize::from(get_event_info(
-            self.event,
-            EventInfo::CL_EVENT_COMMAND_QUEUE,
-        )?) as cl_command_queue)
+        Ok(isize::from(get_event_info(self.event, CL_EVENT_COMMAND_QUEUE)?) as cl_command_queue)
     }
 
     pub fn context(&self) -> Result<cl_context> {
-        Ok(isize::from(get_event_info(self.event, EventInfo::CL_EVENT_CONTEXT)?) as cl_context)
+        Ok(isize::from(get_event_info(self.event, CL_EVENT_CONTEXT)?) as cl_context)
     }
 
     pub fn set_callback(
@@ -110,33 +107,24 @@ impl Event {
     }
 
     pub fn profiling_command_queued(&self) -> Result<cl_ulong> {
-        Ok(
-            get_event_profiling_info(self.event, ProfilingInfo::CL_PROFILING_COMMAND_QUEUED)?
-                .into(),
-        )
+        Ok(get_event_profiling_info(self.event, CL_PROFILING_COMMAND_QUEUED)?.into())
     }
 
     pub fn profiling_command_submit(&self) -> Result<cl_ulong> {
-        Ok(
-            get_event_profiling_info(self.event, ProfilingInfo::CL_PROFILING_COMMAND_SUBMIT)?
-                .into(),
-        )
+        Ok(get_event_profiling_info(self.event, CL_PROFILING_COMMAND_SUBMIT)?.into())
     }
 
     pub fn profiling_command_start(&self) -> Result<cl_ulong> {
-        Ok(get_event_profiling_info(self.event, ProfilingInfo::CL_PROFILING_COMMAND_START)?.into())
+        Ok(get_event_profiling_info(self.event, CL_PROFILING_COMMAND_START)?.into())
     }
 
     pub fn profiling_command_end(&self) -> Result<cl_ulong> {
-        Ok(get_event_profiling_info(self.event, ProfilingInfo::CL_PROFILING_COMMAND_END)?.into())
+        Ok(get_event_profiling_info(self.event, CL_PROFILING_COMMAND_END)?.into())
     }
 
     /// CL_VERSION_2_0
     pub fn profiling_command_complete(&self) -> Result<cl_ulong> {
-        Ok(
-            get_event_profiling_info(self.event, ProfilingInfo::CL_PROFILING_COMMAND_COMPLETE)?
-                .into(),
-        )
+        Ok(get_event_profiling_info(self.event, CL_PROFILING_COMMAND_COMPLETE)?.into())
     }
 }
 

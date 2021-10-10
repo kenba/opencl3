@@ -133,13 +133,13 @@ impl CommandQueue {
 
             let mut index = 0;
             if 0 < properties {
-                props[index] = CommandQueueInfo::CL_QUEUE_PROPERTIES as cl_queue_properties;
+                props[index] = CL_QUEUE_PROPERTIES as cl_queue_properties;
                 props[index + 1] = properties as cl_queue_properties;
                 index += 2;
             }
 
             if 0 < queue_size {
-                props[index] = CommandQueueInfo::CL_QUEUE_SIZE as cl_queue_properties;
+                props[index] = CL_QUEUE_SIZE as cl_queue_properties;
                 props[index + 1] = queue_size as cl_queue_properties;
             }
             create_command_queue_with_properties(context.get(), device_id, props.as_ptr())?
@@ -1237,43 +1237,37 @@ impl CommandQueue {
     }
 
     pub fn context(&self) -> Result<cl_context> {
-        Ok(isize::from(get_command_queue_info(
-            self.queue,
-            CommandQueueInfo::CL_QUEUE_CONTEXT,
-        )?) as cl_context)
+        Ok(isize::from(get_command_queue_info(self.queue, CL_QUEUE_CONTEXT)?) as cl_context)
     }
 
     pub fn device(&self) -> Result<cl_device_id> {
-        Ok(isize::from(get_command_queue_info(
-            self.queue,
-            CommandQueueInfo::CL_QUEUE_DEVICE,
-        )?) as cl_device_id)
+        Ok(isize::from(get_command_queue_info(self.queue, CL_QUEUE_DEVICE)?) as cl_device_id)
     }
 
     pub fn reference_count(&self) -> Result<cl_uint> {
-        Ok(get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_REFERENCE_COUNT)?.into())
+        Ok(get_command_queue_info(self.queue, CL_QUEUE_REFERENCE_COUNT)?.into())
     }
 
     pub fn properties(&self) -> Result<cl_ulong> {
-        Ok(get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_PROPERTIES)?.into())
+        Ok(get_command_queue_info(self.queue, CL_QUEUE_PROPERTIES)?.into())
     }
 
     /// CL_VERSION_2_0
     pub fn size(&self) -> Result<cl_uint> {
-        Ok(get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_SIZE)?.into())
+        Ok(get_command_queue_info(self.queue, CL_QUEUE_SIZE)?.into())
     }
 
     /// CL_VERSION_2_1
     pub fn device_default(&self) -> Result<cl_device_id> {
-        Ok(isize::from(get_command_queue_info(
-            self.queue,
-            CommandQueueInfo::CL_QUEUE_DEVICE_DEFAULT,
-        )?) as cl_device_id)
+        Ok(
+            isize::from(get_command_queue_info(self.queue, CL_QUEUE_DEVICE_DEFAULT)?)
+                as cl_device_id,
+        )
     }
 
     /// CL_VERSION_3_0
     pub fn properties_array(&self) -> Result<Vec<cl_ulong>> {
-        Ok(get_command_queue_info(self.queue, CommandQueueInfo::CL_QUEUE_PROPERTIES_ARRAY)?.into())
+        Ok(get_command_queue_info(self.queue, CL_QUEUE_PROPERTIES_ARRAY)?.into())
     }
 }
 

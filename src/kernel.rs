@@ -154,117 +154,80 @@ impl Kernel {
     }
 
     pub fn function_name(&self) -> Result<String> {
-        Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_FUNCTION_NAME)?.into())
+        Ok(get_kernel_info(self.kernel, CL_KERNEL_FUNCTION_NAME)?.into())
     }
 
     pub fn num_args(&self) -> Result<cl_uint> {
-        Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_NUM_ARGS)?.into())
+        Ok(get_kernel_info(self.kernel, CL_KERNEL_NUM_ARGS)?.into())
     }
 
     pub fn reference_count(&self) -> Result<cl_uint> {
-        Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_REFERENCE_COUNT)?.into())
+        Ok(get_kernel_info(self.kernel, CL_KERNEL_REFERENCE_COUNT)?.into())
     }
 
     pub fn context(&self) -> Result<cl_context> {
-        Ok(isize::from(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_CONTEXT)?) as cl_context)
+        Ok(isize::from(get_kernel_info(self.kernel, CL_KERNEL_CONTEXT)?) as cl_context)
     }
 
     pub fn program(&self) -> Result<cl_program> {
-        Ok(isize::from(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_PROGRAM)?) as cl_program)
+        Ok(isize::from(get_kernel_info(self.kernel, CL_KERNEL_PROGRAM)?) as cl_program)
     }
 
     pub fn attributes(&self) -> Result<String> {
-        Ok(get_kernel_info(self.kernel, KernelInfo::CL_KERNEL_ATTRIBUTES)?.into())
+        Ok(get_kernel_info(self.kernel, CL_KERNEL_ATTRIBUTES)?.into())
     }
 
     #[cfg(feature = "CL_VERSION_1_2")]
     pub fn get_arg_address_qualifier(&self, arg_indx: cl_uint) -> Result<cl_uint> {
-        Ok(get_kernel_arg_info(
-            self.kernel,
-            arg_indx,
-            KernelArgInfo::CL_KERNEL_ARG_ADDRESS_QUALIFIER,
-        )?
-        .into())
+        Ok(get_kernel_arg_info(self.kernel, arg_indx, CL_KERNEL_ARG_ADDRESS_QUALIFIER)?.into())
     }
 
     #[cfg(feature = "CL_VERSION_1_2")]
     pub fn get_arg_access_qualifier(&self, arg_indx: cl_uint) -> Result<cl_uint> {
-        Ok(get_kernel_arg_info(
-            self.kernel,
-            arg_indx,
-            KernelArgInfo::CL_KERNEL_ARG_ACCESS_QUALIFIER,
-        )?
-        .into())
+        Ok(get_kernel_arg_info(self.kernel, arg_indx, CL_KERNEL_ARG_ACCESS_QUALIFIER)?.into())
     }
 
     #[cfg(feature = "CL_VERSION_1_2")]
     pub fn get_arg_type_qualifier(&self, arg_indx: cl_uint) -> Result<cl_ulong> {
-        Ok(get_kernel_arg_info(
-            self.kernel,
-            arg_indx,
-            KernelArgInfo::CL_KERNEL_ARG_TYPE_QUALIFIER,
-        )?
-        .into())
+        Ok(get_kernel_arg_info(self.kernel, arg_indx, CL_KERNEL_ARG_TYPE_QUALIFIER)?.into())
     }
 
     #[cfg(feature = "CL_VERSION_1_2")]
     pub fn get_arg_type_name(&self, arg_indx: cl_uint) -> Result<String> {
-        Ok(get_kernel_arg_info(
-            self.kernel,
-            arg_indx,
-            KernelArgInfo::CL_KERNEL_ARG_TYPE_NAME,
-        )?
-        .into())
+        Ok(get_kernel_arg_info(self.kernel, arg_indx, CL_KERNEL_ARG_TYPE_NAME)?.into())
     }
 
     #[cfg(feature = "CL_VERSION_1_2")]
     pub fn get_arg_name(&self, arg_indx: cl_uint) -> Result<String> {
-        Ok(get_kernel_arg_info(self.kernel, arg_indx, KernelArgInfo::CL_KERNEL_ARG_NAME)?.into())
+        Ok(get_kernel_arg_info(self.kernel, arg_indx, CL_KERNEL_ARG_NAME)?.into())
     }
 
     pub fn get_work_group_size(&self, device: cl_device_id) -> Result<size_t> {
-        Ok(get_kernel_work_group_info(
-            self.kernel,
-            device,
-            KernelWorkGroupInfo::CL_KERNEL_WORK_GROUP_SIZE,
-        )?
-        .into())
+        Ok(get_kernel_work_group_info(self.kernel, device, CL_KERNEL_WORK_GROUP_SIZE)?.into())
     }
 
     pub fn get_compile_work_group_size(&self, device: cl_device_id) -> Result<Vec<size_t>> {
-        Ok(get_kernel_work_group_info(
-            self.kernel,
-            device,
-            KernelWorkGroupInfo::CL_KERNEL_COMPILE_WORK_GROUP_SIZE,
-        )?
-        .into())
+        Ok(
+            get_kernel_work_group_info(self.kernel, device, CL_KERNEL_COMPILE_WORK_GROUP_SIZE)?
+                .into(),
+        )
     }
 
     pub fn get_local_mem_size(&self, device: cl_device_id) -> Result<cl_ulong> {
-        Ok(get_kernel_work_group_info(
-            self.kernel,
-            device,
-            KernelWorkGroupInfo::CL_KERNEL_LOCAL_MEM_SIZE,
-        )?
-        .into())
+        Ok(get_kernel_work_group_info(self.kernel, device, CL_KERNEL_LOCAL_MEM_SIZE)?.into())
     }
 
     pub fn get_work_group_size_multiple(&self, device: cl_device_id) -> Result<size_t> {
         Ok(get_kernel_work_group_info(
             self.kernel,
             device,
-            KernelWorkGroupInfo::CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
+            CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
         )?
         .into())
     }
 
     pub fn get_private_mem_size(&self, device: cl_device_id) -> Result<cl_ulong> {
-        Ok(get_kernel_work_group_info(
-            self.kernel,
-            device,
-            KernelWorkGroupInfo::CL_KERNEL_PRIVATE_MEM_SIZE,
-        )?
-        .into())
+        Ok(get_kernel_work_group_info(self.kernel, device, CL_KERNEL_PRIVATE_MEM_SIZE)?.into())
     }
 
     #[cfg(feature = "cl_khr_subgroups")]

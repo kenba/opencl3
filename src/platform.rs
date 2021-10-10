@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+pub use cl3::platform;
+
 // cl_d3d10_device_source_khr
 use super::Result;
 #[allow(unused_imports)]
@@ -32,7 +34,6 @@ use cl3::ffi::cl_dx9_media_sharing::{
     cl_dx9_device_set_intel, cl_dx9_device_source_intel, cl_dx9_media_adapter_set_khr,
     cl_dx9_media_adapter_type_khr,
 };
-use cl3::platform;
 #[allow(unused_imports)]
 use cl3::program;
 #[allow(unused_imports)]
@@ -52,7 +53,9 @@ pub struct Platform {
 
 impl From<cl_platform_id> for Platform {
     fn from(value: cl_platform_id) -> Self {
-        Platform { id: value as intptr_t }
+        Platform {
+            id: value as intptr_t,
+        }
     }
 }
 
@@ -79,7 +82,7 @@ impl Platform {
     /// # Examples
     /// ```
     /// use opencl3::platform::get_platforms;
-    /// use opencl3::device::CL_DEVICE_TYPE_GPU;
+    /// use cl3::device::CL_DEVICE_TYPE_GPU;
     ///
     /// let platforms = get_platforms().unwrap();
     /// assert!(0 < platforms.len());
@@ -160,75 +163,54 @@ impl Platform {
     /// The OpenCL profile supported by the Platform,
     /// it can be FULL_PROFILE or EMBEDDED_PROFILE.  
     pub fn profile(&self) -> Result<String> {
-        Ok(
-            platform::get_platform_info(self.id(), platform::PlatformInfo::CL_PLATFORM_PROFILE)?
-                .into(),
-        )
+        Ok(platform::get_platform_info(self.id(), platform::CL_PLATFORM_PROFILE)?.into())
     }
 
     /// The OpenCL profile version supported by the Platform,
     /// e.g. OpenCL 1.2, OpenCL 2.0, OpenCL 2.1, etc.  
     pub fn version(&self) -> Result<String> {
-        Ok(
-            platform::get_platform_info(self.id(), platform::PlatformInfo::CL_PLATFORM_VERSION)?
-                .into(),
-        )
+        Ok(platform::get_platform_info(self.id(), platform::CL_PLATFORM_VERSION)?.into())
     }
 
     /// The OpenCL Platform name string.  
     pub fn name(&self) -> Result<String> {
-        Ok(
-            platform::get_platform_info(self.id(), platform::PlatformInfo::CL_PLATFORM_NAME)?
-                .into(),
-        )
+        Ok(platform::get_platform_info(self.id(), platform::CL_PLATFORM_NAME)?.into())
     }
 
     /// The OpenCL Platform vendor string.  
     pub fn vendor(&self) -> Result<String> {
-        Ok(
-            platform::get_platform_info(self.id(), platform::PlatformInfo::CL_PLATFORM_VENDOR)?
-                .into(),
-        )
+        Ok(platform::get_platform_info(self.id(), platform::CL_PLATFORM_VENDOR)?.into())
     }
 
     /// A space separated list of extension names supported by the Platform.  
     pub fn extensions(&self) -> Result<String> {
-        Ok(
-            platform::get_platform_info(self.id(), platform::PlatformInfo::CL_PLATFORM_EXTENSIONS)?
-                .into(),
-        )
+        Ok(platform::get_platform_info(self.id(), platform::CL_PLATFORM_EXTENSIONS)?.into())
     }
 
     /// The resolution of the host timer in nanoseconds as used by
     /// clGetDeviceAndHostTimer.  
     /// CL_VERSION_2_1
     pub fn host_timer_resolution(&self) -> Result<cl_ulong> {
-        Ok(platform::get_platform_info(
-            self.id(),
-            platform::PlatformInfo::CL_PLATFORM_HOST_TIMER_RESOLUTION,
-        )?
-        .into())
+        Ok(
+            platform::get_platform_info(self.id(), platform::CL_PLATFORM_HOST_TIMER_RESOLUTION)?
+                .into(),
+        )
     }
 
     /// The detailed (major, minor, patch) version supported by the platform.  
     /// CL_VERSION_3_0
     pub fn numeric_version(&self) -> Result<cl_version> {
-        Ok(platform::get_platform_info(
-            self.id(),
-            platform::PlatformInfo::CL_PLATFORM_NUMERIC_VERSION,
-        )?
-        .into())
+        Ok(platform::get_platform_info(self.id(), platform::CL_PLATFORM_NUMERIC_VERSION)?.into())
     }
 
     /// An array of description (name and version) structures that lists all the
     /// extensions supported by the platform.  
     /// CL_VERSION_3_0
     pub fn extensions_with_version(&self) -> Result<Vec<cl_name_version>> {
-        Ok(platform::get_platform_info(
-            self.id(),
-            platform::PlatformInfo::CL_PLATFORM_EXTENSIONS_WITH_VERSION,
-        )?
-        .into())
+        Ok(
+            platform::get_platform_info(self.id(), platform::CL_PLATFORM_EXTENSIONS_WITH_VERSION)?
+                .into(),
+        )
     }
 
     /// Unload an OpenCL compiler for a platform.

@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+pub use cl3::context;
+
 use super::device::Device;
 #[cfg(feature = "CL_VERSION_1_2")]
 use super::device::SubDevice;
 use super::Result;
 
-use cl3::context;
 #[allow(unused_imports)]
 use cl3::egl;
 #[allow(unused_imports)]
@@ -46,7 +47,7 @@ pub fn get_current_device_for_gl_context_khr(
 ) -> Result<cl_device_id> {
     let device = intptr_t::from(gl::get_gl_context_info_khr(
         properties.as_ptr() as *mut cl_context_properties,
-        gl::GlContextInfo::CL_CURRENT_DEVICE_FOR_GL_CONTEXT_KHR,
+        gl::GlCL_CURRENT_DEVICE_FOR_GL_CONTEXT_KHR,
     )?) as cl_device_id;
     Ok(device)
 }
@@ -63,7 +64,7 @@ pub fn get_devices_for_gl_context_khr(
 ) -> Result<Vec<cl_device_id>> {
     let dev_ptrs: Vec<intptr_t> = gl::get_gl_context_info_khr(
         properties.as_ptr() as *mut cl_context_properties,
-        gl::GlContextInfo::CL_DEVICES_FOR_GL_CONTEXT_KHR,
+        gl::GlCL_DEVICES_FOR_GL_CONTEXT_KHR,
     )?
     .into();
     let devices = dev_ptrs
@@ -194,7 +195,7 @@ impl Context {
         let context =
             context::create_context_from_type(device_type, properties_ptr, pfn_notify, user_data)?;
         let dev_ptrs: Vec<intptr_t> =
-            context::get_context_info(context, context::ContextInfo::CL_CONTEXT_DEVICES)?.into();
+            context::get_context_info(context, context::CL_CONTEXT_DEVICES)?.into();
         let devices = dev_ptrs
             .iter()
             .map(|ptr| *ptr as cl_device_id)
@@ -280,18 +281,11 @@ impl Context {
     }
 
     pub fn reference_count(&self) -> Result<cl_uint> {
-        Ok(context::get_context_info(
-            self.context,
-            context::ContextInfo::CL_CONTEXT_REFERENCE_COUNT,
-        )?
-        .into())
+        Ok(context::get_context_info(self.context, context::CL_CONTEXT_REFERENCE_COUNT)?.into())
     }
 
     pub fn properties(&self) -> Result<Vec<intptr_t>> {
-        Ok(
-            context::get_context_info(self.context, context::ContextInfo::CL_CONTEXT_PROPERTIES)?
-                .into(),
-        )
+        Ok(context::get_context_info(self.context, context::CL_CONTEXT_PROPERTIES)?.into())
     }
 
     #[cfg(feature = "cl_khr_terminate_context")]

@@ -425,54 +425,51 @@ impl Program {
     }
 
     pub fn get_reference_count(&self) -> Result<cl_uint> {
-        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_REFERENCE_COUNT)?.into())
+        Ok(get_program_info(self.program, CL_PROGRAM_REFERENCE_COUNT)?.into())
     }
 
     pub fn get_context(&self) -> Result<cl_context> {
-        Ok(intptr_t::from(get_program_info(
-            self.program,
-            ProgramInfo::CL_PROGRAM_CONTEXT,
-        )?) as cl_context)
+        Ok(intptr_t::from(get_program_info(self.program, CL_PROGRAM_CONTEXT)?) as cl_context)
     }
 
     pub fn get_num_devices(&self) -> Result<cl_uint> {
-        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_NUM_DEVICES)?.into())
+        Ok(get_program_info(self.program, CL_PROGRAM_NUM_DEVICES)?.into())
     }
 
     pub fn get_devices(&self) -> Result<Vec<intptr_t>> {
-        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_DEVICES)?.into())
+        Ok(get_program_info(self.program, CL_PROGRAM_DEVICES)?.into())
     }
 
     pub fn get_source(&self) -> Result<String> {
-        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_SOURCE)?.into())
+        Ok(get_program_info(self.program, CL_PROGRAM_SOURCE)?.into())
     }
 
     pub fn get_binary_sizes(&self) -> Result<Vec<size_t>> {
-        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_BINARY_SIZES)?.into())
+        Ok(get_program_info(self.program, CL_PROGRAM_BINARY_SIZES)?.into())
     }
 
     pub fn get_binaries(&self) -> Result<Vec<Vec<cl_uchar>>> {
-        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_BINARIES)?.into())
+        Ok(get_program_info(self.program, CL_PROGRAM_BINARIES)?.into())
     }
 
     pub fn get_num_kernels(&self) -> Result<size_t> {
-        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_NUM_KERNELS)?.into())
+        Ok(get_program_info(self.program, CL_PROGRAM_NUM_KERNELS)?.into())
     }
 
     pub fn get_kernel_names(&self) -> Result<String> {
-        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_KERNEL_NAMES)?.into())
+        Ok(get_program_info(self.program, CL_PROGRAM_KERNEL_NAMES)?.into())
     }
 
     /// CL_VERSION_2_1
     pub fn get_program_il(&self) -> Result<String> {
-        Ok(get_program_info(self.program, ProgramInfo::CL_PROGRAM_IL)?.into())
+        Ok(get_program_info(self.program, CL_PROGRAM_IL)?.into())
     }
 
     /// CL_VERSION_2_2
     pub fn get_program_scope_global_ctors_present(&self) -> Result<bool> {
         Ok(cl_uint::from(get_program_info(
             self.program,
-            ProgramInfo::CL_PROGRAM_SCOPE_GLOBAL_CTORS_PRESENT,
+            CL_PROGRAM_SCOPE_GLOBAL_CTORS_PRESENT,
         )?) != CL_FALSE)
     }
 
@@ -480,42 +477,24 @@ impl Program {
     pub fn get_program_scope_global_dtors_present(&self) -> Result<bool> {
         Ok(cl_uint::from(get_program_info(
             self.program,
-            ProgramInfo::CL_PROGRAM_SCOPE_GLOBAL_DTORS_PRESENT,
+            CL_PROGRAM_SCOPE_GLOBAL_DTORS_PRESENT,
         )?) != CL_FALSE)
     }
 
     pub fn get_build_status(&self, device: cl_device_id) -> Result<cl_int> {
-        Ok(get_program_build_info(
-            self.program,
-            device,
-            ProgramBuildInfo::CL_PROGRAM_BUILD_STATUS,
-        )?
-        .into())
+        Ok(get_program_build_info(self.program, device, CL_PROGRAM_BUILD_STATUS)?.into())
     }
 
     pub fn get_build_options(&self, device: cl_device_id) -> Result<String> {
-        Ok(get_program_build_info(
-            self.program,
-            device,
-            ProgramBuildInfo::CL_PROGRAM_BUILD_OPTIONS,
-        )?
-        .into())
+        Ok(get_program_build_info(self.program, device, CL_PROGRAM_BUILD_OPTIONS)?.into())
     }
 
     pub fn get_build_log(&self, device: cl_device_id) -> Result<String> {
-        Ok(
-            get_program_build_info(self.program, device, ProgramBuildInfo::CL_PROGRAM_BUILD_LOG)?
-                .into(),
-        )
+        Ok(get_program_build_info(self.program, device, CL_PROGRAM_BUILD_LOG)?.into())
     }
 
     pub fn get_build_binary_type(&self, device: cl_device_id) -> Result<cl_uint> {
-        Ok(get_program_build_info(
-            self.program,
-            device,
-            ProgramBuildInfo::CL_PROGRAM_BINARY_TYPE,
-        )?
-        .into())
+        Ok(get_program_build_info(self.program, device, CL_PROGRAM_BINARY_TYPE)?.into())
     }
 
     /// CL_VERSION_2_0
@@ -523,7 +502,7 @@ impl Program {
         Ok(get_program_build_info(
             self.program,
             device,
-            ProgramBuildInfo::CL_PROGRAM_BUILD_GLOBAL_VARIABLE_TOTAL_SIZE,
+            CL_PROGRAM_BUILD_GLOBAL_VARIABLE_TOTAL_SIZE,
         )?
         .into())
     }
