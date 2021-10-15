@@ -339,6 +339,7 @@ mod tests {
     use crate::device::Device;
     use crate::platform::get_platforms;
     use cl3::device::CL_DEVICE_TYPE_GPU;
+    use cl3::info_type::InfoType;
     use cl3::memory::{CL_MEM_OBJECT_IMAGE2D, CL_MEM_READ_WRITE};
 
     #[test]
@@ -362,10 +363,12 @@ mod tests {
         );
 
         println!(
-            "clGetSupportedImageFormats: {:?}",
-            context
-                .get_supported_image_formats(CL_MEM_READ_WRITE, CL_MEM_OBJECT_IMAGE2D)
-                .unwrap()
+            "clGetSupportedImageFormats:\norder: data_type {}",
+            InfoType::VecImageFormat(
+                context
+                    .get_supported_image_formats(CL_MEM_READ_WRITE, CL_MEM_OBJECT_IMAGE2D)
+                    .unwrap()
+            )
         );
 
         println!(

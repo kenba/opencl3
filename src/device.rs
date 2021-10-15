@@ -663,22 +663,22 @@ impl Device {
     }
 
     /// CL_VERSION_3_0
-    pub fn uuid_khr(&self) -> Result<Vec<u8>> {
+    pub fn uuid_khr(&self) -> Result<[u8; CL_UUID_SIZE_KHR]> {
         Ok(get_device_info(self.id(), CL_DEVICE_UUID_KHR)?.into())
     }
 
     /// CL_VERSION_3_0
-    pub fn driver_uuid_khr(&self) -> Result<Vec<u8>> {
+    pub fn driver_uuid_khr(&self) -> Result<[u8; CL_UUID_SIZE_KHR]> {
         Ok(get_device_info(self.id(), CL_DRIVER_UUID_KHR)?.into())
     }
 
     /// CL_VERSION_3_0
-    pub fn luid_valid_khr(&self) -> Result<cl_uint> {
-        Ok(get_device_info(self.id(), CL_DEVICE_LUID_VALID_KHR)?.into())
+    pub fn luid_valid_khr(&self) -> Result<bool> {
+        Ok(cl_uint::from(get_device_info(self.id(), CL_DEVICE_LUID_VALID_KHR)?) != CL_FALSE)
     }
 
     /// CL_VERSION_3_0
-    pub fn luid_khr(&self) -> Result<Vec<u8>> {
+    pub fn luid_khr(&self) -> Result<[u8; CL_LUID_SIZE_KHR]> {
         Ok(get_device_info(self.id(), CL_DEVICE_LUID_KHR)?.into())
     }
 
@@ -937,6 +937,7 @@ impl Device {
 mod tests {
     use super::*;
     use crate::platform::get_platforms;
+    use cl3::info_type::InfoType;
     #[cfg(feature = "CL_VERSION_1_2")]
     use std::ptr;
 
@@ -1535,7 +1536,10 @@ mod tests {
 
         match device.extensions_with_version() {
             Ok(value) => {
-                println!("CL_DEVICE_EXTENSIONS_WITH_VERSION: {:?}", value)
+                println!(
+                    "CL_DEVICE_EXTENSIONS_WITH_VERSION: {}",
+                    InfoType::VecNameVersion(value)
+                )
             }
             Err(e) => println!(
                 "OpenCL error, CL_DEVICE_EXTENSIONS_WITH_VERSION: {:?}, {}",
@@ -1545,14 +1549,20 @@ mod tests {
 
         match device.ils_with_version() {
             Ok(value) => {
-                println!("CL_DEVICE_ILS_WITH_VERSION: {:?}", value)
+                println!(
+                    "CL_DEVICE_ILS_WITH_VERSION: {}",
+                    InfoType::VecNameVersion(value)
+                )
             }
             Err(e) => println!("OpenCL error, CL_DEVICE_ILS_WITH_VERSION: {:?}, {}", e, e),
         };
 
         match device.built_in_kernels_with_version() {
             Ok(value) => {
-                println!("CL_DEVICE_BUILT_IN_KERNELS_WITH_VERSION: {:?}", value)
+                println!(
+                    "CL_DEVICE_BUILT_IN_KERNELS_WITH_VERSION: {}",
+                    InfoType::VecNameVersion(value)
+                )
             }
             Err(e) => println!(
                 "OpenCL error, CL_DEVICE_BUILT_IN_KERNELS_WITH_VERSION: {:?}, {}",
@@ -1592,7 +1602,10 @@ mod tests {
 
         match device.opencl_c_all_versions() {
             Ok(value) => {
-                println!("CL_DEVICE_OPENCL_C_ALL_VERSIONS: {:?}", value)
+                println!(
+                    "CL_DEVICE_OPENCL_C_ALL_VERSIONS: {}",
+                    InfoType::VecNameVersion(value)
+                )
             }
             Err(e) => println!(
                 "OpenCL error, CL_DEVICE_OPENCL_C_ALL_VERSIONS: {:?}, {}",
@@ -1635,14 +1648,14 @@ mod tests {
 
         match device.uuid_khr() {
             Ok(value) => {
-                println!("CL_DEVICE_UUID_KHR: {:?}", value)
+                println!("CL_DEVICE_UUID_KHR: {}", InfoType::Uuid(value))
             }
             Err(e) => println!("OpenCL error, CL_DEVICE_UUID_KHR: {:?}, {}", e, e),
         };
 
         match device.driver_uuid_khr() {
             Ok(value) => {
-                println!("CL_DRIVER_UUID_KHR: {:?}", value)
+                println!("CL_DRIVER_UUID_KHR: {}", InfoType::Uuid(value))
             }
             Err(e) => println!("OpenCL error, CL_DRIVER_UUID_KHR: {:?}, {}", e, e),
         };
@@ -1656,7 +1669,7 @@ mod tests {
 
         match device.luid_khr() {
             Ok(value) => {
-                println!("CL_DEVICE_LUID_KHR: {:?}", value)
+                println!("CL_DEVICE_LUID_KHR: {}", InfoType::Luid(value))
             }
             Err(e) => println!("OpenCL error, CL_DEVICE_LUID_KHR: {:?}, {}", e, e),
         };
@@ -1670,7 +1683,10 @@ mod tests {
 
         match device.opencl_c_features() {
             Ok(value) => {
-                println!("CL_DEVICE_OPENCL_C_FEATURES: {:?}", value)
+                println!(
+                    "CL_DEVICE_OPENCL_C_FEATURES: {}",
+                    InfoType::VecNameVersion(value)
+                )
             }
             Err(e) => println!("OpenCL error, CL_DEVICE_OPENCL_C_FEATURES: {:?}, {}", e, e),
         };
