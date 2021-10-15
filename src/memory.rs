@@ -46,7 +46,7 @@ use cl3::sampler;
 use cl3::types::{
     cl_addressing_mode, cl_bool, cl_buffer_create_type, cl_buffer_region, cl_context,
     cl_filter_mode, cl_image_desc, cl_image_format, cl_image_info, cl_int, cl_mem, cl_mem_flags,
-    cl_mem_info, cl_mem_object_type, cl_mem_properties, cl_sampler, cl_sampler_info,
+    cl_mem_info, cl_mem_object_type, cl_mem_properties, cl_pipe_info, cl_sampler, cl_sampler_info,
     cl_sampler_properties, cl_uint, cl_ulong, CL_FALSE,
 };
 use libc::{c_void, intptr_t, size_t};
@@ -671,17 +671,22 @@ impl Image {
 
     ///  Get information about the GL texture target associated with a memory object.
     pub fn gl_texture_target(&self) -> Result<cl_uint> {
-        Ok(gl::get_gl_texture_info(self.image, gl::TextureInfo::CL_GL_TEXTURE_TARGET)?.into())
+        Ok(gl::get_gl_texture_info(self.image, gl::CL_GL_TEXTURE_TARGET)?.into())
     }
 
     /// Get information about the GL mipmap level associated with a memory object.
     pub fn gl_mipmap_level(&self) -> Result<cl_int> {
-        Ok(gl::get_gl_texture_info(self.image, gl::TextureInfo::CL_GL_MIPMAP_LEVEL)?.into())
+        Ok(gl::get_gl_texture_info(self.image, gl::CL_GL_MIPMAP_LEVEL)?.into())
     }
 
     ///  Get information about the GL number of samples associated with a memory object.
     pub fn gl_num_samples(&self) -> Result<cl_int> {
-        Ok(gl::get_gl_texture_info(self.image, gl::TextureInfo::CL_GL_NUM_SAMPLES)?.into())
+        Ok(gl::get_gl_texture_info(self.image, gl::CL_GL_NUM_SAMPLES)?.into())
+    }
+
+    ///  Get GL texture information associated with a memory object.
+    pub fn get_gl_texture_data(&self, param_name: gl::cl_gl_texture_info) -> Result<Vec<u8>> {
+        Ok(gl::get_gl_texture_data(self.image, param_name)?)
     }
 }
 
@@ -788,6 +793,14 @@ pub struct Pipe {
     pipe: cl_mem,
 }
 
+#[cfg(feature = "CL_VERSION_2_0")]
+impl From<cl_mem> for Pipe {
+    fn from(pipe: cl_mem) -> Self {
+        Pipe { pipe }
+    }
+}
+
+#[cfg(feature = "CL_VERSION_2_0")]
 impl From<Pipe> for cl_mem {
     fn from(value: Pipe) -> Self {
         value.pipe as cl_mem
@@ -838,6 +851,12 @@ impl Pipe {
 
     pub fn pipe_properties(&self) -> Result<Vec<intptr_t>> {
         Ok(memory::get_pipe_info(self.get(), CL_PIPE_PROPERTIES)?.into())
+    }
+
+    /// Get data about an OpenCL pipe object.  
+    /// Calls clGetPipeInfo to get the desired information about the pipe object.
+    pub fn get_data(&self, param_name: cl_pipe_info) -> Result<Vec<u8>> {
+        Ok(memory::get_pipe_data(self.get(), param_name)?)
     }
 }
 
