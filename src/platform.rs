@@ -38,7 +38,8 @@ use cl3::ffi::cl_dx9_media_sharing::{
 use cl3::program;
 #[allow(unused_imports)]
 use cl3::types::{
-    cl_device_id, cl_device_type, cl_name_version, cl_platform_id, cl_uint, cl_ulong, cl_version,
+    cl_device_id, cl_device_type, cl_name_version, cl_platform_id, cl_platform_info, cl_uint,
+    cl_ulong, cl_version,
 };
 #[allow(unused_imports)]
 use libc::{c_void, intptr_t};
@@ -211,6 +212,12 @@ impl Platform {
             platform::get_platform_info(self.id(), platform::CL_PLATFORM_EXTENSIONS_WITH_VERSION)?
                 .into(),
         )
+    }
+
+    /// Get data about an OpenCL platform.
+    /// Calls clGetPlatformInfo to get the desired data about the platform.
+    pub fn get_data(&self, param_name: cl_platform_info) -> Result<Vec<u8>> {
+        Ok(platform::get_platform_data(self.id(), param_name)?)
     }
 
     /// Unload an OpenCL compiler for a platform.

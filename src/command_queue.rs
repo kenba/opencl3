@@ -38,9 +38,9 @@ use cl3::ffi::cl_ext::cl_queue_properties_khr;
 use cl3::gl;
 #[allow(unused_imports)]
 use cl3::types::{
-    cl_bool, cl_command_queue, cl_command_queue_properties, cl_context, cl_device_id, cl_event,
-    cl_kernel, cl_map_flags, cl_mem, cl_mem_migration_flags, cl_queue_properties, cl_uint,
-    cl_ulong,
+    cl_bool, cl_command_queue, cl_command_queue_info, cl_command_queue_properties, cl_context,
+    cl_device_id, cl_event, cl_kernel, cl_map_flags, cl_mem, cl_mem_migration_flags,
+    cl_queue_properties, cl_uint, cl_ulong,
 };
 use libc::{c_void, size_t};
 use std::mem;
@@ -1268,6 +1268,12 @@ impl CommandQueue {
     /// CL_VERSION_3_0
     pub fn properties_array(&self) -> Result<Vec<cl_ulong>> {
         Ok(get_command_queue_info(self.queue, CL_QUEUE_PROPERTIES_ARRAY)?.into())
+    }
+
+    /// Get data about an OpenCL command-queue.
+    /// Calls clGetCommandQueueInfo to get the desired data about the command-queue.
+    pub fn get_data(&self, param_name: cl_command_queue_info) -> Result<Vec<u8>> {
+        Ok(get_command_queue_data(self.queue, param_name)?)
     }
 }
 

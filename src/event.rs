@@ -15,7 +15,10 @@
 pub use cl3::event::*;
 
 use super::Result;
-use cl3::types::{cl_command_queue, cl_context, cl_event, cl_int, cl_uint, cl_ulong};
+use cl3::types::{
+    cl_command_queue, cl_context, cl_event, cl_event_info, cl_int, cl_profiling_info, cl_uint,
+    cl_ulong,
+};
 use libc::c_void;
 
 /// An OpenCL event object.  
@@ -92,6 +95,12 @@ impl Event {
         Ok(isize::from(get_event_info(self.event, CL_EVENT_CONTEXT)?) as cl_context)
     }
 
+    /// Get data about an OpenCL event.
+    /// Calls clGetEventInfo to get the desired data about the event.
+    pub fn get_data(&self, param_name: cl_event_info) -> Result<Vec<u8>> {
+        Ok(get_event_data(self.event, param_name)?)
+    }
+
     pub fn set_callback(
         &self,
         command_exec_callback_type: cl_int,
@@ -125,6 +134,12 @@ impl Event {
     /// CL_VERSION_2_0
     pub fn profiling_command_complete(&self) -> Result<cl_ulong> {
         Ok(get_event_profiling_info(self.event, CL_PROFILING_COMMAND_COMPLETE)?.into())
+    }
+
+    /// Get profiling data about an OpenCL event.
+    /// Calls clGetEventProfilingInfo to get the desired profiling data about the event.
+    pub fn profiling_data(&self, param_name: cl_profiling_info) -> Result<Vec<u8>> {
+        Ok(get_event_profiling_data(self.event, param_name)?)
     }
 }
 

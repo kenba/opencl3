@@ -44,8 +44,9 @@ use super::platform::get_platforms;
 use super::Result;
 #[allow(unused_imports)]
 use cl3::types::{
-    cl_device_fp_config, cl_device_id, cl_device_partition_property, cl_device_svm_capabilities,
-    cl_device_type, cl_name_version, cl_platform_id, cl_uint, cl_ulong, CL_FALSE,
+    cl_device_fp_config, cl_device_id, cl_device_info, cl_device_partition_property,
+    cl_device_svm_capabilities, cl_device_type, cl_name_version, cl_platform_id, cl_uint, cl_ulong,
+    CL_FALSE,
 };
 use libc::{intptr_t, size_t};
 
@@ -890,6 +891,12 @@ impl Device {
         &self,
     ) -> Result<cl_device_feature_capabilities_intel> {
         Ok(get_device_info(self.id(), CL_DEVICE_FEATURE_CAPABILITIES_INTEL)?.into())
+    }
+
+    /// Get data about an OpenCL device.
+    /// Calls clGetDeviceInfo to get the desired data about the device.
+    pub fn get_data(&self, param_name: cl_device_info) -> Result<Vec<u8>> {
+        Ok(get_device_data(self.id(), param_name)?)
     }
 
     /// Determine if the device supports the given half floating point capability.  

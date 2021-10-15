@@ -29,8 +29,8 @@ use cl3::ffi::cl_ext::cl_import_properties_arm;
 use cl3::gl;
 #[allow(unused_imports)]
 use cl3::types::{
-    cl_context, cl_context_properties, cl_device_id, cl_device_svm_capabilities, cl_device_type,
-    cl_event, cl_image_format, cl_mem, cl_mem_flags, cl_mem_object_type, cl_uint,
+    cl_context, cl_context_info, cl_context_properties, cl_device_id, cl_device_svm_capabilities,
+    cl_device_type, cl_event, cl_image_format, cl_mem, cl_mem_flags, cl_mem_object_type, cl_uint,
 };
 use libc::{c_char, c_void, intptr_t, size_t};
 use std::ptr;
@@ -286,6 +286,12 @@ impl Context {
 
     pub fn properties(&self) -> Result<Vec<intptr_t>> {
         Ok(context::get_context_info(self.context, context::CL_CONTEXT_PROPERTIES)?.into())
+    }
+
+    /// Get data about an OpenCL context.
+    /// Calls clGetContextInfo to get the desired data about the context.
+    pub fn get_data(&self, param_name: cl_context_info) -> Result<Vec<u8>> {
+        Ok(context::get_context_data(self.context, param_name)?)
     }
 
     #[cfg(feature = "cl_khr_terminate_context")]

@@ -45,9 +45,9 @@ use cl3::sampler;
 #[allow(unused_imports)]
 use cl3::types::{
     cl_addressing_mode, cl_bool, cl_buffer_create_type, cl_buffer_region, cl_context,
-    cl_filter_mode, cl_image_desc, cl_image_format, cl_int, cl_mem, cl_mem_flags,
-    cl_mem_object_type, cl_mem_properties, cl_sampler, cl_sampler_properties, cl_uint, cl_ulong,
-    CL_FALSE,
+    cl_filter_mode, cl_image_desc, cl_image_format, cl_image_info, cl_int, cl_mem, cl_mem_flags,
+    cl_mem_info, cl_mem_object_type, cl_mem_properties, cl_sampler, cl_sampler_info,
+    cl_sampler_properties, cl_uint, cl_ulong, CL_FALSE,
 };
 use libc::{c_void, intptr_t, size_t};
 use std::mem;
@@ -103,6 +103,12 @@ pub trait ClMem {
     /// CL_VERSION_3_0
     fn properties(&self) -> Result<Vec<cl_ulong>> {
         Ok(memory::get_mem_object_info(self.get(), CL_MEM_PROPERTIES)?.into())
+    }
+
+    /// Get memory data about an OpenCL memory object.
+    /// Calls clGetMemObjectInfo to get the desired data about the memory object.
+    fn get_mem_data(&self, param_name: cl_mem_info) -> Result<Vec<u8>> {
+        Ok(get_mem_object_data(self.get(), param_name)?)
     }
 
     /// Query an OpenGL object used to create an OpenCL memory object.  
@@ -657,6 +663,12 @@ impl Image {
         Ok(memory::get_image_info(self.image, CL_IMAGE_NUM_SAMPLES)?.into())
     }
 
+    /// Get data about an OpenCL image object.
+    /// Calls clGetImageInfo to get the desired data about the image object.
+    pub fn get_data(&self, param_name: cl_image_info) -> Result<Vec<u8>> {
+        Ok(get_image_data(self.image, param_name)?)
+    }
+
     ///  Get information about the GL texture target associated with a memory object.
     pub fn gl_texture_target(&self) -> Result<cl_uint> {
         Ok(gl::get_gl_texture_info(self.image, gl::TextureInfo::CL_GL_TEXTURE_TARGET)?.into())
@@ -757,6 +769,12 @@ impl Sampler {
 
     pub fn sampler_properties(&self) -> Result<Vec<intptr_t>> {
         Ok(sampler::get_sampler_info(self.get(), sampler::CL_SAMPLER_PROPERTIES)?.into())
+    }
+
+    /// Get data about an OpenCL sampler object.
+    /// Calls clGetDeviceInfo to get the desired data about the sampler object.
+    pub fn get_data(&self, param_name: cl_sampler_info) -> Result<Vec<u8>> {
+        Ok(sampler::get_sampler_data(self.get(), param_name)?)
     }
 }
 

@@ -23,8 +23,8 @@ use super::Result;
 use cl3::ext;
 #[allow(unused_imports)]
 use cl3::types::{
-    cl_context, cl_device_id, cl_event, cl_kernel, cl_kernel_exec_info, cl_program, cl_uint,
-    cl_ulong,
+    cl_context, cl_device_id, cl_event, cl_kernel, cl_kernel_arg_access_qualifier,
+    cl_kernel_exec_info, cl_kernel_info, cl_kernel_work_group_info, cl_program, cl_uint, cl_ulong,
 };
 use libc::{c_void, size_t};
 use std::ffi::CString;
@@ -177,6 +177,12 @@ impl Kernel {
         Ok(get_kernel_info(self.kernel, CL_KERNEL_ATTRIBUTES)?.into())
     }
 
+    /// Get data about an OpenCL kernel.
+    /// Calls clGetKernelInfo to get the desired data about the kernel.
+    pub fn get_data(&self, param_name: cl_kernel_info) -> Result<Vec<u8>> {
+        Ok(get_kernel_data(self.kernel, param_name)?)
+    }
+
     #[cfg(feature = "CL_VERSION_1_2")]
     pub fn get_arg_address_qualifier(&self, arg_indx: cl_uint) -> Result<cl_uint> {
         Ok(get_kernel_arg_info(self.kernel, arg_indx, CL_KERNEL_ARG_ADDRESS_QUALIFIER)?.into())
@@ -200,6 +206,17 @@ impl Kernel {
     #[cfg(feature = "CL_VERSION_1_2")]
     pub fn get_arg_name(&self, arg_indx: cl_uint) -> Result<String> {
         Ok(get_kernel_arg_info(self.kernel, arg_indx, CL_KERNEL_ARG_NAME)?.into())
+    }
+
+    /// Get data about arguments of an OpenCL kernel.
+    /// Calls clGetKernelArgInfo to get the desired data about arguments of the kernel.
+    #[cfg(feature = "CL_VERSION_1_2")]
+    pub fn get_arg_data(
+        &self,
+        arg_indx: cl_uint,
+        param_name: cl_kernel_arg_access_qualifier,
+    ) -> Result<Vec<u8>> {
+        Ok(get_kernel_arg_data(self.kernel, arg_indx, param_name)?)
     }
 
     pub fn get_work_group_size(&self, device: cl_device_id) -> Result<size_t> {
@@ -228,6 +245,16 @@ impl Kernel {
 
     pub fn get_private_mem_size(&self, device: cl_device_id) -> Result<cl_ulong> {
         Ok(get_kernel_work_group_info(self.kernel, device, CL_KERNEL_PRIVATE_MEM_SIZE)?.into())
+    }
+
+    /// Get data about work groups of an OpenCL kernel.
+    /// Calls clGetKernelArgInfo to get the desired data about work groups of the kernel.
+    pub fn get_work_group_data(
+        &self,
+        device: cl_device_id,
+        param_name: cl_kernel_work_group_info,
+    ) -> Result<Vec<u8>> {
+        Ok(get_kernel_work_group_data(self.kernel, device, param_name)?)
     }
 
     #[cfg(feature = "cl_khr_subgroups")]
