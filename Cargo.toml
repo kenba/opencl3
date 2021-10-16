@@ -1,6 +1,6 @@
 [package]
 name = "opencl3"
-version = "0.5.3"
+version = "0.6.0"
 authors = ["Ken Barker <ken.barker@via-technology.aero>"]
 description = "A Rust implementation of the Khronos OpenCL 3.0 API and extensions."
 documentation = "https://docs.rs/opencl3/"

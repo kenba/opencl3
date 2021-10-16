@@ -1,5 +1,13 @@
 # Releases
 
+## Version 0.6.0 (2021-10-16)
+
+### Breaking Changes
+
+* Issue [#41](https://github.com/kenba/opencl3/issues/41) Remove cl3 Info enums to support new OpenCL versions and extensions.
+* Add UUID and LUID types. See cl3 Issue [#13](https://github.com/kenba/cl3/issues/13) Remove Info enums to support new OpenCL versions and extensions.
+* Remove example from README.md.
+
 ## Version 0.5.3 (2021-10-10)
 
 ### New Features
