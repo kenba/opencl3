@@ -1,5 +1,11 @@
 # Releases
 
+## Version 0.6.1 (2021-11-12)
+
+### New Features
+
+* Issue [#43](https://github.com/kenba/opencl3/issues/43) Update for new OpenCL extensions: `cl_khr_external_memory`, `cl_khr_external_semaphore` and `cl_khr_semaphore`.
+
 ## Version 0.6.0 (2021-10-16)
 
 ### Breaking Changes
