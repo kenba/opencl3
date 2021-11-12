@@ -214,6 +214,38 @@ impl Platform {
         )
     }
 
+    /// cl_khr_external_memory
+    pub fn platform_external_memory_import_handle_types_khr(&self) -> Result<Vec<cl_name_version>> {
+        Ok(platform::get_platform_info(
+            self.id(),
+            ext::CL_PLATFORM_EXTERNAL_MEMORY_IMPORT_HANDLE_TYPES_KHR,
+        )?
+        .into())
+    }
+
+    /// cl_khr_external_semaphore
+    pub fn platform_semaphore_import_handle_types_khr(&self) -> Result<Vec<cl_name_version>> {
+        Ok(platform::get_platform_info(
+            self.id(),
+            ext::CL_PLATFORM_SEMAPHORE_IMPORT_HANDLE_TYPES_KHR,
+        )?
+        .into())
+    }
+
+    /// cl_khr_external_semaphore
+    pub fn platform_semaphore_export_handle_types_khr(&self) -> Result<Vec<cl_name_version>> {
+        Ok(platform::get_platform_info(
+            self.id(),
+            ext::CL_PLATFORM_SEMAPHORE_EXPORT_HANDLE_TYPES_KHR,
+        )?
+        .into())
+    }
+
+    /// cl_khr_semaphore
+    pub fn platform_semaphore_types_khr(&self) -> Result<Vec<cl_name_version>> {
+        Ok(platform::get_platform_info(self.id(), ext::CL_PLATFORM_SEMAPHORE_TYPES_KHR)?.into())
+    }
+
     /// Get data about an OpenCL platform.
     /// Calls clGetPlatformInfo to get the desired data about the platform.
     pub fn get_data(&self, param_name: cl_platform_info) -> Result<Vec<u8>> {

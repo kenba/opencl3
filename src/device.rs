@@ -19,10 +19,10 @@ pub use cl3::ffi::cl_ext::{
     CL_DEVICE_INTEGER_DOT_PRODUCT_ACCELERATION_PROPERTIES_4x8BIT_PACKED_KHR,
     CL_DEVICE_AVAILABLE_ASYNC_QUEUES_AMD, CL_DEVICE_BOARD_NAME_AMD,
     CL_DEVICE_COMPUTE_CAPABILITY_MAJOR_NV, CL_DEVICE_COMPUTE_CAPABILITY_MINOR_NV,
-    CL_DEVICE_FEATURE_CAPABILITIES_INTEL, CL_DEVICE_GFXIP_MAJOR_AMD, CL_DEVICE_GFXIP_MINOR_AMD,
-    CL_DEVICE_GLOBAL_FREE_MEMORY_AMD, CL_DEVICE_GLOBAL_MEM_CHANNELS_AMD,
-    CL_DEVICE_GLOBAL_MEM_CHANNEL_BANKS_AMD, CL_DEVICE_GLOBAL_MEM_CHANNEL_BANK_WIDTH_AMD,
-    CL_DEVICE_GPU_OVERLAP_NV, CL_DEVICE_ID_INTEL,
+    CL_DEVICE_EXTERNAL_MEMORY_IMPORT_HANDLE_TYPES_KHR, CL_DEVICE_FEATURE_CAPABILITIES_INTEL,
+    CL_DEVICE_GFXIP_MAJOR_AMD, CL_DEVICE_GFXIP_MINOR_AMD, CL_DEVICE_GLOBAL_FREE_MEMORY_AMD,
+    CL_DEVICE_GLOBAL_MEM_CHANNELS_AMD, CL_DEVICE_GLOBAL_MEM_CHANNEL_BANKS_AMD,
+    CL_DEVICE_GLOBAL_MEM_CHANNEL_BANK_WIDTH_AMD, CL_DEVICE_GPU_OVERLAP_NV, CL_DEVICE_ID_INTEL,
     CL_DEVICE_INTEGER_DOT_PRODUCT_ACCELERATION_PROPERTIES_8BIT_KHR,
     CL_DEVICE_INTEGER_DOT_PRODUCT_CAPABILITIES_KHR, CL_DEVICE_INTEGRATED_MEMORY_NV,
     CL_DEVICE_IP_VERSION_INTEL, CL_DEVICE_KERNEL_EXEC_TIMEOUT_NV, CL_DEVICE_LOCAL_MEM_BANKS_AMD,
@@ -33,15 +33,18 @@ pub use cl3::ffi::cl_ext::{
     CL_DEVICE_PCIE_ID_AMD, CL_DEVICE_PCI_BUS_ID_NV, CL_DEVICE_PCI_BUS_INFO_KHR,
     CL_DEVICE_PCI_SLOT_ID_NV, CL_DEVICE_PREFERRED_CONSTANT_BUFFER_SIZE_AMD,
     CL_DEVICE_PREFERRED_WORK_GROUP_SIZE_AMD, CL_DEVICE_PROFILING_TIMER_OFFSET_AMD,
-    CL_DEVICE_REGISTERS_PER_BLOCK_NV, CL_DEVICE_SIMD_INSTRUCTION_WIDTH_AMD,
-    CL_DEVICE_SIMD_PER_COMPUTE_UNIT_AMD, CL_DEVICE_SIMD_WIDTH_AMD,
-    CL_DEVICE_THREAD_TRACE_SUPPORTED_AMD, CL_DEVICE_TOPOLOGY_AMD, CL_DEVICE_UUID_KHR,
-    CL_DEVICE_WARP_SIZE_NV, CL_DEVICE_WAVEFRONT_WIDTH_AMD, CL_DRIVER_UUID_KHR, CL_LUID_SIZE_KHR,
-    CL_UUID_SIZE_KHR,
+    CL_DEVICE_REGISTERS_PER_BLOCK_NV, CL_DEVICE_SEMAPHORE_EXPORT_HANDLE_TYPES_KHR,
+    CL_DEVICE_SEMAPHORE_IMPORT_HANDLE_TYPES_KHR, CL_DEVICE_SEMAPHORE_TYPES_KHR,
+    CL_DEVICE_SIMD_INSTRUCTION_WIDTH_AMD, CL_DEVICE_SIMD_PER_COMPUTE_UNIT_AMD,
+    CL_DEVICE_SIMD_WIDTH_AMD, CL_DEVICE_THREAD_TRACE_SUPPORTED_AMD, CL_DEVICE_TOPOLOGY_AMD,
+    CL_DEVICE_UUID_KHR, CL_DEVICE_WARP_SIZE_NV, CL_DEVICE_WAVEFRONT_WIDTH_AMD, CL_DRIVER_UUID_KHR,
+    CL_LUID_SIZE_KHR, CL_UUID_SIZE_KHR,
 };
 
 use super::platform::get_platforms;
 use super::Result;
+#[allow(unused_imports)]
+use cl3::ext;
 #[allow(unused_imports)]
 use cl3::types::{
     cl_device_fp_config, cl_device_id, cl_device_info, cl_device_partition_property,
@@ -893,6 +896,22 @@ impl Device {
         Ok(get_device_info(self.id(), CL_DEVICE_FEATURE_CAPABILITIES_INTEL)?.into())
     }
 
+    pub fn device_external_memory_import_handle_types_khr(&self) -> Result<Vec<u32>> {
+        Ok(get_device_info(self.id(), CL_DEVICE_EXTERNAL_MEMORY_IMPORT_HANDLE_TYPES_KHR)?.into())
+    }
+
+    pub fn device_semaphore_import_handle_types_khr(&self) -> Result<Vec<u32>> {
+        Ok(get_device_info(self.id(), CL_DEVICE_SEMAPHORE_IMPORT_HANDLE_TYPES_KHR)?.into())
+    }
+
+    pub fn device_semaphore_export_handle_types_khr(&self) -> Result<Vec<u32>> {
+        Ok(get_device_info(self.id(), CL_DEVICE_SEMAPHORE_EXPORT_HANDLE_TYPES_KHR)?.into())
+    }
+
+    pub fn device_semaphore_types_khr(&self) -> Result<Vec<u32>> {
+        Ok(get_device_info(self.id(), CL_DEVICE_SEMAPHORE_TYPES_KHR)?.into())
+    }
+
     /// Get data about an OpenCL device.
     /// Calls clGetDeviceInfo to get the desired data about the device.
     pub fn get_data(&self, param_name: cl_device_info) -> Result<Vec<u8>> {
@@ -930,6 +949,19 @@ impl Device {
         } else {
             0
         }
+    }
+
+    #[cfg(feature = "cl_khr_external_semaphore")]
+    pub fn get_semaphore_handle_for_type_khr(
+        &self,
+        sema_object: ext::cl_semaphore_khr,
+        handle_type: ext::cl_external_semaphore_handle_type_khr,
+    ) -> Result<ext::cl_semaphore_khr> {
+        Ok(ext::get_semaphore_handle_for_type_khr(
+            sema_object,
+            self.id(),
+            handle_type,
+        )?)
     }
 }
 
@@ -2084,6 +2116,49 @@ mod tests {
             }
             Err(e) => println!(
                 "OpenCL error, CL_DEVICE_FEATURE_CAPABILITIES_INTEL: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.device_external_memory_import_handle_types_khr() {
+            Ok(value) => {
+                println!(
+                    "CL_DEVICE_EXTERNAL_MEMORY_IMPORT_HANDLE_TYPES_KHR: {:?}",
+                    value
+                )
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_EXTERNAL_MEMORY_IMPORT_HANDLE_TYPES_KHR: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.device_semaphore_import_handle_types_khr() {
+            Ok(value) => {
+                println!("CL_DEVICE_SEMAPHORE_IMPORT_HANDLE_TYPES_KHR: {:?}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_SEMAPHORE_IMPORT_HANDLE_TYPES_KHR: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.device_semaphore_export_handle_types_khr() {
+            Ok(value) => {
+                println!("CL_DEVICE_SEMAPHORE_EXPORT_HANDLE_TYPES_KHR: {:?}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_SEMAPHORE_EXPORT_HANDLE_TYPES_KHR: {:?}, {}",
+                e, e
+            ),
+        };
+
+        match device.device_semaphore_types_khr() {
+            Ok(value) => {
+                println!("CL_DEVICE_SEMAPHORE_TYPES_KHR: {:?}", value)
+            }
+            Err(e) => println!(
+                "OpenCL error, CL_DEVICE_SEMAPHORE_TYPES_KHR: {:?}, {}",
                 e, e
             ),
         };

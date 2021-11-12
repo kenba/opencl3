@@ -331,6 +331,17 @@ impl Context {
             display,
         )?)
     }
+
+    #[cfg(feature = "cl_khr_semaphore")]
+    pub fn create_semaphore_with_properties_khr(
+        &self,
+        sema_props: *const ext::cl_semaphore_properties_khr,
+    ) -> Result<cl_mem> {
+        Ok(ext::create_semaphore_with_properties_khr(
+            self.context,
+            sema_props,
+        )?)
+    }
 }
 
 #[cfg(test)]

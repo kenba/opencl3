@@ -1041,6 +1041,94 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
+    #[cfg(feature = "cl_khr_external_memory")]
+    #[inline]
+    pub fn enqueue_acquire_external_mem_objects_khr(
+        &self,
+        mem_objects: &[*const c_void],
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
+        let event = ext::enqueue_acquire_external_mem_objects_khr(
+            self.queue,
+            mem_objects.len() as cl_uint,
+            mem_objects.as_ptr() as *const *mut c_void,
+            event_wait_list.len() as cl_uint,
+            if !event_wait_list.is_empty() {
+                event_wait_list.as_ptr()
+            } else {
+                ptr::null()
+            },
+        )?;
+        Ok(Event::new(event))
+    }
+
+    #[cfg(feature = "cl_khr_external_memory")]
+    #[inline]
+    pub fn enqueue_release_external_mem_objects_khr(
+        &self,
+        mem_objects: &[*const c_void],
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
+        let event = ext::enqueue_release_external_mem_objects_khr(
+            self.queue,
+            mem_objects.len() as cl_uint,
+            mem_objects.as_ptr() as *const *mut c_void,
+            event_wait_list.len() as cl_uint,
+            if !event_wait_list.is_empty() {
+                event_wait_list.as_ptr()
+            } else {
+                ptr::null()
+            },
+        )?;
+        Ok(Event::new(event))
+    }
+
+    #[cfg(feature = "cl_khr_semaphore")]
+    #[inline]
+    pub fn enqueue_wait_semaphores_khr(
+        &self,
+        sema_objects: &[*const c_void],
+        sema_payload_list: *const ext::cl_semaphore_payload_khr,
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
+        let event = ext::enqueue_wait_semaphores_khr(
+            self.queue,
+            sema_objects.len() as cl_uint,
+            sema_objects.as_ptr() as *const *mut c_void,
+            sema_payload_list,
+            event_wait_list.len() as cl_uint,
+            if !event_wait_list.is_empty() {
+                event_wait_list.as_ptr()
+            } else {
+                ptr::null()
+            },
+        )?;
+        Ok(Event::new(event))
+    }
+
+    #[cfg(feature = "cl_khr_semaphore")]
+    #[inline]
+    pub fn enqueue_signal_semaphores_khr(
+        &self,
+        sema_objects: &[*const c_void],
+        sema_payload_list: *const ext::cl_semaphore_payload_khr,
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
+        let event = ext::enqueue_signal_semaphores_khr(
+            self.queue,
+            sema_objects.len() as cl_uint,
+            sema_objects.as_ptr() as *const *mut c_void,
+            sema_payload_list,
+            event_wait_list.len() as cl_uint,
+            if !event_wait_list.is_empty() {
+                event_wait_list.as_ptr()
+            } else {
+                ptr::null()
+            },
+        )?;
+        Ok(Event::new(event))
+    }
+
     #[cfg(feature = "cl_khr_dx9_media_sharing")]
     #[inline]
     pub fn enqueue_acquire_dx9_media_surfaces_khr(
