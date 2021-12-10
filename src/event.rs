@@ -149,7 +149,7 @@ mod tests {
     use crate::command_queue::{CommandQueue, CL_QUEUE_PROFILING_ENABLE};
     use crate::context::Context;
     use crate::device::{Device, CL_DEVICE_TYPE_GPU};
-    use crate::memory::{Buffer, CL_MEM_WRITE_ONLY};
+    use crate::memory::{Buffer, CL_MEM_READ_ONLY};
     use crate::platform::get_platforms;
     use crate::types::{cl_float, CL_NON_BLOCKING};
     use std::ptr;
@@ -192,7 +192,7 @@ mod tests {
         let ones: [cl_float; ARRAY_SIZE] = [1.0; ARRAY_SIZE];
 
         let mut buffer =
-            Buffer::<cl_float>::create(&context, CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())
+            Buffer::<cl_float>::create(&context, CL_MEM_READ_ONLY, ARRAY_SIZE, ptr::null_mut())
                 .unwrap();
 
         let events: Vec<cl_event> = Vec::default();

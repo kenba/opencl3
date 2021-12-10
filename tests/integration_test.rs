@@ -95,10 +95,10 @@ fn test_opencl_1_2_example() -> Result<()> {
 
     // Create OpenCL device buffers
     let mut x =
-        Buffer::<cl_float>::create(&context, CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())?;
+        Buffer::<cl_float>::create(&context, CL_MEM_READ_ONLY, ARRAY_SIZE, ptr::null_mut())?;
     let mut y =
-        Buffer::<cl_float>::create(&context, CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())?;
-    let z = Buffer::<cl_float>::create(&context, CL_MEM_READ_ONLY, ARRAY_SIZE, ptr::null_mut())?;
+        Buffer::<cl_float>::create(&context, CL_MEM_READ_ONLY, ARRAY_SIZE, ptr::null_mut())?;
+    let z = Buffer::<cl_float>::create(&context, CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())?;
 
     // Blocking write
     let _x_write_event = queue.enqueue_write_buffer(&mut x, CL_BLOCKING, 0, &ones, &[])?;
