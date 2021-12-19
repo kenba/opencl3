@@ -25,6 +25,8 @@ use cl3::memory::{
 use cl3::types::{cl_device_svm_capabilities, cl_svm_mem_flags, cl_uint};
 use libc::c_void;
 #[cfg(feature = "serde")]
+use serde::de::{Deserialize, DeserializeSeed, Deserializer, SeqAccess, Visitor};
+#[cfg(feature = "serde")]
 use serde::ser::{Serialize, SerializeSeq, Serializer};
 use std::alloc::{self, Layout};
 use std::fmt;
@@ -524,6 +526,51 @@ impl<'a, T> DerefMut for SvmVec<'a, T> {
 impl<'a, T: Debug> fmt::Debug for SvmVec<'a, T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Debug::fmt(&**self, f)
+    }
+}
+
+#[cfg(feature = "serde")]
+pub struct ExtendSvmVec<'a, 'b, T: 'a>(pub &'a mut SvmVec<'b, T>);
+
+#[cfg(feature = "serde")]
+impl<'de, 'a, 'b, T> DeserializeSeed<'de> for ExtendSvmVec<'a, 'b, T>
+where
+    T: Deserialize<'de>,
+{
+    type Value = ();
+
+    fn deserialize<D>(self, deserializer: D) -> result::Result<Self::Value, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct ExtendSvmVecVisitor<'a, 'b, T: 'a>(&'a mut SvmVec<'b, T>);
+
+        impl<'de, 'a, 'b, T> Visitor<'de> for ExtendSvmVecVisitor<'a, 'b, T>
+        where
+            T: Deserialize<'de>,
+        {
+            type Value = ();
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("an array")
+            }
+
+            fn visit_seq<A>(self, mut seq: A) -> result::Result<(), A::Error>
+            where
+                A: SeqAccess<'de>,
+            {
+                if let Some(size) = seq.size_hint() {
+                    self.0.reserve(size).unwrap(); // TODO map error
+                }
+
+                while let Some(elem) = seq.next_element()? {
+                    self.0.push(elem);
+                }
+                Ok(())
+            }
+        }
+
+        deserializer.deserialize_seq(ExtendSvmVecVisitor(self.0))
     }
 }
 
