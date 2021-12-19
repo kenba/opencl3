@@ -1,5 +1,15 @@
 # Releases
 
+## Version 0.6.2 (2021-12-19)
+
+### New Features
+
+* Issue [#37](https://github.com/kenba/opencl3/issues/37) Implement DeserializeSeed for ExtendSvmVec to enable `serde` to deserialize directly into an `SvmVec`.
+
+### Bug fixes
+
+* Issue [#45](https://github.com/kenba/opencl3/issues/45) Examples and tests have `CL_MEM_READ_ONLY` and `CL_MEM_WRITE_ONLY` swapped over.
+
 ## Version 0.6.1 (2021-11-12)
 
 ### New Features
