@@ -15,12 +15,14 @@
 use opencl3::command_queue::CommandQueue;
 use opencl3::context::Context;
 use opencl3::device::{
-    get_all_devices, Device, CL_DEVICE_SVM_FINE_GRAIN_BUFFER, CL_DEVICE_TYPE_GPU,
+    get_all_devices, Device, CL_DEVICE_TYPE_GPU,
 };
 use opencl3::error_codes::cl_int;
 use opencl3::kernel::{ExecuteKernel, Kernel};
+use opencl3::memory::{CL_MAP_READ, CL_MAP_WRITE};
 use opencl3::program::{Program, CL_STD_2_0};
 use opencl3::svm::{ExtendSvmVec, SvmVec};
+use opencl3::types::CL_BLOCKING;
 use opencl3::Result;
 use serde::de::DeserializeSeed;
 use std::ptr;
@@ -47,24 +49,24 @@ kernel void inclusive_scan_int (global int* output,
 const KERNEL_NAME: &str = "inclusive_scan_int";
 
 fn main() -> Result<()> {
-    // Find a fine grained device for this application
+    // Find a suitable device for this application
     let devices = get_all_devices(CL_DEVICE_TYPE_GPU)?;
     assert!(0 < devices.len());
 
-    // Find an OpenCL fine grained SVM device
+    // Find an OpenCL SVM device
     let mut device_id = ptr::null_mut();
-    let mut is_fine_grained_svm: bool = false;
+    let mut is_svm_capable: bool = false;
     for dev_id in devices {
         let device = Device::new(dev_id);
         let svm_mem_capability = device.svm_mem_capability();
-        is_fine_grained_svm = 0 < svm_mem_capability & CL_DEVICE_SVM_FINE_GRAIN_BUFFER;
-        if is_fine_grained_svm {
+        is_svm_capable = 0 < svm_mem_capability;
+        if is_svm_capable {
             device_id = dev_id;
             break;
         }
     }
 
-    if is_fine_grained_svm {
+    if is_svm_capable {
         // Create OpenCL context from the OpenCL svm device
         let device = Device::new(device_id);
         let vendor = device.vendor()?;
@@ -94,17 +96,35 @@ fn main() -> Result<()> {
 
         // Deserialize into an OpenCL SVM vector
         let mut test_values = SvmVec::<cl_int>::new(&context);
+
         let mut deserializer = serde_json::Deserializer::from_str(&VALUE_ARRAY);
+
+        // Handle test_values if device only supports CL_DEVICE_SVM_COARSE_GRAIN_BUFFER
+        if !test_values.is_fine_grained() {
+            // SVM_COARSE_GRAIN_BUFFER needs to know the size of the data to allocate the SVM
+            test_values = SvmVec::<cl_int>::allocate(&context, ARRAY_SIZE).expect("SVM allocation failed");
+            // Map the SVM for a SVM_COARSE_GRAIN_BUFFER
+            queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut test_values, &[])?;
+            // Clear the SVM for the deserializer
+            test_values.clear();
+        }
+
         ExtendSvmVec(&mut test_values)
             .deserialize(&mut deserializer)
-            .unwrap(); // TODO handle error
+            .expect("Error deserializing the VALUE_ARRAY JSON string.");
 
         // Make test_values SVM vector immutable
         let test_values = test_values;
 
+        // Unmap test_values if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
+        if !test_values.is_fine_grained() {
+            let unmap_test_values_event = queue.enqueue_svm_unmap(&test_values, &[])?;
+            unmap_test_values_event.wait()?;
+        }
+
         // The output data, an OpenCL SVM vector
         let mut results =
-            SvmVec::<cl_int>::allocate_zeroed(&context, ARRAY_SIZE).expect("SVM allocation failed");
+            SvmVec::<cl_int>::allocate(&context, ARRAY_SIZE).expect("SVM allocation failed");
 
         // Run the sum kernel on the input data
         let sum_kernel_event = ExecuteKernel::new(&kernel)
@@ -116,9 +136,20 @@ fn main() -> Result<()> {
         // Wait for the kernel to complete execution on the device
         sum_kernel_event.wait()?;
 
+        // Map results if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
+        if !results.is_fine_grained() {
+            queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_READ, &mut results, &[])?;
+        }
+
         // Convert SVM results to json
         let json_results = serde_json::to_string(&results).unwrap();
         println!("json results: {}", json_results);
+
+        // Unmap results if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
+        if !results.is_fine_grained() {
+            let unmap_results_event = queue.enqueue_svm_unmap(&results, &[])?;
+            unmap_results_event.wait()?;
+        }
     } else {
         println!("OpenCL fine grained system SVM device not found")
     }

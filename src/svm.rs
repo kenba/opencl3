@@ -25,7 +25,7 @@ use cl3::memory::{
 use cl3::types::{cl_device_svm_capabilities, cl_svm_mem_flags, cl_uint};
 use libc::c_void;
 #[cfg(feature = "serde")]
-use serde::de::{Deserialize, DeserializeSeed, Deserializer, SeqAccess, Visitor};
+use serde::de::{Deserialize, DeserializeSeed, Deserializer, Error, SeqAccess, Visitor};
 #[cfg(feature = "serde")]
 use serde::ser::{Serialize, SerializeSeq, Serializer};
 use std::alloc::{self, Layout};
@@ -529,6 +529,9 @@ impl<'a, T: Debug> fmt::Debug for SvmVec<'a, T> {
     }
 }
 
+/// A DeserializeSeed implementation  that uses stateful deserialization to
+/// append array elements onto the end of an existing SvmVec.
+/// The pre-existing state ("seed") in this case is the SvmVec<'b, T>.
 #[cfg(feature = "serde")]
 pub struct ExtendSvmVec<'a, 'b, T: 'a>(pub &'a mut SvmVec<'b, T>);
 
@@ -537,12 +540,15 @@ impl<'de, 'a, 'b, T> DeserializeSeed<'de> for ExtendSvmVec<'a, 'b, T>
 where
     T: Deserialize<'de>,
 {
+    // The return type of the `deserialize` method. Since this implementation
+    // appends onto an existing SvmVec the return type is ().
     type Value = ();
 
     fn deserialize<D>(self, deserializer: D) -> result::Result<Self::Value, D::Error>
     where
         D: Deserializer<'de>,
     {
+        // Visitor implementation to walk an array of the deserializer input.
         struct ExtendSvmVecVisitor<'a, 'b, T: 'a>(&'a mut SvmVec<'b, T>);
 
         impl<'de, 'a, 'b, T> Visitor<'de> for ExtendSvmVecVisitor<'a, 'b, T>
@@ -559,10 +565,13 @@ where
             where
                 A: SeqAccess<'de>,
             {
+                // reserve SvmVec memory if the size of the deserializer array is known
                 if let Some(size) = seq.size_hint() {
-                    self.0.reserve(size).unwrap(); // TODO map error
+                    let len = self.0.len + size;
+                    self.0.reserve(len).map_err(A::Error::custom)?;
                 }
-
+                
+                // Visit each element in the array and push it onto the existing SvmVec
                 while let Some(elem) = seq.next_element()? {
                     self.0.push(elem);
                 }
