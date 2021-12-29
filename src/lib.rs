@@ -200,6 +200,8 @@
 
 extern crate cl3;
 
+#[cfg(feature = "cl_khr_command_buffer")]
+pub mod command_buffer;
 pub mod command_queue;
 pub mod context;
 pub mod device;
