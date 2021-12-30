@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//! OpenCL Command Buffers extension. Enable with feature: cl_khr_command_buffer.
+
 #![allow(clippy::too_many_arguments)]
 
 use super::event::Event;
@@ -39,6 +41,8 @@ use std::mem;
 use std::ptr;
 
 /// An OpenCL command-buffer.  
+/// This extension adds the ability to record and replay buffers of OpenCL commands.  
+/// See [cl_khr_command_buffer](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_Ext.html#cl_khr_command_buffer)
 #[derive(Debug)]
 pub struct CommandBuffer {
     buffer: cl_command_buffer_khr,

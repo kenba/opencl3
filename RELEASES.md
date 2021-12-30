@@ -1,5 +1,11 @@
 # Releases
 
+## Version 0.6.3 (2021-12-30)
+
+### New Features
+
+* Issue [#44](https://github.com/kenba/opencl3/issues/44) Add provisional command-buffer extension. See: [cl_khr_command_buffer](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_Ext.html#cl_khr_command_buffer).
+
 ## Version 0.6.2 (2021-12-19)
 
 ### New Features
