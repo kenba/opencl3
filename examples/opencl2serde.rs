@@ -14,9 +14,7 @@
 
 use opencl3::command_queue::CommandQueue;
 use opencl3::context::Context;
-use opencl3::device::{
-    get_all_devices, Device, CL_DEVICE_TYPE_GPU,
-};
+use opencl3::device::{get_all_devices, Device, CL_DEVICE_TYPE_GPU};
 use opencl3::error_codes::cl_int;
 use opencl3::kernel::{ExecuteKernel, Kernel};
 use opencl3::memory::{CL_MAP_READ, CL_MAP_WRITE};
@@ -102,7 +100,8 @@ fn main() -> Result<()> {
         // Handle test_values if device only supports CL_DEVICE_SVM_COARSE_GRAIN_BUFFER
         if !test_values.is_fine_grained() {
             // SVM_COARSE_GRAIN_BUFFER needs to know the size of the data to allocate the SVM
-            test_values = SvmVec::<cl_int>::allocate(&context, ARRAY_SIZE).expect("SVM allocation failed");
+            test_values =
+                SvmVec::<cl_int>::allocate(&context, ARRAY_SIZE).expect("SVM allocation failed");
             // Map the SVM for a SVM_COARSE_GRAIN_BUFFER
             queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut test_values, &[])?;
             // Clear the SVM for the deserializer

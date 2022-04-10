@@ -1,5 +1,11 @@
 # Releases
 
+## Version 0.7.0 (2022-04-10)
+
+### Breaking Changes
+
+* Transition to Rust 2021 Edition.
+
 ## Version 0.6.3 (2021-12-30)
 
 ### New Features

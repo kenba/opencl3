@@ -1,6 +1,6 @@
 [package]
 name = "opencl3"
-version = "0.6.3"
+version = "0.7.0"
 authors = ["Ken Barker <ken.barker@via-technology.aero>"]
 description = "A Rust implementation of the Khronos OpenCL 3.0 API and extensions."
 documentation = "https://docs.rs/opencl3/"
@@ -10,7 +10,7 @@ readme = "README.md"
 keywords = ["opencl", "gpu", "gpgpu"]
 categories = ["api-bindings", "asynchronous"]
 license = "Apache-2.0"
-edition = "2018"
+edition = "2021"
 
 [features]
 
@@ -57,7 +57,7 @@ default = ["CL_VERSION_1_2", "CL_VERSION_2_0"]
 
 [dependencies]
 libc = "0.2"
-cl3 = { version = "0.6", default-features = false }
+cl3 = { version = "0.7", default-features = false }
 serde = { version = "1.0", optional = true }
 
 [dev-dependencies]

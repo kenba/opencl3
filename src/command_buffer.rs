@@ -351,7 +351,8 @@ impl CommandBuffer {
         Ok(get_command_buffer_info_khr(self.buffer, CL_COMMAND_BUFFER_NUM_QUEUES_KHR)?.into())
     }
 
-    pub fn queues(&self) -> Result<Vec<isize>> { // cl_command_queue
+    pub fn queues(&self) -> Result<Vec<isize>> {
+        // cl_command_queue
         Ok(get_command_buffer_info_khr(self.buffer, CL_COMMAND_BUFFER_QUEUES_KHR)?.into())
     }
 

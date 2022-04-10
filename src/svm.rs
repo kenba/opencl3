@@ -570,7 +570,7 @@ where
                     let len = self.0.len + size;
                     self.0.reserve(len).map_err(A::Error::custom)?;
                 }
-                
+
                 // Visit each element in the array and push it onto the existing SvmVec
                 while let Some(elem) = seq.next_element()? {
                     self.0.push(elem);

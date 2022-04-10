@@ -49,7 +49,7 @@ OpenCL objects. The exceptions are `Platform` and `Device` which don't need to b
 ## Use
 
 Ensure that an OpenCL Installable Client Driver (ICD) and the appropriate OpenCL
-hardware driver(s) are installed, see 
+hardware driver(s) are installed, see
 [OpenCL Installation](https://github.com/kenba/cl3/tree/main/docs/opencl_installation.md).
 
 `opencl3` supports OpenCL 1.2 and 2.0 ICD loaders by default. If you have an
@@ -57,7 +57,7 @@ OpenCL 2.0 ICD loader then just add the following to your project's `Cargo.toml`
 
 ```toml
 [dependencies]
-opencl3 = "0.6"
+opencl3 = "0.7"
 ```
 
 If your OpenCL ICD loader supports higher versions of OpenCL then add the
@@ -66,7 +66,7 @@ following to your project's `Cargo.toml` instead:
 
 ```toml
 [dependencies.opencl3]
-version = "0.6"
+version = "0.7"
 features = ["CL_VERSION_2_1", "CL_VERSION_2_2", "CL_VERSION_3_0"]
 ```
 
@@ -74,11 +74,11 @@ OpenCL extensions and `serde` support can also be enabled by adding their featur
 
 ```toml
 [dependencies.opencl3]
-version = "0.6"
+version = "0.7"
 features = ["cl_khr_gl_sharing", "cl_khr_dx9_media_sharing", "serde"]
 ```
 
-See the [OpenCL Guide ](https://github.com/KhronosGroup/OpenCL-Guide) and [OpenCL Description](https://github.com/kenba/opencl3/tree/main/docs/opencl_description.md) for background on using OpenCL.
+See the [OpenCL Guide](https://github.com/KhronosGroup/OpenCL-Guide) and [OpenCL Description](https://github.com/kenba/opencl3/tree/main/docs/opencl_description.md) for background on using OpenCL.
 
 ## Examples
 
@@ -238,7 +238,7 @@ Just please abide by our [Code of Conduct](CODE_OF_CONDUCT.md).
 ## License
 
 Licensed under the Apache License, Version 2.0, as per Khronos Group OpenCL.  
-You may obtain a copy of the License at: http://www.apache.org/licenses/LICENSE-2.0
+You may obtain a copy of the License at: <http://www.apache.org/licenses/LICENSE-2.0>
 
 Any contribution intentionally submitted for inclusion in the work by you shall be licensed  as defined in the Apache-2.0 license above, without any additional terms or conditions, unless you explicitly state otherwise.
 
