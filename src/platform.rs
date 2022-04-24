@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2020-2022 Via Technology Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,26 +14,12 @@
 
 pub use cl3::platform;
 
-// cl_d3d10_device_source_khr
 use super::Result;
-#[allow(unused_imports)]
-use cl3::d3d10;
-#[allow(unused_imports)]
-use cl3::d3d11;
 use cl3::device;
 #[allow(unused_imports)]
 use cl3::dx9_media_sharing;
 #[allow(unused_imports)]
 use cl3::ext;
-#[allow(unused_imports)]
-use cl3::ffi::cl_d3d10::{cl_d3d10_device_set_khr, cl_d3d10_device_source_khr};
-#[allow(unused_imports)]
-use cl3::ffi::cl_d3d11::{cl_d3d11_device_set_khr, cl_d3d11_device_source_khr};
-#[allow(unused_imports)]
-use cl3::ffi::cl_dx9_media_sharing::{
-    cl_dx9_device_set_intel, cl_dx9_device_source_intel, cl_dx9_media_adapter_set_khr,
-    cl_dx9_media_adapter_type_khr,
-};
 #[allow(unused_imports)]
 use cl3::program;
 #[allow(unused_imports)]
@@ -99,65 +85,17 @@ impl Platform {
     }
 
     #[cfg(feature = "cl_khr_dx9_media_sharing")]
-    pub fn get_devices_from_dx9_media_adapter_khr(
-        &self,
-        media_adapter_type: &[cl_dx9_media_adapter_type_khr],
-        media_adapters: &[c_void],
-        media_adapter_set: cl_dx9_media_adapter_set_khr,
-    ) -> Result<Vec<cl_device_id>> {
-        Ok(
-            dx9_media_sharing::get_device_ids_from_dx9_media_adapter_khr(
-                self.id(),
-                media_adapters.len() as cl_uint,
-                media_adapter_type.as_ptr() as *mut cl_dx9_media_adapter_type_khr,
-                media_adapters.as_ptr() as *mut c_void,
-                media_adapter_set,
-            )?,
-        )
-    }
-
-    #[cfg(feature = "cl_khr_dx9_media_sharing")]
     pub fn get_device_ids_from_dx9_intel(
         &self,
-        dx9_device_source: cl_dx9_device_source_intel,
+        dx9_device_source: dx9_media_sharing::cl_dx9_device_source_intel,
         dx9_object: *mut c_void,
-        dx9_device_set: cl_dx9_device_set_intel,
+        dx9_device_set: dx9_media_sharing::cl_dx9_device_set_intel,
     ) -> Result<Vec<cl_device_id>> {
         Ok(dx9_media_sharing::get_device_ids_from_dx9_intel(
             self.id(),
             dx9_device_source,
             dx9_object,
             dx9_device_set,
-        )?)
-    }
-
-    #[cfg(feature = "cl_khr_d3d10_sharing")]
-    pub fn get_devices_from_dx3d10_khr(
-        &self,
-        d3d_device_source: cl_d3d10_device_source_khr,
-        d3d_object: *mut c_void,
-        d3d_device_set: cl_d3d10_device_set_khr,
-    ) -> Result<Vec<cl_device_id>> {
-        Ok(d3d10::get_device_ids_from_dx3d10_khr(
-            self.id(),
-            d3d_device_source,
-            d3d_object,
-            d3d_device_set,
-        )?)
-    }
-
-    #[cfg(feature = "cl_khr_d3d11_sharing")]
-    pub fn get_devices_from_dx3d11_khr(
-        &self,
-        d3d_device_source: cl_d3d11_device_source_khr,
-        d3d_object: *mut c_void,
-        d3d_device_set: cl_d3d11_device_set_khr,
-    ) -> Result<Vec<cl_device_id>> {
-        Ok(d3d11::get_device_ids_from_dx3d11_khr(
-            self.id(),
-            d3d_device_source,
-            d3d_object,
-            d3d_device_set,
         )?)
     }
 

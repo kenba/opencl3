@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2020-2022 Via Technology Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![allow(deprecated)]
 #![allow(clippy::too_many_arguments)]
 
 pub use cl3::command_queue::*;
@@ -33,8 +34,6 @@ use cl3::dx9_media_sharing;
 use cl3::egl;
 #[allow(unused_imports)]
 use cl3::ext;
-#[allow(unused_imports)]
-use cl3::ffi::cl_ext::cl_queue_properties_khr;
 use cl3::gl;
 #[allow(unused_imports)]
 use cl3::types::{
@@ -99,6 +98,10 @@ impl CommandQueue {
     ///
     /// returns a Result containing the new CommandQueue
     /// or the error code from the OpenCL C API function.
+    #[deprecated(
+        since = "0.1.0",
+        note = "From CL_VERSION_2_0 use create_command_queue_with_properties"
+    )]
     pub fn create(
         context: &Context,
         device_id: cl_device_id,
@@ -156,7 +159,7 @@ impl CommandQueue {
     pub fn create_with_properties_khr(
         context: &Context,
         device_id: cl_device_id,
-        properties: &[cl_queue_properties_khr],
+        properties: &[ext::cl_queue_properties_khr],
     ) -> Result<CommandQueue> {
         let queue = ext::create_command_queue_with_properties_khr(
             context.get(),
@@ -659,10 +662,10 @@ impl CommandQueue {
         &self,
         num_mem_objects: cl_uint,
         mem_objects: *const cl_mem,
-        flags: cl_mem_migration_flags_ext,
+        flags: ext::cl_mem_migration_flags_ext,
         event_wait_list: &[cl_event],
     ) -> Result<Event> {
-        let event = enqueue_migrate_mem_object_ext(
+        let event = ext::enqueue_migrate_mem_object_ext(
             self.queue,
             num_mem_objects,
             mem_objects,
@@ -704,6 +707,10 @@ impl CommandQueue {
     }
 
     #[cfg(feature = "CL_VERSION_1_2")]
+    #[deprecated(
+        since = "0.1.0",
+        note = "From CL_VERSION_2_0 use create_sampler_with_properties"
+    )]
     pub fn enqueue_task(&self, kernel: cl_kernel, event_wait_list: &[cl_event]) -> Result<Event> {
         let event = enqueue_task(
             self.queue,
@@ -720,7 +727,7 @@ impl CommandQueue {
 
     pub fn enqueue_native_kernel(
         &self,
-        user_func: Option<extern "C" fn(*mut c_void)>,
+        user_func: Option<unsafe extern "C" fn(*mut c_void)>,
         args: &[*mut c_void],
         mem_list: &[cl_mem],
         args_mem_loc: &[*const c_void],
@@ -781,10 +788,10 @@ impl CommandQueue {
         &self,
         svm_pointers: &[*const c_void],
         pfn_free_func: Option<
-            extern "C" fn(
+            unsafe extern "C" fn(
                 queue: cl_command_queue,
                 num_svm_pointers: cl_uint,
-                svm_pointers: *const *const c_void,
+                svm_pointers: *mut *mut c_void,
                 user_data: *mut c_void,
             ),
         >,
@@ -1200,90 +1207,6 @@ impl CommandQueue {
         event_wait_list: &[cl_event],
     ) -> Result<Event> {
         let event = dx9_media_sharing::enqueue_release_dx9_objects_intel(
-            self.queue,
-            mem_objects.len() as cl_uint,
-            mem_objects.as_ptr() as *const *mut c_void,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }
-
-    #[cfg(feature = "cl_khr_d3d10_sharing")]
-    #[inline]
-    pub fn enqueue_acquire_dx10_objects_khr(
-        &self,
-        mem_objects: &[*const c_void],
-        event_wait_list: &[cl_event],
-    ) -> Result<Event> {
-        let event = d3d10::enqueue_acquire_dx10_objects_khr(
-            self.queue,
-            mem_objects.len() as cl_uint,
-            mem_objects.as_ptr() as *const *mut c_void,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }
-
-    #[cfg(feature = "cl_khr_d3d10_sharing")]
-    #[inline]
-    pub fn enqueue_release_dx10_objects_khr(
-        &self,
-        mem_objects: &[*const c_void],
-        event_wait_list: &[cl_event],
-    ) -> Result<Event> {
-        let event = d3d10::enqueue_release_dx10_objects_khr(
-            self.queue,
-            mem_objects.len() as cl_uint,
-            mem_objects.as_ptr() as *const *mut c_void,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }
-
-    #[cfg(feature = "cl_khr_d3d11_sharing")]
-    #[inline]
-    pub fn enqueue_acquire_dx11_objects_khr(
-        &self,
-        mem_objects: &[*const c_void],
-        event_wait_list: &[cl_event],
-    ) -> Result<Event> {
-        let event = d3d11::enqueue_acquire_dx11_objects_khr(
-            self.queue,
-            mem_objects.len() as cl_uint,
-            mem_objects.as_ptr() as *const *mut c_void,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }
-
-    #[cfg(feature = "cl_khr_d3d11_sharing")]
-    #[inline]
-    pub fn enqueue_release_dx11_objects_khr(
-        &self,
-        mem_objects: &[*const c_void],
-        event_wait_list: &[cl_event],
-    ) -> Result<Event> {
-        let event = d3d11::enqueue_release_dx11_objects_khr(
             self.queue,
             mem_objects.len() as cl_uint,
             mem_objects.as_ptr() as *const *mut c_void,

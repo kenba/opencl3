@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2020-2022 Via Technology Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -219,7 +219,7 @@ impl<'a, T> Drop for SvmRawVec<'a, T> {
 /// # let devices = platforms[0].get_devices(CL_DEVICE_TYPE_GPU).unwrap();
 /// # let device = Device::new(devices[0]);
 /// # let context = Context::from_device(&device).unwrap();
-/// # let queue = CommandQueue::create(&context, context.default_device(), 0).unwrap();
+/// # let queue = CommandQueue::create_with_properties(&context, context.default_device(), 0, 0).unwrap();
 /// // The input data
 /// const ARRAY_SIZE: usize = 8;
 /// let value_array: [cl_int; ARRAY_SIZE] = [3, 2, 5, 9, 7, 1, 4, 2];

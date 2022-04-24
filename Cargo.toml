@@ -14,6 +14,7 @@ edition = "2021"
 
 [features]
 
+CL_VERSION_1_1 = ["cl3/CL_VERSION_1_1"]
 CL_VERSION_1_2 = ["cl3/CL_VERSION_1_2"]
 CL_VERSION_2_0 = ["cl3/CL_VERSION_2_0"]
 CL_VERSION_2_1 = ["cl3/CL_VERSION_2_1"]
@@ -21,6 +22,8 @@ CL_VERSION_2_2 = ["cl3/CL_VERSION_2_2"]
 CL_VERSION_3_0 = ["cl3/CL_VERSION_3_0"]
 
 cl_apple_setmemobjectdestructor = ["cl3/cl_apple_setmemobjectdestructor"]
+cl_apple_contextloggingfunctions = ["cl3/cl_apple_contextloggingfunctions"]
+
 cl_khr_icd = ["cl3/cl_khr_icd"]
 cl_khr_il_program = ["cl3/cl_khr_il_program"]
 cl_khr_terminate_context = ["cl3/cl_khr_terminate_context"]
@@ -53,11 +56,11 @@ cl_khr_d3d10_sharing = ["cl3/cl_khr_d3d10_sharing"]
 cl_khr_d3d11_sharing = ["cl3/cl_khr_d3d11_sharing"]
 
 # Default features:
-default = ["CL_VERSION_1_2", "CL_VERSION_2_0"]
+default = ["CL_VERSION_1_1", "CL_VERSION_1_2", "CL_VERSION_2_0"]
 
 [dependencies]
 libc = "0.2"
-cl3 = { version = "0.7", default-features = false }
+cl3 = { path = "../cl3", version = "0.7", default-features = false }
 serde = { version = "1.0", optional = true }
 
 [dev-dependencies]

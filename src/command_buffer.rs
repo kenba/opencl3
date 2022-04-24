@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2021-2022 Via Technology Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,19 +22,18 @@ use super::Result;
 
 #[allow(unused_imports)]
 use cl3::ext::{
+    cl_command_buffer_info_khr, cl_command_buffer_khr, cl_command_buffer_properties_khr,
+    cl_ndrange_kernel_command_properties_khr, cl_sync_point_khr,
     command_barrier_with_wait_list_khr, command_copy_buffer_khr, command_copy_buffer_rect_khr,
     command_copy_buffer_to_image_khr, command_copy_image_khr, command_copy_image_to_buffer_khr,
     command_fill_buffer_khr, command_fill_image_khr, command_nd_range_kernel_khr,
     create_command_buffer_khr, enqueue_command_buffer_khr, finalize_command_buffer_khr,
     get_command_buffer_data_khr, get_command_buffer_info_khr, release_command_buffer_khr,
+    CL_COMMAND_BUFFER_NUM_QUEUES_KHR, CL_COMMAND_BUFFER_PROPERTIES_ARRAY_KHR,
+    CL_COMMAND_BUFFER_QUEUES_KHR, CL_COMMAND_BUFFER_REFERENCE_COUNT_KHR,
+    CL_COMMAND_BUFFER_STATE_KHR,
 };
 #[allow(unused_imports)]
-use cl3::ffi::cl_ext::{
-    cl_command_buffer_info_khr, cl_command_buffer_khr, cl_command_buffer_properties_khr,
-    cl_ndrange_kernel_command_properties_khr, cl_sync_point_khr, CL_COMMAND_BUFFER_NUM_QUEUES_KHR,
-    CL_COMMAND_BUFFER_PROPERTIES_ARRAY_KHR, CL_COMMAND_BUFFER_QUEUES_KHR,
-    CL_COMMAND_BUFFER_REFERENCE_COUNT_KHR, CL_COMMAND_BUFFER_STATE_KHR,
-};
 use cl3::types::{cl_command_queue, cl_event, cl_kernel, cl_mem, cl_uint};
 use libc::{c_void, size_t};
 use std::mem;

@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2020-2022 Via Technology Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,7 +13,9 @@
 // limitations under the License.
 
 pub use cl3::device::*;
-pub use cl3::ffi::cl_ext::{
+
+#[allow(unused_imports)]
+use cl3::ext::{
     cl_amd_device_topology, cl_device_feature_capabilities_intel,
     cl_device_integer_dot_product_acceleration_properties_khr,
     CL_DEVICE_INTEGER_DOT_PRODUCT_ACCELERATION_PROPERTIES_4x8BIT_PACKED_KHR,
@@ -45,8 +47,6 @@ pub use cl3::ffi::cl_ext::{
 
 use super::platform::get_platforms;
 use super::Result;
-#[allow(unused_imports)]
-use cl3::ext;
 #[allow(unused_imports)]
 use cl3::types::{
     cl_device_fp_config, cl_device_id, cl_device_info, cl_device_partition_property,

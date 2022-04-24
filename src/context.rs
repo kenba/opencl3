@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2020-2022 Via Technology Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,11 +20,18 @@ use super::device::SubDevice;
 use super::Result;
 
 #[allow(unused_imports)]
+use cl3::dx9_media_sharing;
+
+#[cfg(feature = "cl_khr_d3d10_sharing")]
+use cl3::d3d10;
+
+#[cfg(feature = "cl_khr_d3d11_sharing")]
+use cl3::d3d11;
+
+#[allow(unused_imports)]
 use cl3::egl;
 #[allow(unused_imports)]
 use cl3::ext;
-#[allow(unused_imports)]
-use cl3::ffi::cl_ext::cl_import_properties_arm;
 #[allow(unused_imports)]
 use cl3::gl;
 #[allow(unused_imports)]
@@ -123,7 +130,7 @@ impl Context {
     pub fn from_devices(
         devices: &[cl_device_id],
         properties: &[cl_context_properties],
-        pfn_notify: Option<extern "C" fn(*const c_char, *const c_void, size_t, *mut c_void)>,
+        pfn_notify: Option<unsafe extern "C" fn(*const c_char, *const c_void, size_t, *mut c_void)>,
         user_data: *mut c_void,
     ) -> Result<Context> {
         let properties_ptr = if !properties.is_empty() {
@@ -161,7 +168,7 @@ impl Context {
     pub fn from_sub_devices(
         sub_devices: &[SubDevice],
         properties: &[cl_context_properties],
-        pfn_notify: Option<extern "C" fn(*const c_char, *const c_void, size_t, *mut c_void)>,
+        pfn_notify: Option<unsafe extern "C" fn(*const c_char, *const c_void, size_t, *mut c_void)>,
         user_data: *mut c_void,
     ) -> Result<Context> {
         let devices = sub_devices
@@ -184,7 +191,7 @@ impl Context {
     pub fn from_device_type(
         device_type: cl_device_type,
         properties: &[cl_context_properties],
-        pfn_notify: Option<extern "C" fn(*const c_char, *const c_void, size_t, *mut c_void)>,
+        pfn_notify: Option<unsafe extern "C" fn(*const c_char, *const c_void, size_t, *mut c_void)>,
         user_data: *mut c_void,
     ) -> Result<Context> {
         let properties_ptr = if !properties.is_empty() {
@@ -244,7 +251,7 @@ impl Context {
     pub fn import_memory_arm(
         &self,
         flags: cl_mem_flags,
-        properties: *const cl_import_properties_arm,
+        properties: *const ext::cl_import_properties_arm,
         memory: *mut c_void,
         size: size_t,
     ) -> Result<cl_mem> {
@@ -273,7 +280,7 @@ impl Context {
     #[inline]
     pub fn set_destructor_callback(
         &self,
-        pfn_notify: extern "C" fn(cl_context, *const c_void),
+        pfn_notify: Option<unsafe extern "C" fn(cl_context, *mut c_void)>,
         user_data: *mut c_void,
     ) -> Result<()> {
         context::set_context_destructor_callback(self.context, pfn_notify, user_data)
@@ -340,6 +347,54 @@ impl Context {
         Ok(ext::create_semaphore_with_properties_khr(
             self.context,
             sema_props,
+        )?)
+    }
+
+    #[cfg(any(
+        feature = "cl_khr_dx9_media_sharing",
+        feature = "cl_intel_dx9_media_sharing"
+    ))]
+    pub fn get_supported_dx9_media_surface_formats_intel(
+        &self,
+        flags: cl_mem_flags,
+        image_type: cl_mem_object_type,
+        plane: cl_uint,
+    ) -> Result<Vec<cl_uint>> {
+        Ok(
+            dx9_media_sharing::get_supported_dx9_media_surface_formats_intel(
+                self.context,
+                flags,
+                image_type,
+                plane,
+            )?,
+        )
+    }
+
+    #[cfg(feature = "cl_khr_d3d10_sharing")]
+    pub fn get_supported_d3d10_texture_formats_intel(
+        &self,
+        flags: cl_mem_flags,
+        image_type: cl_mem_object_type,
+    ) -> Result<Vec<cl_uint>> {
+        Ok(d3d10::get_supported_d3d10_texture_formats_intel(
+            self.context,
+            flags,
+            image_type,
+        )?)
+    }
+
+    #[cfg(feature = "cl_khr_d3d11_sharing")]
+    pub fn get_supported_d3d11_texture_formats_intel(
+        &self,
+        flags: cl_mem_flags,
+        image_type: cl_mem_object_type,
+        plane: cl_uint,
+    ) -> Result<Vec<cl_uint>> {
+        Ok(d3d11::get_supported_d3d11_texture_formats_intel(
+            self.context,
+            flags,
+            image_type,
+            plane,
         )?)
     }
 }

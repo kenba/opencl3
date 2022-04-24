@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2020-2022 Via Technology Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,36 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![allow(deprecated)]
+
 use core::marker::PhantomData;
 
-#[allow(unused_imports)]
-pub use cl3::ffi::cl_ext::cl_mem_properties_intel;
 pub use cl3::memory::*;
 
 use super::context::Context;
 
 use super::Result;
-#[allow(unused_imports)]
-use cl3::d3d10;
-#[allow(unused_imports)]
-use cl3::d3d11;
-#[allow(unused_imports)]
+#[cfg(feature = "cl_intel_dx9_media_sharing")]
 use cl3::dx9_media_sharing;
 #[allow(unused_imports)]
 use cl3::egl;
 #[allow(unused_imports)]
 use cl3::ext;
-#[allow(unused_imports)]
-use cl3::ffi::cl_d3d10::{ID3D10Buffer_ptr, ID3D10Texture2D_ptr, ID3D10Texture3D_ptr};
-#[allow(unused_imports)]
-use cl3::ffi::cl_d3d11::{ID3D11Buffer_ptr, ID3D11Texture2D_ptr, ID3D11Texture3D_ptr};
-#[allow(unused_imports)]
-use cl3::ffi::cl_dx9_media_sharing::{
-    cl_dx9_media_adapter_type_khr, IDirect3DSurface9_ptr, HANDLE,
-};
 use cl3::gl;
 use cl3::memory;
 use cl3::sampler;
+
 #[allow(unused_imports)]
 use cl3::types::{
     cl_addressing_mode, cl_bool, cl_buffer_create_type, cl_buffer_region, cl_context,
@@ -49,6 +38,7 @@ use cl3::types::{
     cl_mem_info, cl_mem_object_type, cl_mem_properties, cl_pipe_info, cl_sampler, cl_sampler_info,
     cl_sampler_properties, cl_uint, cl_ulong, CL_FALSE,
 };
+
 use libc::{c_void, intptr_t, size_t};
 use std::mem;
 
@@ -115,7 +105,7 @@ pub trait ClMem {
     ///
     /// returns a Result containing the OpenGL object type and name
     /// or the error code from the OpenCL C API function.
-    fn gl_object_info(&self) -> Result<(gl::gl_uint, gl::gl_uint)> {
+    fn gl_object_info(&self) -> Result<(gl::cl_GLuint, gl::cl_GLuint)> {
         Ok(gl::get_gl_object_info(self.get())?)
     }
 }
@@ -229,7 +219,7 @@ impl<T> Buffer<T> {
     pub fn create_from_gl_buffer(
         context: &Context,
         flags: cl_mem_flags,
-        bufobj: gl::gl_uint,
+        bufobj: gl::cl_GLuint,
     ) -> Result<Buffer<T>> {
         let buffer = gl::create_from_gl_buffer(context.get(), flags, bufobj)?;
         Ok(Buffer::new(buffer))
@@ -238,7 +228,7 @@ impl<T> Buffer<T> {
     #[cfg(feature = "cl_intel_create_buffer_with_properties")]
     pub fn create_with_properties_intel(
         context: &Context,
-        properties: *const cl_mem_properties_intel,
+        properties: *const ext::cl_mem_properties_intel,
         flags: cl_mem_flags,
         count: size_t,
         host_ptr: *mut c_void,
@@ -403,9 +393,9 @@ impl Image {
     pub fn create_from_gl_texture(
         context: &Context,
         flags: cl_mem_flags,
-        texture_target: gl::gl_enum,
-        miplevel: gl::gl_int,
-        texture: gl::gl_uint,
+        texture_target: gl::cl_GLenum,
+        miplevel: gl::cl_GLint,
+        texture: gl::cl_GLuint,
     ) -> Result<Image> {
         let image =
             gl::create_from_gl_texture(context.get(), flags, texture_target, miplevel, texture)?;
@@ -425,60 +415,9 @@ impl Image {
     pub fn create_from_gl_render_buffer(
         context: &Context,
         flags: cl_mem_flags,
-        renderbuffer: gl::gl_uint,
+        renderbuffer: gl::cl_GLuint,
     ) -> Result<Image> {
         let image = gl::create_from_gl_render_buffer(context.get(), flags, renderbuffer)?;
-        Ok(Image::new(image))
-    }
-
-    /// Create an OpenCL 2D image object from an OpenGL 2D texture object,
-    /// or a single face of an OpenGL cubemap texture object.  
-    /// Deprecated in CL_VERSION_1_2, use create_from_gl_texture.  
-    ///
-    /// * `context` - a valid OpenCL context created from an OpenGL context.
-    /// * `flags` - a bit-field used to specify allocation and usage information
-    /// about the image memory object being created, see:
-    /// [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
-    /// * `texture_target` - used to define the image type of texture.  
-    /// * `miplevel ` - used to define the mipmap level.  
-    /// * `texture  ` - the name of a GL 2D, cubemap or rectangle texture object.  
-    ///
-    /// returns a Result containing the new OpenCL image object
-    /// or the error code from the OpenCL C API function.
-    pub fn create_from_gl_texture_2d(
-        context: &Context,
-        flags: cl_mem_flags,
-        texture_target: gl::gl_enum,
-        miplevel: gl::gl_int,
-        texture: gl::gl_uint,
-    ) -> Result<Image> {
-        let image =
-            gl::create_from_gl_texture_2d(context.get(), flags, texture_target, miplevel, texture)?;
-        Ok(Image::new(image))
-    }
-
-    /// Create an OpenCL 3D image object from an OpenGL 3D texture object.   
-    /// Deprecated in CL_VERSION_1_2, use create_from_gl_texture.  
-    ///
-    /// * `context` - a valid OpenCL context created from an OpenGL context.
-    /// * `flags` - a bit-field used to specify allocation and usage information
-    /// about the image memory object being created, see:
-    /// [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
-    /// * `texture_target` - used to define the image type of texture.  
-    /// * `miplevel ` - used to define the mipmap level.  
-    /// * `texture  ` - the name of a GL buffer texture object.
-    ///
-    /// returns a Result containing the new OpenCL image object
-    /// or the error code from the OpenCL C API function.
-    pub fn create_from_gl_texture_3d(
-        context: &Context,
-        flags: cl_mem_flags,
-        texture_target: gl::gl_enum,
-        miplevel: gl::gl_int,
-        texture: gl::gl_uint,
-    ) -> Result<Image> {
-        let image =
-            gl::create_from_gl_texture_3d(context.get(), flags, texture_target, miplevel, texture)?;
         Ok(Image::new(image))
     }
 
@@ -508,32 +447,13 @@ impl Image {
         Ok(Image::new(image))
     }
 
-    #[cfg(feature = "cl_khr_dx9_media_sharing")]
-    #[inline]
-    pub fn create_from_dx9_media_surface_khr(
-        context: &Context,
-        flags: cl_mem_flags,
-        adapter_type: cl_dx9_media_adapter_type_khr,
-        surface_info: *mut c_void,
-        plane: cl_uint,
-    ) -> Result<Image> {
-        let image = dx9_media_sharing::create_from_dx9_media_surface_khr(
-            context.get(),
-            flags,
-            adapter_type,
-            surface_info,
-            plane,
-        )?;
-        Ok(Image::new(image))
-    }
-
     #[cfg(feature = "cl_intel_dx9_media_sharing")]
     #[inline]
     pub fn create_from_dx9_media_surface_intel(
         context: &Context,
         flags: cl_mem_flags,
-        resource: IDirect3DSurface9_ptr,
-        shared_handle: HANDLE,
+        resource: dx9_media_sharing::IDirect3DSurface9_ptr,
+        shared_handle: dx9_media_sharing::HANDLE,
         plane: cl_uint,
     ) -> Result<Image> {
         let image = dx9_media_sharing::create_from_dx9_media_surface_intel(
@@ -543,80 +463,6 @@ impl Image {
             shared_handle,
             plane,
         )?;
-        Ok(Image::new(image))
-    }
-
-    #[cfg(feature = "cl_khr_d3d10_sharing")]
-    #[inline]
-    pub fn create_from_d3d10_buffer_khr(
-        context: &Context,
-        flags: cl_mem_flags,
-        resource: ID3D10Buffer_ptr,
-    ) -> Result<Image> {
-        let image = d3d10::create_from_d3d10_buffer_khr(context.get(), flags, resource)?;
-        Ok(Image::new(image))
-    }
-
-    #[cfg(feature = "cl_khr_d3d10_sharing")]
-    #[inline]
-    pub fn create_from_d3d10_texture2d_khr(
-        context: &Context,
-        flags: cl_mem_flags,
-        resource: ID3D10Texture2D_ptr,
-        subresource: cl_uint,
-    ) -> Result<Image> {
-        let image =
-            d3d10::create_from_d3d10_texture2d_khr(context.get(), flags, resource, subresource)?;
-        Ok(Image::new(image))
-    }
-
-    #[cfg(feature = "cl_khr_d3d10_sharing")]
-    #[inline]
-    pub fn create_from_d3d10_texture3d_khr(
-        context: &Context,
-        flags: cl_mem_flags,
-        resource: ID3D10Texture3D_ptr,
-        subresource: cl_uint,
-    ) -> Result<Image> {
-        let image =
-            d3d10::create_from_d3d10_texture3d_khr(context.get(), flags, resource, subresource)?;
-        Ok(Image::new(image))
-    }
-
-    #[cfg(feature = "cl_khr_d3d11_sharing")]
-    #[inline]
-    pub fn create_from_d3d11_buffer_khr(
-        context: &Context,
-        flags: cl_mem_flags,
-        resource: ID3D11Buffer_ptr,
-    ) -> Result<Image> {
-        let image = d3d11::create_from_d3d11_buffer_khr(context.get(), flags, resource)?;
-        Ok(Image::new(image))
-    }
-
-    #[cfg(feature = "cl_khr_d3d11_sharing")]
-    #[inline]
-    pub fn create_from_d3d11_texture2d_khr(
-        context: &Context,
-        flags: cl_mem_flags,
-        resource: ID3D11Texture2D_ptr,
-        subresource: cl_uint,
-    ) -> Result<Image> {
-        let image =
-            d3d11::create_from_d3d11_texture2d_khr(context.get(), flags, resource, subresource)?;
-        Ok(Image::new(image))
-    }
-
-    #[cfg(feature = "cl_khr_d3d11_sharing")]
-    #[inline]
-    pub fn create_from_d3d11_texture3d_khr(
-        context: &Context,
-        flags: cl_mem_flags,
-        resource: ID3D11Texture3D_ptr,
-        subresource: cl_uint,
-    ) -> Result<Image> {
-        let image =
-            d3d11::create_from_d3d11_texture3d_khr(context.get(), flags, resource, subresource)?;
         Ok(Image::new(image))
     }
 
@@ -718,6 +564,10 @@ impl Sampler {
         Sampler { sampler }
     }
 
+    #[deprecated(
+        since = "0.1.0",
+        note = "From CL_VERSION_2_0 use create_sampler_with_properties"
+    )]
     pub fn create(
         context: &Context,
         normalize_coords: cl_bool,
