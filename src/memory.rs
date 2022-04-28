@@ -564,9 +564,17 @@ impl Sampler {
         Sampler { sampler }
     }
 
-    #[deprecated(
-        since = "0.1.0",
-        note = "From CL_VERSION_2_0 use create_sampler_with_properties"
+    #[cfg_attr(
+        any(
+            feature = "CL_VERSION_2_0",
+            feature = "CL_VERSION_2_1",
+            feature = "CL_VERSION_2_2",
+            feature = "CL_VERSION_3_0"
+        ),
+        deprecated(
+            since = "0.1.0",
+            note = "From CL_VERSION_2_0 use create_sampler_with_properties"
+        )
     )]
     pub fn create(
         context: &Context,
