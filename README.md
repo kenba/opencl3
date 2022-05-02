@@ -46,6 +46,12 @@ The struct methods are simpler to use than their equivalent standalone functions
 Nearly all the structs implement the `Drop` trait to release their corresponding
 OpenCL objects. The exceptions are `Platform` and `Device` which don't need to be released. See the crate [documentation](https://docs.rs/opencl3/).
 
+The API for OpenCL versions and extensions are controlled by Rust features such as "CL_VERSION_2_0" and "cl_khr_gl_sharing". To enable an OpenCL version, the feature for that version and **all** previous OpenCL versions must be enabled, e.g. for "CL_VERSION_2_0"; "CL_VERSION_1_1" and "CL_VERSION_1_2" must also be enabled.
+
+The default features are "CL_VERSION_1_1", "CL_VERSION_1_2" and "CL_VERSION_2_0".
+
+Rust deprecation warnings are given for OpenCL API functions that are deprecated by an enabled OpenCL version e.g., `clCreateCommandQueue` is deprecated whenever "CL_VERSION_2_0" is enabled.
+
 ## Use
 
 Ensure that an OpenCL Installable Client Driver (ICD) and the appropriate OpenCL
@@ -57,7 +63,7 @@ OpenCL 2.0 ICD loader then just add the following to your project's `Cargo.toml`
 
 ```toml
 [dependencies]
-opencl3 = "0.7"
+opencl3 = "0.8"
 ```
 
 If your OpenCL ICD loader supports higher versions of OpenCL then add the
@@ -66,7 +72,7 @@ following to your project's `Cargo.toml` instead:
 
 ```toml
 [dependencies.opencl3]
-version = "0.7"
+version = "0.8"
 features = ["CL_VERSION_2_1", "CL_VERSION_2_2", "CL_VERSION_3_0"]
 ```
 
@@ -74,7 +80,7 @@ OpenCL extensions and `serde` support can also be enabled by adding their featur
 
 ```toml
 [dependencies.opencl3]
-version = "0.7"
+version = "0.8"
 features = ["cl_khr_gl_sharing", "cl_khr_dx9_media_sharing", "serde"]
 ```
 
@@ -222,11 +228,13 @@ The API has changed considerably since version `0.1` of the library, with the
 aim of making the library more consistent and easier to use.
 
 [SvmVec](src/svm.rs) was changed recently to provide support for `serde` deserialization.
-It also changed in version 5.0.0 to provide better support for
+It also changed in version 0.5.0 to provide better support for
 coarse grain buffer Shared Virtual Memory now that Nvidia is supporting it,
 see [Nvidia OpenCL](https://developer.nvidia.com/opencl).
 
-In version 6.0.0 the Info enums were removed from the underlying [cl3](https://crates.io/crates/cl3) crate and this crate so that data can be read from OpenCL devices in the future using new values that are currently undefined.
+In version 0.6.0 the Info enums were removed from the underlying [cl3](https://crates.io/crates/cl3) crate and this crate so that data can be read from OpenCL devices in the future using new values that are currently undefined.
+
+In version 0.8.0 deprecation warnings are given for OpenCL API functions that are deprecated by an enabled OpenCL version e.g., `clCreateCommandQueue` is deprecated whenever "CL_VERSION_2_0" is enabled.
 
 For information on other changes, see [Releases](RELEASES.md).
 
