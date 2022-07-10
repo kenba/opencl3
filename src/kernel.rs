@@ -353,12 +353,12 @@ impl<'a> ExecuteKernel<'a> {
             "ExecuteKernel::set_arg too many args"
         );
 
-        self.kernel.set_arg(self.arg_index, arg).map_err(|e| {
+        if let Err(e) = self.kernel.set_arg(self.arg_index, arg) {
             panic!(
                 "ExecuteKernel::set_arg invalid kernel arg at index: {}, {:?}, {}",
                 self.arg_index, e, e,
             )
-        });
+        };
         self.arg_index += 1;
         self
     }
@@ -379,14 +379,12 @@ impl<'a> ExecuteKernel<'a> {
             "ExecuteKernel::set_arg_local_buffer too many args"
         );
 
-        self.kernel
-            .set_arg_local_buffer(self.arg_index, size)
-            .map_err(|e| {
-                panic!(
-                    "ExecuteKernel::set_arg_local_buffer invalid kernel arg at index: {}, {:?}, {}",
-                    self.arg_index, e, e,
-                )
-            });
+        if let Err(e) = self.kernel.set_arg_local_buffer(self.arg_index, size) {
+            panic!(
+                "ExecuteKernel::set_arg_local_buffer invalid kernel arg at index: {}, {:?}, {}",
+                self.arg_index, e, e,
+            )
+        };
 
         self.arg_index += 1;
         self
@@ -409,14 +407,15 @@ impl<'a> ExecuteKernel<'a> {
             "ExecuteKernel::set_arg_svm too many args"
         );
 
-        self.kernel
+        if let Err(e) = self
+            .kernel
             .set_arg_svm_pointer(self.arg_index, arg_ptr as *const c_void)
-            .map_err(|e| {
-                panic!(
-                    "ExecuteKernel::set_arg_svm_pointer invalid kernel arg at index: {}, {:?}, {}",
-                    self.arg_index, e, e,
-                )
-            });
+        {
+            panic!(
+                "ExecuteKernel::set_arg_svm_pointer invalid kernel arg at index: {}, {:?}, {}",
+                self.arg_index, e, e,
+            )
+        };
         self.arg_index += 1;
         self
     }
