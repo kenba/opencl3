@@ -342,7 +342,7 @@ impl<'a> ExecuteKernel<'a> {
     ///
     /// # Panics
     ///
-    /// Panics if too many arguments have been set.
+    /// Panics if too many arguments have been set or the argument is invalid.
     ///
     /// * `arg` - a reference to the data for the kernel argument.
     ///
@@ -353,7 +353,12 @@ impl<'a> ExecuteKernel<'a> {
             "ExecuteKernel::set_arg too many args"
         );
 
-        self.kernel.set_arg(self.arg_index, arg).unwrap();
+        self.kernel.set_arg(self.arg_index, arg).map_err(|e| {
+            panic!(
+                "ExecuteKernel::set_arg invalid kernel arg at index: {}, {:?}, {}",
+                self.arg_index, e, e,
+            )
+        });
         self.arg_index += 1;
         self
     }
@@ -363,7 +368,7 @@ impl<'a> ExecuteKernel<'a> {
     ///
     /// # Panics
     ///
-    /// Panics if too many arguments have been set.
+    /// Panics if too many arguments have been set or the argument is invalid.
     ///
     /// * `size` - the size of the local memory buffer in bytes.
     ///
@@ -376,7 +381,13 @@ impl<'a> ExecuteKernel<'a> {
 
         self.kernel
             .set_arg_local_buffer(self.arg_index, size)
-            .unwrap();
+            .map_err(|e| {
+                panic!(
+                    "ExecuteKernel::set_arg_local_buffer invalid kernel arg at index: {}, {:?}, {}",
+                    self.arg_index, e, e,
+                )
+            });
+
         self.arg_index += 1;
         self
     }
@@ -386,7 +397,7 @@ impl<'a> ExecuteKernel<'a> {
     ///
     /// # Panics
     ///
-    /// Panics if too many arguments have been set.
+    /// Panics if too many arguments have been set or the argument is invalid.
     ///
     /// * `arg` - a reference to the data for the kernel argument.
     ///
@@ -400,7 +411,12 @@ impl<'a> ExecuteKernel<'a> {
 
         self.kernel
             .set_arg_svm_pointer(self.arg_index, arg_ptr as *const c_void)
-            .unwrap();
+            .map_err(|e| {
+                panic!(
+                    "ExecuteKernel::set_arg_svm_pointer invalid kernel arg at index: {}, {:?}, {}",
+                    self.arg_index, e, e,
+                )
+            });
         self.arg_index += 1;
         self
     }
