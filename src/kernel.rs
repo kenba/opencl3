@@ -347,6 +347,7 @@ impl<'a> ExecuteKernel<'a> {
     /// * `arg` - a reference to the data for the kernel argument.
     ///
     /// returns a reference to self.
+    #[track_caller]
     pub fn set_arg<'b, T>(&'b mut self, arg: &T) -> &'b mut Self {
         assert!(
             self.arg_index < self.num_args,
@@ -373,6 +374,7 @@ impl<'a> ExecuteKernel<'a> {
     /// * `size` - the size of the local memory buffer in bytes.
     ///
     /// returns a reference to self.
+    #[track_caller]
     pub fn set_arg_local_buffer(&mut self, size: size_t) -> &mut Self {
         assert!(
             self.arg_index < self.num_args,
@@ -401,6 +403,7 @@ impl<'a> ExecuteKernel<'a> {
     ///
     /// returns a reference to self.
     #[cfg(feature = "CL_VERSION_2_0")]
+    #[track_caller]
     pub fn set_arg_svm<T>(&mut self, arg_ptr: *const T) -> &mut Self {
         assert!(
             self.arg_index < self.num_args,
