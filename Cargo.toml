@@ -43,6 +43,7 @@ cl_arm_shared_virtual_memory = ["cl3/cl_arm_shared_virtual_memory"]
 cl_intel_accelerator = ["cl3/cl_intel_accelerator"]
 cl_intel_unified_shared_memory = ["cl3/cl_intel_unified_shared_memory"]
 cl_intel_create_buffer_with_properties = ["cl3/cl_intel_create_buffer_with_properties"]
+cl_ext_image_requirements_info = ["cl3/cl_ext_image_requirements_info"]
 cl_khr_command_buffer = ["cl3/cl_khr_command_buffer"]
 
 cl_khr_gl_sharing = ["cl3/cl_khr_gl_sharing"]
