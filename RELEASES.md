@@ -1,5 +1,18 @@
 # Releases
 
+## Version 0.8.1 (2022-07-23)
+
+### Bug fixes
+
+* Issue [#49](https://github.com/kenba/opencl3/issues/49) Better Error messages for
+`ExecuteKernel::set_arg`.
+
+### New Features
+
+* Update for OpenCL extension `cl_ext_image_requirements_info`.
+
+* PR [#50](https://github.com/kenba/opencl3/issues/50) Introduce `track_caller` for panicing methods of `ExecuteKernel`.
+
 ## Version 0.8.0 (2022-05-02)
 
 ### Breaking Changes
