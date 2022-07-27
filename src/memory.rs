@@ -143,6 +143,7 @@ impl<T> Drop for Buffer<T> {
 }
 
 unsafe impl<T: Send> Send for Buffer<T> {}
+unsafe impl<T: Sync> Sync for Buffer<T> {}
 
 impl<T> Buffer<T> {
     pub fn new(buffer: cl_mem) -> Buffer<T> {

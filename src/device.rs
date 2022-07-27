@@ -98,6 +98,9 @@ impl Drop for SubDevice {
 unsafe impl Send for SubDevice {}
 
 #[cfg(feature = "CL_VERSION_1_2")]
+unsafe impl Sync for SubDevice {}
+
+#[cfg(feature = "CL_VERSION_1_2")]
 impl SubDevice {
     pub fn new(id: cl_device_id) -> SubDevice {
         SubDevice { id }
