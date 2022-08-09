@@ -59,7 +59,7 @@ impl Clone for Kernel {
 
 impl Drop for Kernel {
     fn drop(&mut self) {
-        release_kernel(self.kernel).expect("Error: clReleaseKernel");
+        unsafe { release_kernel(self.kernel).expect("Error: clReleaseKernel") };
     }
 }
 

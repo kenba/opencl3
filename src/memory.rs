@@ -137,7 +137,7 @@ impl<T> ClMem for Buffer<T> {
 
 impl<T> Drop for Buffer<T> {
     fn drop(&mut self) {
-        memory::release_mem_object(self.get()).expect("Error: clReleaseMemObject");
+        unsafe { memory::release_mem_object(self.get()).expect("Error: clReleaseMemObject") };
     }
 }
 
@@ -301,7 +301,7 @@ impl ClMem for Image {
 
 impl Drop for Image {
     fn drop(&mut self) {
-        memory::release_mem_object(self.get()).expect("Error: clReleaseMemObject");
+        unsafe { memory::release_mem_object(self.get()).expect("Error: clReleaseMemObject") };
     }
 }
 
@@ -553,7 +553,7 @@ impl From<Sampler> for cl_sampler {
 
 impl Drop for Sampler {
     fn drop(&mut self) {
-        sampler::release_sampler(self.sampler).expect("Error: clReleaseSampler");
+        unsafe { sampler::release_sampler(self.sampler).expect("Error: clReleaseSampler") };
     }
 }
 
@@ -679,7 +679,7 @@ impl ClMem for Pipe {
 #[cfg(feature = "CL_VERSION_2_0")]
 impl Drop for Pipe {
     fn drop(&mut self) {
-        memory::release_mem_object(self.get()).expect("Error: clReleaseMemObject");
+        unsafe { memory::release_mem_object(self.get()).expect("Error: clReleaseMemObject") };
     }
 }
 

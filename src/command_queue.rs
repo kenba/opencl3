@@ -62,7 +62,7 @@ impl From<CommandQueue> for cl_command_queue {
 
 impl Drop for CommandQueue {
     fn drop(&mut self) {
-        release_command_queue(self.queue).expect("Error: clReleaseCommandQueue")
+        unsafe { release_command_queue(self.queue).expect("Error: clReleaseCommandQueue") };
     }
 }
 

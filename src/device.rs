@@ -90,7 +90,7 @@ impl From<SubDevice> for cl_device_id {
 #[cfg(feature = "CL_VERSION_1_2")]
 impl Drop for SubDevice {
     fn drop(&mut self) {
-        release_device(self.id()).expect("Error: clReleaseDevice");
+        unsafe { release_device(self.id()).expect("Error: clReleaseDevice") };
     }
 }
 

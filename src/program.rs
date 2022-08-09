@@ -95,7 +95,7 @@ impl From<Program> for cl_program {
 
 impl Drop for Program {
     fn drop(&mut self) {
-        release_program(self.program).expect("Error: clReleaseProgram");
+        unsafe { release_program(self.program).expect("Error: clReleaseProgram") };
     }
 }
 

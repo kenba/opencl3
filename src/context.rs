@@ -98,7 +98,7 @@ impl From<Context> for cl_context {
 impl Drop for Context {
     fn drop(&mut self) {
         self.devices.clear();
-        context::release_context(self.context).expect("Error: clReleaseContext");
+        unsafe { context::release_context(self.context).expect("Error: clReleaseContext") };
     }
 }
 

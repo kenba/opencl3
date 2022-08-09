@@ -44,7 +44,7 @@ impl From<Event> for cl_event {
 
 impl Drop for Event {
     fn drop(&mut self) {
-        release_event(self.event).expect("Error: clReleaseEvent");
+        unsafe { release_event(self.event).expect("Error: clReleaseEvent") };
     }
 }
 

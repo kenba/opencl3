@@ -146,7 +146,7 @@ impl<'a, T> SvmRawVec<'a, T> {
                     alloc::dealloc(self.ptr as *mut u8, layout);
                 }
             } else {
-                svm_free(self.context.get(), self.ptr as *mut c_void);
+                unsafe { svm_free(self.context.get(), self.ptr as *mut c_void) };
             }
         }
 
@@ -170,7 +170,7 @@ impl<'a, T> Drop for SvmRawVec<'a, T> {
                     alloc::dealloc(self.ptr as *mut u8, layout);
                 }
             } else {
-                svm_free(self.context.get(), self.ptr as *mut c_void);
+                unsafe { svm_free(self.context.get(), self.ptr as *mut c_void) };
             }
             self.ptr = ptr::null_mut();
         }
