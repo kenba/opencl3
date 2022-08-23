@@ -163,7 +163,7 @@ impl<T> Buffer<T> {
     ///
     /// returns a Result containing the new OpenCL buffer object
     /// or the error code from the OpenCL C API function.
-    pub fn create(
+    pub unsafe fn create(
         context: &Context,
         flags: cl_mem_flags,
         count: size_t,
@@ -189,7 +189,7 @@ impl<T> Buffer<T> {
     /// returns a Result containing the new OpenCL buffer object
     /// or the error code from the OpenCL C API function.
     #[cfg(feature = "CL_VERSION_3_0")]
-    pub fn create_with_properties(
+    pub unsafe fn create_with_properties(
         context: &Context,
         properties: *const cl_mem_properties,
         flags: cl_mem_flags,
@@ -216,7 +216,7 @@ impl<T> Buffer<T> {
     ///
     /// returns a Result containing the new OpenCL buffer object
     /// or the error code from the OpenCL C API function.
-    pub fn create_from_gl_buffer(
+    pub unsafe fn create_from_gl_buffer(
         context: &Context,
         flags: cl_mem_flags,
         bufobj: gl::cl_GLuint,
@@ -226,7 +226,7 @@ impl<T> Buffer<T> {
     }
 
     #[cfg(feature = "cl_intel_create_buffer_with_properties")]
-    pub fn create_with_properties_intel(
+    pub unsafe fn create_with_properties_intel(
         context: &Context,
         properties: *const ext::cl_mem_properties_intel,
         flags: cl_mem_flags,
@@ -254,7 +254,7 @@ impl<T> Buffer<T> {
     ///
     /// returns a Result containing the new OpenCL buffer object
     /// or the error code from the OpenCL C API function.
-    pub fn create_sub_buffer(
+    pub unsafe fn create_sub_buffer(
         &self,
         flags: cl_mem_flags,
         origin: usize,
@@ -328,7 +328,7 @@ impl Image {
     /// returns a Result containing the new OpenCL image object
     /// or the error code from the OpenCL C API function.
     #[cfg(feature = "CL_VERSION_1_2")]
-    pub fn create(
+    pub unsafe fn create(
         context: &Context,
         flags: cl_mem_flags,
         image_format: *const cl_image_format,
@@ -357,7 +357,7 @@ impl Image {
     /// returns a Result containing the new OpenCL image object
     /// or the error code from the OpenCL C API function.
     #[cfg(feature = "CL_VERSION_3_0")]
-    pub fn create_with_properties(
+    pub unsafe fn create_with_properties(
         context: &Context,
         properties: *const cl_mem_properties,
         flags: cl_mem_flags,
@@ -390,7 +390,7 @@ impl Image {
     ///
     /// returns a Result containing the new OpenCL image object
     /// or the error code from the OpenCL C API function.
-    pub fn create_from_gl_texture(
+    pub unsafe fn create_from_gl_texture(
         context: &Context,
         flags: cl_mem_flags,
         texture_target: gl::cl_GLenum,
@@ -412,7 +412,7 @@ impl Image {
     ///
     /// returns a Result containing the new OpenCL image object
     /// or the error code from the OpenCL C API function.
-    pub fn create_from_gl_render_buffer(
+    pub unsafe fn create_from_gl_render_buffer(
         context: &Context,
         flags: cl_mem_flags,
         renderbuffer: gl::cl_GLuint,
@@ -435,7 +435,7 @@ impl Image {
     /// or the error code from the OpenCL C API function.
     #[cfg(feature = "cl_khr_egl_image")]
     #[inline]
-    pub fn create_from_egl_image(
+    pub unsafe fn create_from_egl_image(
         context: &Context,
         display: egl::CLeglDisplayKHR,
         image: egl::CLeglImageKHR,
@@ -449,7 +449,7 @@ impl Image {
 
     #[cfg(feature = "cl_intel_dx9_media_sharing")]
     #[inline]
-    pub fn create_from_dx9_media_surface_intel(
+    pub unsafe fn create_from_dx9_media_surface_intel(
         context: &Context,
         flags: cl_mem_flags,
         resource: dx9_media_sharing::IDirect3DSurface9_ptr,
@@ -689,7 +689,7 @@ impl Pipe {
         Pipe { pipe }
     }
 
-    pub fn create(
+    pub unsafe fn create(
         context: &Context,
         flags: cl_mem_flags,
         pipe_packet_size: cl_uint,
@@ -744,9 +744,10 @@ mod tests {
 
         const ARRAY_SIZE: usize = 1024;
 
-        let buffer =
+        let buffer = unsafe {
             Buffer::<cl_float>::create(&context, CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())
-                .unwrap();
+                .unwrap()
+        };
 
         let value = buffer.mem_type().unwrap();
         println!("buffer.mem_type(): {}", value);

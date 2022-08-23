@@ -55,7 +55,9 @@ impl From<CommandBuffer> for cl_command_buffer_khr {
 
 impl Drop for CommandBuffer {
     fn drop(&mut self) {
-        release_command_buffer_khr(self.buffer).expect("Error: clReleaseCommandBufferKHR")
+        unsafe {
+            release_command_buffer_khr(self.buffer).expect("Error: clReleaseCommandBufferKHR")
+        };
     }
 }
 
@@ -87,7 +89,7 @@ impl CommandBuffer {
 
     /// Enqueues a command-buffer to execute on command-queues specified by queues,
     /// or on default command-queues used during recording if queues is empty.
-    pub fn enqueue(
+    pub unsafe fn enqueue(
         &self,
         queues: &mut [cl_command_queue],
         event_wait_list: &[cl_event],
@@ -113,18 +115,20 @@ impl CommandBuffer {
         sync_point_wait_list: &[cl_sync_point_khr],
     ) -> Result<cl_sync_point_khr> {
         let mut sync_point = 0;
-        command_barrier_with_wait_list_khr(
-            self.buffer,
-            queue,
-            sync_point_wait_list,
-            &mut sync_point,
-            ptr::null_mut(),
-        )?;
+        unsafe {
+            command_barrier_with_wait_list_khr(
+                self.buffer,
+                queue,
+                sync_point_wait_list,
+                &mut sync_point,
+                ptr::null_mut(),
+            )?
+        };
         Ok(sync_point)
     }
 
     /// Records a command to copy from one buffer object to another.
-    pub fn copy_buffer<T>(
+    pub unsafe fn copy_buffer<T>(
         &self,
         queue: cl_command_queue,
         src_buffer: &Buffer<T>,
@@ -151,7 +155,7 @@ impl CommandBuffer {
     }
 
     /// Records a command to copy a rectangular region from a buffer object to another buffer object.
-    pub fn copy_buffer_rect<T>(
+    pub unsafe fn copy_buffer_rect<T>(
         &self,
         queue: cl_command_queue,
         src_buffer: &Buffer<T>,
@@ -186,7 +190,7 @@ impl CommandBuffer {
     }
 
     /// Records a command to copy a buffer object to an image object.
-    pub fn copy_buffer_to_image<T>(
+    pub unsafe fn copy_buffer_to_image<T>(
         &self,
         queue: cl_command_queue,
         src_buffer: &Buffer<T>,
@@ -213,7 +217,7 @@ impl CommandBuffer {
     }
 
     /// Records a command to copy image objects.
-    pub fn copy_image<T>(
+    pub unsafe fn copy_image<T>(
         &self,
         queue: cl_command_queue,
         src_image: Image,
@@ -240,7 +244,7 @@ impl CommandBuffer {
     }
 
     /// Records a command to copy an image object to a buffer object.
-    pub fn copy_image_to_buffer<T>(
+    pub unsafe fn copy_image_to_buffer<T>(
         &self,
         queue: cl_command_queue,
         src_image: &Image,
@@ -267,7 +271,7 @@ impl CommandBuffer {
     }
 
     /// Records a command to fill a buffer object with a pattern of a given pattern size.
-    pub fn fill_buffer<T>(
+    pub unsafe fn fill_buffer<T>(
         &self,
         queue: cl_command_queue,
         buffer: &mut Buffer<T>,
@@ -293,7 +297,7 @@ impl CommandBuffer {
     }
 
     /// Records a command to fill an image object with a specified color.
-    pub fn fill_image<T>(
+    pub unsafe fn fill_image<T>(
         &self,
         queue: cl_command_queue,
         image: &mut Image,
@@ -318,7 +322,7 @@ impl CommandBuffer {
     }
 
     /// Records a command to execute a kernel on a device.
-    pub fn nd_range_kernel(
+    pub unsafe fn nd_range_kernel(
         &self,
         queue: cl_command_queue,
         properties: *const cl_ndrange_kernel_command_properties_khr,

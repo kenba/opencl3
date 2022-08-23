@@ -45,12 +45,8 @@ fn main() -> Result<()> {
     let context = Context::from_device(&device).expect("Context::from_device failed");
 
     // Create a command_queue on the Context's device
-    let queue = CommandQueue::create(
-        &context,
-        context.default_device(),
-        CL_QUEUE_PROFILING_ENABLE,
-    )
-    .expect("CommandQueue::create failed");
+    let queue = CommandQueue::create_default(&context, CL_QUEUE_PROFILING_ENABLE)
+        .expect("CommandQueue::create_default failed");
 
     // Build the OpenCL program source and create the kernel.
     let program = Program::create_and_build_from_source(&context, PROGRAM_SOURCE, "")
@@ -69,17 +65,22 @@ fn main() -> Result<()> {
     }
 
     // Create OpenCL device buffers
-    let mut x =
-        Buffer::<cl_float>::create(&context, CL_MEM_READ_ONLY, ARRAY_SIZE, ptr::null_mut())?;
-    let mut y =
-        Buffer::<cl_float>::create(&context, CL_MEM_READ_ONLY, ARRAY_SIZE, ptr::null_mut())?;
-    let z = Buffer::<cl_float>::create(&context, CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())?;
+    let mut x = unsafe {
+        Buffer::<cl_float>::create(&context, CL_MEM_READ_ONLY, ARRAY_SIZE, ptr::null_mut())?
+    };
+    let mut y = unsafe {
+        Buffer::<cl_float>::create(&context, CL_MEM_READ_ONLY, ARRAY_SIZE, ptr::null_mut())?
+    };
+    let z = unsafe {
+        Buffer::<cl_float>::create(&context, CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())?
+    };
 
     // Blocking write
-    let _x_write_event = queue.enqueue_write_buffer(&mut x, CL_BLOCKING, 0, &ones, &[])?;
+    let _x_write_event = unsafe { queue.enqueue_write_buffer(&mut x, CL_BLOCKING, 0, &ones, &[])? };
 
     // Non-blocking write, wait for y_write_event
-    let y_write_event = queue.enqueue_write_buffer(&mut y, CL_NON_BLOCKING, 0, &sums, &[])?;
+    let y_write_event =
+        unsafe { queue.enqueue_write_buffer(&mut y, CL_NON_BLOCKING, 0, &sums, &[])? };
 
     // a value for the kernel function
     let a: cl_float = 300.0;
@@ -88,14 +89,16 @@ fn main() -> Result<()> {
     // cl_float value arguments, before setting the one dimensional
     // global_work_size for the call to enqueue_nd_range.
     // Unwraps the Result to get the kernel execution event.
-    let kernel_event = ExecuteKernel::new(&kernel)
-        .set_arg(&z)
-        .set_arg(&x)
-        .set_arg(&y)
-        .set_arg(&a)
-        .set_global_work_size(ARRAY_SIZE)
-        .set_wait_event(&y_write_event)
-        .enqueue_nd_range(&queue)?;
+    let kernel_event = unsafe {
+        ExecuteKernel::new(&kernel)
+            .set_arg(&z)
+            .set_arg(&x)
+            .set_arg(&y)
+            .set_arg(&a)
+            .set_global_work_size(ARRAY_SIZE)
+            .set_wait_event(&y_write_event)
+            .enqueue_nd_range(&queue)?
+    };
 
     let mut events: Vec<cl_event> = Vec::default();
     events.push(kernel_event.get());
@@ -104,7 +107,8 @@ fn main() -> Result<()> {
     // and enqueue a read command to read the device buffer into the array
     // after the kernel event completes.
     let mut results: [cl_float; ARRAY_SIZE] = [0.0; ARRAY_SIZE];
-    let read_event = queue.enqueue_read_buffer(&z, CL_NON_BLOCKING, 0, &mut results, &events)?;
+    let read_event =
+        unsafe { queue.enqueue_read_buffer(&z, CL_NON_BLOCKING, 0, &mut results, &events)? };
 
     // Wait for the read_event to complete.
     read_event.wait()?;

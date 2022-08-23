@@ -111,7 +111,7 @@ impl CommandQueue {
             note = "From CL_VERSION_2_0 use create_command_queue_with_properties"
         )
     )]
-    pub fn create(
+    pub unsafe fn create(
         context: &Context,
         device_id: cl_device_id,
         properties: cl_command_queue_properties,
@@ -120,6 +120,36 @@ impl CommandQueue {
         let device = Device::new(device_id);
         let max_work_item_dimensions = device.max_work_item_dimensions()?;
         Ok(CommandQueue::new(queue, max_work_item_dimensions))
+    }
+
+    /// Create an OpenCL command-queue on the context default device.  
+    /// Queries the device the max_work_item_dimensions.  
+    /// Deprecated in CL_VERSION_2_0 by create_command_queue_with_properties.
+    ///
+    /// * `context` - a valid OpenCL context.
+    /// * `properties` - a list of properties for the command-queue, see
+    /// [cl_command_queue_properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#legacy-queue-properties-table).
+    ///
+    /// returns a Result containing the new CommandQueue
+    /// or the error code from the OpenCL C API function.
+    #[cfg(feature = "CL_VERSION_1_2")]
+    #[cfg_attr(
+        any(
+            feature = "CL_VERSION_2_0",
+            feature = "CL_VERSION_2_1",
+            feature = "CL_VERSION_2_2",
+            feature = "CL_VERSION_3_0"
+        ),
+        deprecated(
+            since = "0.1.0",
+            note = "From CL_VERSION_2_0 use create_command_queue_with_properties"
+        )
+    )]
+    pub fn create_default(
+        context: &Context,
+        properties: cl_command_queue_properties,
+    ) -> Result<CommandQueue> {
+        unsafe { Self::create(context, context.default_device(), properties) }
     }
 
     /// Create an OpenCL command-queue on a specific device.  
@@ -134,7 +164,7 @@ impl CommandQueue {
     /// returns a Result containing the new CommandQueue
     /// or the error code from the OpenCL C API function.
     #[cfg(feature = "CL_VERSION_2_0")]
-    pub fn create_with_properties(
+    pub unsafe fn create_with_properties(
         context: &Context,
         device_id: cl_device_id,
         properties: cl_command_queue_properties,
@@ -162,6 +192,27 @@ impl CommandQueue {
         let device = Device::new(device_id);
         let max_work_item_dimensions = device.max_work_item_dimensions()?;
         Ok(CommandQueue::new(queue, max_work_item_dimensions))
+    }
+
+    /// Create an OpenCL command-queue on the default device.  
+    /// Queries the device the max_work_item_dimensions.  
+    /// CL_VERSION_2_0 onwards.
+    ///
+    /// * `context` - a valid OpenCL context.
+    /// * `properties` - a null terminated list of properties for the command-queue, see
+    /// [cl_queue_properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#queue-properties-table).
+    ///
+    /// returns a Result containing the new CommandQueue
+    /// or the error code from the OpenCL C API function.
+    #[cfg(feature = "CL_VERSION_2_0")]
+    pub fn create_default_with_properties(
+        context: &Context,
+        properties: cl_command_queue_properties,
+        queue_size: cl_uint,
+    ) -> Result<CommandQueue> {
+        unsafe {
+            Self::create_with_properties(context, context.default_device(), properties, queue_size)
+        }
     }
 
     #[cfg(feature = "cl_khr_create_command_queue")]
@@ -193,7 +244,7 @@ impl CommandQueue {
         Ok(finish(self.queue)?)
     }
 
-    pub fn enqueue_read_buffer<T>(
+    pub unsafe fn enqueue_read_buffer<T>(
         &self,
         buffer: &Buffer<T>,
         blocking_read: cl_bool,
@@ -218,7 +269,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_read_buffer_rect<T>(
+    pub unsafe fn enqueue_read_buffer_rect<T>(
         &self,
         buffer: &Buffer<T>,
         blocking_read: cl_bool,
@@ -254,7 +305,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_write_buffer<T>(
+    pub unsafe fn enqueue_write_buffer<T>(
         &self,
         buffer: &mut Buffer<T>,
         blocking_write: cl_bool,
@@ -279,7 +330,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_write_buffer_rect<T>(
+    pub unsafe fn enqueue_write_buffer_rect<T>(
         &self,
         buffer: &mut Buffer<T>,
         blocking_write: cl_bool,
@@ -316,7 +367,7 @@ impl CommandQueue {
     }
 
     #[cfg(feature = "CL_VERSION_1_2")]
-    pub fn enqueue_fill_buffer<T>(
+    pub unsafe fn enqueue_fill_buffer<T>(
         &self,
         buffer: &mut Buffer<T>,
         pattern: &[T],
@@ -341,7 +392,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_copy_buffer<T>(
+    pub unsafe fn enqueue_copy_buffer<T>(
         &self,
         src_buffer: &Buffer<T>,
         dst_buffer: &mut Buffer<T>,
@@ -366,7 +417,8 @@ impl CommandQueue {
         )?;
         Ok(Event::new(event))
     }
-    pub fn enqueue_copy_buffer_rect<T>(
+
+    pub unsafe fn enqueue_copy_buffer_rect<T>(
         &self,
         src_buffer: &Buffer<T>,
         dst_buffer: &mut Buffer<T>,
@@ -400,7 +452,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_read_image(
+    pub unsafe fn enqueue_read_image(
         &self,
         image: &Image,
         blocking_read: cl_bool,
@@ -430,7 +482,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_write_image(
+    pub unsafe fn enqueue_write_image(
         &self,
         image: &mut Image,
         blocking_write: cl_bool,
@@ -461,7 +513,7 @@ impl CommandQueue {
     }
 
     #[cfg(feature = "CL_VERSION_1_2")]
-    pub fn enqueue_fill_image(
+    pub unsafe fn enqueue_fill_image(
         &self,
         image: &mut Image,
         fill_color: *const c_void,
@@ -485,7 +537,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_copy_image(
+    pub unsafe fn enqueue_copy_image(
         &self,
         src_image: &Image,
         dst_image: &mut Image,
@@ -511,7 +563,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_copy_image_to_buffer<T>(
+    pub unsafe fn enqueue_copy_image_to_buffer<T>(
         &self,
         src_image: &Image,
         dst_buffer: &mut Buffer<T>,
@@ -537,7 +589,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_copy_buffer_to_image<T>(
+    pub unsafe fn enqueue_copy_buffer_to_image<T>(
         &self,
         src_buffer: &Buffer<T>,
         dst_image: &mut Image,
@@ -563,7 +615,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_map_buffer<T>(
+    pub unsafe fn enqueue_map_buffer<T>(
         &self,
         buffer: &Buffer<T>,
         blocking_map: cl_bool,
@@ -591,7 +643,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_map_image(
+    pub unsafe fn enqueue_map_image(
         &self,
         image: &Image,
         blocking_map: cl_bool,
@@ -623,7 +675,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_unmap_mem_object(
+    pub unsafe fn enqueue_unmap_mem_object(
         &self,
         memobj: cl_mem,
         mapped_ptr: *mut c_void,
@@ -644,7 +696,7 @@ impl CommandQueue {
     }
 
     #[cfg(feature = "CL_VERSION_1_2")]
-    pub fn enqueue_migrate_mem_object(
+    pub unsafe fn enqueue_migrate_mem_object(
         &self,
         num_mem_objects: cl_uint,
         mem_objects: *const cl_mem,
@@ -667,7 +719,7 @@ impl CommandQueue {
     }
 
     #[cfg(feature = "cl_ext_migrate_memobject")]
-    pub fn enqueue_migrate_mem_object_ext(
+    pub unsafe fn enqueue_migrate_mem_object_ext(
         &self,
         num_mem_objects: cl_uint,
         mem_objects: *const cl_mem,
@@ -689,7 +741,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_nd_range_kernel(
+    pub unsafe fn enqueue_nd_range_kernel(
         &self,
         kernel: cl_kernel,
         work_dim: cl_uint,
@@ -728,7 +780,11 @@ impl CommandQueue {
             note = "From CL_VERSION_2_0 use enqueue_nd_range_kernel"
         )
     )]
-    pub fn enqueue_task(&self, kernel: cl_kernel, event_wait_list: &[cl_event]) -> Result<Event> {
+    pub unsafe fn enqueue_task(
+        &self,
+        kernel: cl_kernel,
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
         let event = enqueue_task(
             self.queue,
             kernel,
@@ -742,7 +798,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_native_kernel(
+    pub unsafe fn enqueue_native_kernel(
         &self,
         user_func: Option<unsafe extern "C" fn(*mut c_void)>,
         args: &[*mut c_void],
@@ -773,7 +829,10 @@ impl CommandQueue {
     }
 
     #[cfg(feature = "CL_VERSION_1_2")]
-    pub fn enqueue_marker_with_wait_list(&self, event_wait_list: &[cl_event]) -> Result<Event> {
+    pub unsafe fn enqueue_marker_with_wait_list(
+        &self,
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
         let event = enqueue_marker_with_wait_list(
             self.queue,
             event_wait_list.len() as cl_uint,
@@ -787,7 +846,10 @@ impl CommandQueue {
     }
 
     #[cfg(feature = "CL_VERSION_1_2")]
-    pub fn enqueue_barrier_with_wait_list(&self, event_wait_list: &[cl_event]) -> Result<Event> {
+    pub unsafe fn enqueue_barrier_with_wait_list(
+        &self,
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
         let event = enqueue_barrier_with_wait_list(
             self.queue,
             event_wait_list.len() as cl_uint,
@@ -801,7 +863,7 @@ impl CommandQueue {
     }
 
     #[cfg(feature = "CL_VERSION_2_0")]
-    pub fn enqueue_svm_free(
+    pub unsafe fn enqueue_svm_free(
         &self,
         svm_pointers: &[*const c_void],
         pfn_free_func: Option<
@@ -832,7 +894,7 @@ impl CommandQueue {
     }
 
     #[cfg(feature = "CL_VERSION_2_0")]
-    pub fn enqueue_svm_mem_cpy(
+    pub unsafe fn enqueue_svm_mem_cpy(
         &self,
         blocking_copy: cl_bool,
         dst_ptr: *mut c_void,
@@ -857,7 +919,7 @@ impl CommandQueue {
     }
 
     #[cfg(feature = "CL_VERSION_2_0")]
-    pub fn enqueue_svm_mem_fill<T>(
+    pub unsafe fn enqueue_svm_mem_fill<T>(
         &self,
         svm_ptr: *mut c_void,
         pattern: &[T],
@@ -881,7 +943,7 @@ impl CommandQueue {
     }
 
     #[cfg(feature = "CL_VERSION_2_0")]
-    pub fn enqueue_svm_map<T>(
+    pub unsafe fn enqueue_svm_map<T>(
         &self,
         blocking_map: cl_bool,
         flags: cl_map_flags,
@@ -905,7 +967,11 @@ impl CommandQueue {
     }
 
     #[cfg(feature = "CL_VERSION_2_0")]
-    pub fn enqueue_svm_unmap<T>(&self, svm: &[T], event_wait_list: &[cl_event]) -> Result<Event> {
+    pub unsafe fn enqueue_svm_unmap<T>(
+        &self,
+        svm: &[T],
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
         let event = enqueue_svm_unmap(
             self.queue,
             svm.as_ptr() as *mut c_void,
@@ -920,7 +986,7 @@ impl CommandQueue {
     }
 
     #[cfg(feature = "CL_VERSION_2_1")]
-    pub fn enqueue_svm_migrate_mem(
+    pub unsafe fn enqueue_svm_migrate_mem(
         &self,
         svm_pointers: &[*const c_void],
         sizes: *const size_t,
@@ -943,7 +1009,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_acquire_gl_objects(
+    pub unsafe fn enqueue_acquire_gl_objects(
         &self,
         mem_objects: &[*const c_void],
         event_wait_list: &[cl_event],
@@ -962,7 +1028,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    pub fn enqueue_release_gl_objects(
+    pub unsafe fn enqueue_release_gl_objects(
         &self,
         mem_objects: &[*const c_void],
         event_wait_list: &[cl_event],
@@ -983,7 +1049,7 @@ impl CommandQueue {
 
     #[cfg(feature = "cl_khr_egl_image")]
     #[inline]
-    pub fn enqueue_acquire_egl_objects(
+    pub unsafe fn enqueue_acquire_egl_objects(
         &self,
         mem_objects: &[*const c_void],
         event_wait_list: &[cl_event],
@@ -1004,7 +1070,7 @@ impl CommandQueue {
 
     #[cfg(feature = "cl_khr_egl_image")]
     #[inline]
-    pub fn enqueue_release_egl_objects(
+    pub unsafe fn enqueue_release_egl_objects(
         &self,
         mem_objects: &[*const c_void],
         event_wait_list: &[cl_event],
@@ -1025,7 +1091,7 @@ impl CommandQueue {
 
     #[cfg(feature = "cl_img_use_gralloc_ptr")]
     #[inline]
-    pub fn enqueue_acquire_gralloc_objects_img(
+    pub unsafe fn enqueue_acquire_gralloc_objects_img(
         &self,
         mem_objects: &[*const c_void],
         event_wait_list: &[cl_event],
@@ -1046,7 +1112,7 @@ impl CommandQueue {
 
     #[cfg(feature = "cl_img_use_gralloc_ptr")]
     #[inline]
-    pub fn enqueue_release_gralloc_objects_img(
+    pub unsafe fn enqueue_release_gralloc_objects_img(
         &self,
         mem_objects: &[*const c_void],
         event_wait_list: &[cl_event],
@@ -1067,7 +1133,7 @@ impl CommandQueue {
 
     #[cfg(feature = "cl_khr_external_memory")]
     #[inline]
-    pub fn enqueue_acquire_external_mem_objects_khr(
+    pub unsafe fn enqueue_acquire_external_mem_objects_khr(
         &self,
         mem_objects: &[*const c_void],
         event_wait_list: &[cl_event],
@@ -1088,7 +1154,7 @@ impl CommandQueue {
 
     #[cfg(feature = "cl_khr_external_memory")]
     #[inline]
-    pub fn enqueue_release_external_mem_objects_khr(
+    pub unsafe fn enqueue_release_external_mem_objects_khr(
         &self,
         mem_objects: &[*const c_void],
         event_wait_list: &[cl_event],
@@ -1109,7 +1175,7 @@ impl CommandQueue {
 
     #[cfg(feature = "cl_khr_semaphore")]
     #[inline]
-    pub fn enqueue_wait_semaphores_khr(
+    pub unsafe fn enqueue_wait_semaphores_khr(
         &self,
         sema_objects: &[*const c_void],
         sema_payload_list: *const ext::cl_semaphore_payload_khr,
@@ -1132,7 +1198,7 @@ impl CommandQueue {
 
     #[cfg(feature = "cl_khr_semaphore")]
     #[inline]
-    pub fn enqueue_signal_semaphores_khr(
+    pub unsafe fn enqueue_signal_semaphores_khr(
         &self,
         sema_objects: &[*const c_void],
         sema_payload_list: *const ext::cl_semaphore_payload_khr,
@@ -1155,7 +1221,7 @@ impl CommandQueue {
 
     #[cfg(feature = "cl_khr_dx9_media_sharing")]
     #[inline]
-    pub fn enqueue_acquire_dx9_media_surfaces_khr(
+    pub unsafe fn enqueue_acquire_dx9_media_surfaces_khr(
         &self,
         mem_objects: &[*const c_void],
         event_wait_list: &[cl_event],
@@ -1176,7 +1242,7 @@ impl CommandQueue {
 
     #[cfg(feature = "cl_khr_dx9_media_sharing")]
     #[inline]
-    pub fn enqueue_release_dx9_media_surfaces_khr(
+    pub unsafe fn enqueue_release_dx9_media_surfaces_khr(
         &self,
         mem_objects: &[*const c_void],
         event_wait_list: &[cl_event],
@@ -1197,7 +1263,7 @@ impl CommandQueue {
 
     #[cfg(feature = "cl_intel_dx9_media_sharing")]
     #[inline]
-    pub fn enqueue_acquire_dx9_objects_intel(
+    pub unsafe fn enqueue_acquire_dx9_objects_intel(
         &self,
         mem_objects: &[*const c_void],
         event_wait_list: &[cl_event],
@@ -1218,7 +1284,7 @@ impl CommandQueue {
 
     #[cfg(feature = "cl_intel_dx9_media_sharing")]
     #[inline]
-    pub fn enqueue_release_dx9_objects_intel(
+    pub unsafe fn enqueue_release_dx9_objects_intel(
         &self,
         mem_objects: &[*const c_void],
         event_wait_list: &[cl_event],
@@ -1239,7 +1305,7 @@ impl CommandQueue {
 
     #[cfg(feature = "cl_img_generate_mipmap")]
     #[inline]
-    pub fn enqueue_generate_mipmap_img(
+    pub unsafe fn enqueue_generate_mipmap_img(
         &self,
         src_image: cl_mem,
         dst_image: cl_mem,
@@ -1330,12 +1396,14 @@ mod tests {
         let context = Context::from_device(&device).unwrap();
 
         // Create a command_queue on the Context's device
-        let queue = CommandQueue::create(
-            &context,
-            context.default_device(),
-            CL_QUEUE_PROFILING_ENABLE,
-        )
-        .expect("CommandQueue::create failed");
+        let queue = unsafe {
+            CommandQueue::create(
+                &context,
+                context.default_device(),
+                CL_QUEUE_PROFILING_ENABLE,
+            )
+            .expect("CommandQueue::create failed")
+        };
 
         let value = queue.context().unwrap();
         assert!(context.get() == value);

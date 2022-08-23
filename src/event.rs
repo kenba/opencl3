@@ -180,27 +180,26 @@ mod tests {
         let device = Device::new(devices[0]);
         let context = Context::from_device(&device).unwrap();
 
-        // Create a command_queue on the Context's device
-        let queue = CommandQueue::create(
-            &context,
-            context.default_device(),
-            CL_QUEUE_PROFILING_ENABLE,
-        )
-        .expect("CommandQueue::create failed");
+        // Create a command_queue on the Context's default device
+        let queue = CommandQueue::create_default(&context, CL_QUEUE_PROFILING_ENABLE)
+            .expect("CommandQueue::create_default failed");
 
         const ARRAY_SIZE: usize = 1024;
         let ones: [cl_float; ARRAY_SIZE] = [1.0; ARRAY_SIZE];
 
-        let mut buffer =
+        let mut buffer = unsafe {
             Buffer::<cl_float>::create(&context, CL_MEM_READ_ONLY, ARRAY_SIZE, ptr::null_mut())
-                .unwrap();
+                .unwrap()
+        };
 
         let events: Vec<cl_event> = Vec::default();
 
         // Non-blocking write, wait for event
-        let event = queue
-            .enqueue_write_buffer(&mut buffer, CL_NON_BLOCKING, 0, &ones, &events)
-            .unwrap();
+        let event = unsafe {
+            queue
+                .enqueue_write_buffer(&mut buffer, CL_NON_BLOCKING, 0, &ones, &events)
+                .unwrap()
+        };
 
         // Set a callback_function on the event (i.e. write) being completed.
         event

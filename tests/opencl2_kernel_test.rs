@@ -136,7 +136,7 @@ fn test_opencl_2_kernel_example() -> Result<()> {
         };
 
         // Create a command_queue on the Context's device
-        let queue = CommandQueue::create_with_properties(&context, context.default_device(), 0, 0)
+        let queue = CommandQueue::create_default_with_properties(&context, 0, 0)
             .expect("CommandQueue::create_with_properties failed");
 
         // Get the svm capability of all the devices in the context.
@@ -162,11 +162,13 @@ fn test_opencl_2_kernel_example() -> Result<()> {
             SvmVec::<cl_int>::allocate_zeroed(&context, ARRAY_SIZE).expect("SVM allocation failed");
 
         // Run the sum kernel on the input data
-        let sum_kernel_event = ExecuteKernel::new(sum_kernel)
-            .set_arg_svm(results.as_mut_ptr())
-            .set_arg_svm(test_values.as_ptr())
-            .set_global_work_size(ARRAY_SIZE)
-            .enqueue_nd_range(&queue)?;
+        let sum_kernel_event = unsafe {
+            ExecuteKernel::new(sum_kernel)
+                .set_arg_svm(results.as_mut_ptr())
+                .set_arg_svm(test_values.as_ptr())
+                .set_global_work_size(ARRAY_SIZE)
+                .enqueue_nd_range(&queue)?
+        };
 
         // Wait for the kernel to complete execution on the device
         sum_kernel_event.wait()?;
@@ -177,11 +179,13 @@ fn test_opencl_2_kernel_example() -> Result<()> {
         assert_eq!(0, results[ARRAY_SIZE - 1]);
 
         // Run the inclusive scan kernel on the input data
-        let kernel_event = ExecuteKernel::new(inclusive_scan_kernel)
-            .set_arg_svm(results.as_mut_ptr())
-            .set_arg_svm(test_values.as_ptr())
-            .set_global_work_size(ARRAY_SIZE)
-            .enqueue_nd_range(&queue)?;
+        let kernel_event = unsafe {
+            ExecuteKernel::new(inclusive_scan_kernel)
+                .set_arg_svm(results.as_mut_ptr())
+                .set_arg_svm(test_values.as_ptr())
+                .set_global_work_size(ARRAY_SIZE)
+                .enqueue_nd_range(&queue)?
+        };
 
         kernel_event.wait()?;
 
@@ -251,8 +255,8 @@ fn test_opencl_2_system_svm_example() -> Result<()> {
         let kernel = Kernel::create(&program, SUM_KERNEL_NAME).expect("Kernel::create failed");
 
         // Create a command_queue on the Context's device
-        let queue = CommandQueue::create_with_properties(&context, context.default_device(), 0, 0)
-            .expect("CommandQueue::create_with_properties failed");
+        let queue = CommandQueue::create_default_with_properties(&context, 0, 0)
+            .expect("CommandQueue::create_default_with_properties failed");
 
         // The input data
         const ARRAY_SIZE: usize = 8;
@@ -271,11 +275,13 @@ fn test_opencl_2_system_svm_example() -> Result<()> {
             SvmVec::<cl_int>::allocate_zeroed(&context, ARRAY_SIZE).expect("SVM allocation failed");
 
         // Run the sum kernel on the input data
-        let sum_kernel_event = ExecuteKernel::new(&kernel)
-            .set_arg_svm(results.as_mut_ptr())
-            .set_arg_svm(test_values.as_ptr())
-            .set_global_work_size(ARRAY_SIZE)
-            .enqueue_nd_range(&queue)?;
+        let sum_kernel_event = unsafe {
+            ExecuteKernel::new(&kernel)
+                .set_arg_svm(results.as_mut_ptr())
+                .set_arg_svm(test_values.as_ptr())
+                .set_global_work_size(ARRAY_SIZE)
+                .enqueue_nd_range(&queue)?
+        };
 
         // Wait for the kernel to complete execution on the device
         sum_kernel_event.wait()?;

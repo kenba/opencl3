@@ -155,7 +155,7 @@ impl Program {
     ///
     /// returns a Result containing the new Program
     /// or the error code from the OpenCL C API function.
-    pub fn create_from_binary(
+    pub unsafe fn create_from_binary(
         context: &Context,
         devices: &[cl_device_id],
         binaries: &[&[u8]],
@@ -176,7 +176,7 @@ impl Program {
     /// returns a Result containing the new Program
     /// or the error code from the OpenCL C API function.
     #[cfg(feature = "CL_VERSION_1_2")]
-    pub fn create_from_builtin_kernels(
+    pub unsafe fn create_from_builtin_kernels(
         context: &Context,
         devices: &[cl_device_id],
         kernel_names: &str,
@@ -292,7 +292,8 @@ impl Program {
         binaries: &[&[u8]],
         options: &str,
     ) -> Result<Program> {
-        let mut program = Program::create_from_binary(context, context.devices(), binaries)?;
+        let mut program =
+            unsafe { Program::create_from_binary(context, context.devices(), binaries)? };
         program.build(context.devices(), options)?;
         Ok(program)
     }
@@ -359,7 +360,7 @@ impl Program {
     /// returns a null Result
     /// or the error code from the OpenCL C API function.
     #[cfg(feature = "CL_VERSION_1_2")]
-    pub fn link(
+    pub unsafe fn link(
         &mut self,
         devices: &[cl_device_id],
         options: &str,

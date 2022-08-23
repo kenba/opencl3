@@ -129,12 +129,14 @@ impl<'a, T> SvmRawVec<'a, T> {
                 CL_MEM_READ_WRITE
             };
             let alignment = mem::align_of::<T>();
-            svm_alloc(
-                self.context.get(),
-                svm_mem_flags,
-                size,
-                alignment as cl_uint,
-            )?
+            unsafe {
+                svm_alloc(
+                    self.context.get(),
+                    svm_mem_flags,
+                    size,
+                    alignment as cl_uint,
+                )?
+            }
         };
 
         // reallocation, copy old data to new pointer and free old memory
@@ -219,7 +221,7 @@ impl<'a, T> Drop for SvmRawVec<'a, T> {
 /// # let devices = platforms[0].get_devices(CL_DEVICE_TYPE_GPU).unwrap();
 /// # let device = Device::new(devices[0]);
 /// # let context = Context::from_device(&device).unwrap();
-/// # let queue = CommandQueue::create_with_properties(&context, context.default_device(), 0, 0).unwrap();
+/// # let queue = CommandQueue::create_default_with_properties(&context, 0, 0).unwrap();
 /// // The input data
 /// const ARRAY_SIZE: usize = 8;
 /// let value_array: [cl_int; ARRAY_SIZE] = [3, 2, 5, 9, 7, 1, 4, 2];
@@ -229,7 +231,7 @@ impl<'a, T> Drop for SvmRawVec<'a, T> {
 ///
 /// // Map test_values if not an CL_MEM_SVM_FINE_GRAIN_BUFFER
 /// if !test_values.is_fine_grained() {
-///     queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut test_values, &[])?;
+///      unsafe { queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut test_values, &[])?};
 /// }
 ///
 /// // Copy input data into the OpenCL SVM vector
@@ -237,7 +239,7 @@ impl<'a, T> Drop for SvmRawVec<'a, T> {
 ///
 /// // Unmap test_values if not an CL_MEM_SVM_FINE_GRAIN_BUFFER
 /// if !test_values.is_fine_grained() {
-///     let unmap_test_values_event = queue.enqueue_svm_unmap(&test_values, &[])?;
+///     let unmap_test_values_event =  unsafe { queue.enqueue_svm_unmap(&test_values, &[])?};
 ///     unmap_test_values_event.wait()?;
 /// }
 /// # Ok(())

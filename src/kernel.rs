@@ -102,7 +102,11 @@ impl Kernel {
     /// * `arg` - a reference to the data for the argument at arg_index.
     ///
     /// returns an empty Result or the error code from the OpenCL C API function.
-    pub fn set_arg<T>(&self, arg_index: cl_uint, arg: &T) -> Result<()> {
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because the index, size and value must be valid.
+    pub unsafe fn set_arg<T>(&self, arg_index: cl_uint, arg: &T) -> Result<()> {
         Ok(set_kernel_arg(
             self.kernel,
             arg_index,
@@ -117,7 +121,11 @@ impl Kernel {
     /// * `size` - the size of the local memory buffer in bytes.
     ///
     /// returns an empty Result or the error code from the OpenCL C API function.
-    pub fn set_arg_local_buffer(&self, arg_index: cl_uint, size: size_t) -> Result<()> {
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because the index and size must be valid.
+    pub unsafe fn set_arg_local_buffer(&self, arg_index: cl_uint, size: size_t) -> Result<()> {
         Ok(set_kernel_arg(self.kernel, arg_index, size, ptr::null())?)
     }
 
@@ -127,8 +135,16 @@ impl Kernel {
     /// * `arg_ptr` - the SVM pointer to the data for the argument at arg_index.
     ///
     /// returns an empty Result or the error code from the OpenCL C API function.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because the index and ptr must be valid.
     #[cfg(feature = "CL_VERSION_2_0")]
-    pub fn set_arg_svm_pointer(&self, arg_index: cl_uint, arg_ptr: *const c_void) -> Result<()> {
+    pub unsafe fn set_arg_svm_pointer(
+        &self,
+        arg_index: cl_uint,
+        arg_ptr: *const c_void,
+    ) -> Result<()> {
         Ok(set_kernel_arg_svm_pointer(self.kernel, arg_index, arg_ptr)?)
     }
 
@@ -139,8 +155,12 @@ impl Kernel {
     /// * `param_ptr` - pointer to the data for the param_name.
     ///
     /// returns an empty Result or the error code from the OpenCL C API function.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because the name and ptr must be valid.
     #[cfg(feature = "CL_VERSION_2_0")]
-    pub fn set_exec_info<T>(
+    pub unsafe fn set_exec_info<T>(
         &self,
         param_name: cl_kernel_exec_info,
         param_ptr: *const T,
@@ -347,8 +367,12 @@ impl<'a> ExecuteKernel<'a> {
     /// * `arg` - a reference to the data for the kernel argument.
     ///
     /// returns a reference to self.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because arg must be valid.
     #[track_caller]
-    pub fn set_arg<'b, T>(&'b mut self, arg: &T) -> &'b mut Self {
+    pub unsafe fn set_arg<'b, T>(&'b mut self, arg: &T) -> &'b mut Self {
         assert!(
             self.arg_index < self.num_args,
             "ExecuteKernel::set_arg too many args"
@@ -374,8 +398,12 @@ impl<'a> ExecuteKernel<'a> {
     /// * `size` - the size of the local memory buffer in bytes.
     ///
     /// returns a reference to self.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because size must be valid.
     #[track_caller]
-    pub fn set_arg_local_buffer(&mut self, size: size_t) -> &mut Self {
+    pub unsafe fn set_arg_local_buffer(&mut self, size: size_t) -> &mut Self {
         assert!(
             self.arg_index < self.num_args,
             "ExecuteKernel::set_arg_local_buffer too many args"
@@ -402,9 +430,13 @@ impl<'a> ExecuteKernel<'a> {
     /// * `arg` - a reference to the data for the kernel argument.
     ///
     /// returns a reference to self.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because ptr must be valid.
     #[cfg(feature = "CL_VERSION_2_0")]
     #[track_caller]
-    pub fn set_arg_svm<T>(&mut self, arg_ptr: *const T) -> &mut Self {
+    pub unsafe fn set_arg_svm<T>(&mut self, arg_ptr: *const T) -> &mut Self {
         assert!(
             self.arg_index < self.num_args,
             "ExecuteKernel::set_arg_svm too many args"
@@ -430,8 +462,12 @@ impl<'a> ExecuteKernel<'a> {
     /// * `param_ptr` - pointer to the data for the param_name.
     ///
     /// returns a reference to self.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because name and ptr must be valid.
     #[cfg(feature = "CL_VERSION_2_0")]
-    pub fn set_exec_info<T>(
+    pub unsafe fn set_exec_info<T>(
         &mut self,
         param_name: cl_kernel_exec_info,
         param_ptr: *const T,
@@ -611,7 +647,7 @@ impl<'a> ExecuteKernel<'a> {
     ///
     /// return the [Event] for this command
     /// or the error code from the OpenCL C API function.
-    pub fn enqueue_nd_range(&mut self, queue: &CommandQueue) -> Result<Event> {
+    pub unsafe fn enqueue_nd_range(&mut self, queue: &CommandQueue) -> Result<Event> {
         // Get max_work_item_dimensions for the device CommandQueue
         let max_work_item_dimensions = queue.max_work_item_dimensions() as usize;
         self.validate(max_work_item_dimensions);

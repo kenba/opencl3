@@ -193,7 +193,7 @@ impl Platform {
     /// Unload an OpenCL compiler for a platform.
     /// CL_VERSION_1_2
     #[cfg(feature = "CL_VERSION_1_2")]
-    pub fn unload_compiler(&self) -> Result<()> {
+    pub unsafe fn unload_compiler(&self) -> Result<()> {
         Ok(program::unload_platform_compiler(self.id())?)
     }
 }

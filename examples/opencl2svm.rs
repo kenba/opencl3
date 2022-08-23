@@ -63,13 +63,10 @@ fn main() -> Result<()> {
     let kernel = Kernel::create(&program, KERNEL_NAME).expect("Kernel::create failed");
 
     // Create a command_queue on the Context's device
-    let queue = CommandQueue::create_with_properties(
-        &context,
-        context.default_device(),
-        CL_QUEUE_PROFILING_ENABLE,
-        0,
-    )
-    .expect("CommandQueue::create_with_properties failed");
+    let queue = unsafe {
+        CommandQueue::create_default_with_properties(&context, CL_QUEUE_PROFILING_ENABLE, 0)
+            .expect("CommandQueue::create_default_with_properties failed")
+    };
 
     // The input data
     const ARRAY_SIZE: usize = 8;
@@ -81,7 +78,7 @@ fn main() -> Result<()> {
 
     // Map test_values if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
     if !test_values.is_fine_grained() {
-        queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut test_values, &[])?;
+        unsafe { queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut test_values, &[])? };
     }
 
     // Copy input data into the OpenCL SVM vector
@@ -92,7 +89,7 @@ fn main() -> Result<()> {
 
     // Unmap test_values if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
     if !test_values.is_fine_grained() {
-        let unmap_test_values_event = queue.enqueue_svm_unmap(&test_values, &[])?;
+        let unmap_test_values_event = unsafe { queue.enqueue_svm_unmap(&test_values, &[])? };
         unmap_test_values_event.wait()?;
     }
 
@@ -101,18 +98,20 @@ fn main() -> Result<()> {
         SvmVec::<cl_int>::allocate(&context, ARRAY_SIZE).expect("SVM allocation failed");
 
     // Run the kernel on the input data
-    let kernel_event = ExecuteKernel::new(&kernel)
-        .set_arg_svm(results.as_mut_ptr())
-        .set_arg_svm(test_values.as_ptr())
-        .set_global_work_size(ARRAY_SIZE)
-        .enqueue_nd_range(&queue)?;
+    let kernel_event = unsafe {
+        ExecuteKernel::new(&kernel)
+            .set_arg_svm(results.as_mut_ptr())
+            .set_arg_svm(test_values.as_ptr())
+            .set_global_work_size(ARRAY_SIZE)
+            .enqueue_nd_range(&queue)?
+    };
 
     // Wait for the kernel to complete execution on the device
     kernel_event.wait()?;
 
     // Map results if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
     if !results.is_fine_grained() {
-        queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_READ, &mut results, &[])?;
+        unsafe { queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_READ, &mut results, &[])? };
     }
 
     // Can access OpenCL SVM directly, no need to map or read the results
@@ -120,7 +119,7 @@ fn main() -> Result<()> {
 
     // Unmap results if not a CL_MEM_SVM_FINE_GRAIN_BUFFER
     if !results.is_fine_grained() {
-        let unmap_results_event = queue.enqueue_svm_unmap(&results, &[])?;
+        let unmap_results_event = unsafe { queue.enqueue_svm_unmap(&results, &[])? };
         unmap_results_event.wait()?;
     }
 

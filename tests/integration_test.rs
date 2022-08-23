@@ -75,12 +75,8 @@ fn test_opencl_1_2_example() -> Result<()> {
     let kernel = Kernel::create(&program, KERNEL_NAME).expect("Kernel::create failed");
 
     // Create a command_queue on the Context's device
-    let queue = CommandQueue::create(
-        &context,
-        context.default_device(),
-        CL_QUEUE_PROFILING_ENABLE,
-    )
-    .expect("CommandQueue::create failed");
+    let queue = CommandQueue::create_default(&context, CL_QUEUE_PROFILING_ENABLE)
+        .expect("CommandQueue::create_default failed");
 
     /////////////////////////////////////////////////////////////////////
     // Compute data
@@ -94,17 +90,22 @@ fn test_opencl_1_2_example() -> Result<()> {
     }
 
     // Create OpenCL device buffers
-    let mut x =
-        Buffer::<cl_float>::create(&context, CL_MEM_READ_ONLY, ARRAY_SIZE, ptr::null_mut())?;
-    let mut y =
-        Buffer::<cl_float>::create(&context, CL_MEM_READ_ONLY, ARRAY_SIZE, ptr::null_mut())?;
-    let z = Buffer::<cl_float>::create(&context, CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())?;
+    let mut x = unsafe {
+        Buffer::<cl_float>::create(&context, CL_MEM_READ_ONLY, ARRAY_SIZE, ptr::null_mut())?
+    };
+    let mut y = unsafe {
+        Buffer::<cl_float>::create(&context, CL_MEM_READ_ONLY, ARRAY_SIZE, ptr::null_mut())?
+    };
+    let z = unsafe {
+        Buffer::<cl_float>::create(&context, CL_MEM_WRITE_ONLY, ARRAY_SIZE, ptr::null_mut())?
+    };
 
     // Blocking write
-    let _x_write_event = queue.enqueue_write_buffer(&mut x, CL_BLOCKING, 0, &ones, &[])?;
+    let _x_write_event = unsafe { queue.enqueue_write_buffer(&mut x, CL_BLOCKING, 0, &ones, &[])? };
 
     // Non-blocking write, wait for y_write_event
-    let y_write_event = queue.enqueue_write_buffer(&mut y, CL_NON_BLOCKING, 0, &sums, &[])?;
+    let y_write_event =
+        unsafe { queue.enqueue_write_buffer(&mut y, CL_NON_BLOCKING, 0, &sums, &[])? };
 
     // a value for the kernel function
     let a: cl_float = 300.0;
@@ -113,14 +114,16 @@ fn test_opencl_1_2_example() -> Result<()> {
     // cl_float value arguments, before setting the one dimensional
     // global_work_size for the call to enqueue_nd_range.
     // Unwraps the Result to get the kernel execution event.
-    let kernel_event = ExecuteKernel::new(&kernel)
-        .set_arg(&z)
-        .set_arg(&x)
-        .set_arg(&y)
-        .set_arg(&a)
-        .set_global_work_size(ARRAY_SIZE)
-        .set_wait_event(&y_write_event)
-        .enqueue_nd_range(&queue)?;
+    let kernel_event = unsafe {
+        ExecuteKernel::new(&kernel)
+            .set_arg(&z)
+            .set_arg(&x)
+            .set_arg(&y)
+            .set_arg(&a)
+            .set_global_work_size(ARRAY_SIZE)
+            .set_wait_event(&y_write_event)
+            .enqueue_nd_range(&queue)?
+    };
 
     let mut events: Vec<cl_event> = Vec::default();
     events.push(kernel_event.get());
@@ -129,7 +132,8 @@ fn test_opencl_1_2_example() -> Result<()> {
     // and enqueue a read command to read the device buffer into the array
     // after the kernel event completes.
     let mut results: [cl_float; ARRAY_SIZE] = [0.0; ARRAY_SIZE];
-    let _event = queue.enqueue_read_buffer(&z, CL_NON_BLOCKING, 0, &mut results, &events)?;
+    let _event =
+        unsafe { queue.enqueue_read_buffer(&z, CL_NON_BLOCKING, 0, &mut results, &events)? };
 
     // Block until all commands on the queue have completed
     queue.finish()?;
@@ -207,13 +211,12 @@ fn test_opencl_svm_example() -> Result<()> {
         let kernel = Kernel::create(&program, KERNEL_NAME).expect("Kernel::create failed");
 
         // Create a command_queue on the Context's device
-        let queue = CommandQueue::create_with_properties(
+        let queue = CommandQueue::create_default_with_properties(
             &context,
-            context.default_device(),
             CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE,
             0,
         )
-        .expect("CommandQueue::create_with_properties failed");
+        .expect("CommandQueue::create_default_with_properties failed");
 
         /////////////////////////////////////////////////////////////////////
         // Compute data
@@ -255,13 +258,15 @@ fn test_opencl_svm_example() -> Result<()> {
             // cl_float value arguments, before setting the one dimensional
             // global_work_size for the call to enqueue_nd_range.
             // Unwraps the Result to get the kernel execution event.
-            let kernel_event = ExecuteKernel::new(&kernel)
-                .set_arg_svm(results.as_mut_ptr())
-                .set_arg_svm(ones.as_ptr())
-                .set_arg_svm(sums.as_ptr())
-                .set_arg(&a)
-                .set_global_work_size(ARRAY_SIZE)
-                .enqueue_nd_range(&queue)?;
+            let kernel_event = unsafe {
+                ExecuteKernel::new(&kernel)
+                    .set_arg_svm(results.as_mut_ptr())
+                    .set_arg_svm(ones.as_ptr())
+                    .set_arg_svm(sums.as_ptr())
+                    .set_arg(&a)
+                    .set_global_work_size(ARRAY_SIZE)
+                    .enqueue_nd_range(&queue)?
+            };
 
             // Wait for the kernel_event to complete
             kernel_event.wait()?;
@@ -280,9 +285,10 @@ fn test_opencl_svm_example() -> Result<()> {
             // unsafe { sums.set_len(ARRAY_SIZE) };
 
             // Map the input SVM vectors, before setting their data
-            queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut ones, &[])?;
-            queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut sums, &[])?;
-
+            unsafe {
+                queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut ones, &[])?;
+                queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut sums, &[])?;
+            }
             // The input data
             for i in 0..ARRAY_SIZE {
                 ones[i] = 1.0;
@@ -297,8 +303,8 @@ fn test_opencl_svm_example() -> Result<()> {
             let sums = sums;
 
             let mut events: Vec<cl_event> = Vec::default();
-            let unmap_sums_event = queue.enqueue_svm_unmap(&sums, &[])?;
-            let unmap_ones_event = queue.enqueue_svm_unmap(&ones, &[])?;
+            let unmap_sums_event = unsafe { queue.enqueue_svm_unmap(&sums, &[])? };
+            let unmap_ones_event = unsafe { queue.enqueue_svm_unmap(&ones, &[])? };
             events.push(unmap_sums_event.get());
             events.push(unmap_ones_event.get());
 
@@ -306,21 +312,23 @@ fn test_opencl_svm_example() -> Result<()> {
             // cl_float value arguments, before setting the one dimensional
             // global_work_size for the call to enqueue_nd_range.
             // Unwraps the Result to get the kernel execution event.
-            let kernel_event = ExecuteKernel::new(&kernel)
-                .set_arg_svm(results.as_mut_ptr())
-                .set_arg_svm(ones.as_ptr())
-                .set_arg_svm(sums.as_ptr())
-                .set_arg(&a)
-                .set_global_work_size(ARRAY_SIZE)
-                .set_event_wait_list(&events)
-                .enqueue_nd_range(&queue)?;
+            let kernel_event = unsafe {
+                ExecuteKernel::new(&kernel)
+                    .set_arg_svm(results.as_mut_ptr())
+                    .set_arg_svm(ones.as_ptr())
+                    .set_arg_svm(sums.as_ptr())
+                    .set_arg(&a)
+                    .set_global_work_size(ARRAY_SIZE)
+                    .set_event_wait_list(&events)
+                    .enqueue_nd_range(&queue)?
+            };
 
             // Wait for the kernel_event to complete
             kernel_event.wait()?;
 
             // Map SVM results before reading them
             let _map_results_event =
-                queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_READ, &mut results, &[])?;
+                unsafe { queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_READ, &mut results, &[])? };
 
             assert_eq!(1300.0, results[ARRAY_SIZE - 1]);
             println!("results back: {}", results[ARRAY_SIZE - 1]);
@@ -333,7 +341,7 @@ fn test_opencl_svm_example() -> Result<()> {
 
             /////////////////////////////////////////////////////////////////////
             // Clean up
-            let unmap_results_event = queue.enqueue_svm_unmap(&results, &[])?;
+            let unmap_results_event = unsafe { queue.enqueue_svm_unmap(&results, &[])? };
             unmap_results_event.wait()?;
             println!("SVM buffers unmapped");
         }
