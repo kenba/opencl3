@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #![allow(deprecated)]
-#![allow(clippy::too_many_arguments)]
+#![allow(clippy::too_many_arguments, clippy::missing_safety_doc)]
 
 pub use cl3::command_queue::*;
 
@@ -98,6 +98,10 @@ impl CommandQueue {
     ///
     /// returns a Result containing the new CommandQueue
     /// or the error code from the OpenCL C API function.
+    /// 
+    /// # Safety
+    ///
+    /// This is unsafe when a device is not a member of context.
     #[cfg(feature = "CL_VERSION_1_2")]
     #[cfg_attr(
         any(
@@ -163,6 +167,10 @@ impl CommandQueue {
     ///
     /// returns a Result containing the new CommandQueue
     /// or the error code from the OpenCL C API function.
+    /// 
+    /// # Safety
+    ///
+    /// This is unsafe when a device is not a member of context.
     #[cfg(feature = "CL_VERSION_2_0")]
     pub unsafe fn create_with_properties(
         context: &Context,

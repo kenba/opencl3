@@ -155,6 +155,10 @@ impl Program {
     ///
     /// returns a Result containing the new Program
     /// or the error code from the OpenCL C API function.
+    /// 
+    /// # Safety
+    ///
+    /// This is unsafe when a device is not a member of context.
     pub unsafe fn create_from_binary(
         context: &Context,
         devices: &[cl_device_id],
@@ -175,6 +179,10 @@ impl Program {
     ///
     /// returns a Result containing the new Program
     /// or the error code from the OpenCL C API function.
+    /// 
+    /// # Safety
+    ///
+    /// This is unsafe when a device is not a member of context.
     #[cfg(feature = "CL_VERSION_1_2")]
     pub unsafe fn create_from_builtin_kernels(
         context: &Context,
@@ -359,6 +367,10 @@ impl Program {
     ///
     /// returns a null Result
     /// or the error code from the OpenCL C API function.
+    /// 
+    /// # Safety
+    ///
+    /// This is unsafe when a device is not a member of context.
     #[cfg(feature = "CL_VERSION_1_2")]
     pub unsafe fn link(
         &mut self,

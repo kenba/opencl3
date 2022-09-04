@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #![allow(deprecated)]
+#![allow(clippy::missing_safety_doc)]
 
 use core::marker::PhantomData;
 

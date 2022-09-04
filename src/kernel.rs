@@ -647,6 +647,10 @@ impl<'a> ExecuteKernel<'a> {
     ///
     /// return the [Event] for this command
     /// or the error code from the OpenCL C API function.
+    /// 
+    /// # Safety
+    ///
+    /// This is unsafe when the kernel arguments have not been set up correctly.
     pub unsafe fn enqueue_nd_range(&mut self, queue: &CommandQueue) -> Result<Event> {
         // Get max_work_item_dimensions for the device CommandQueue
         let max_work_item_dimensions = queue.max_work_item_dimensions() as usize;

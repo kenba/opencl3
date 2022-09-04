@@ -14,7 +14,7 @@
 
 //! OpenCL Command Buffers extension. Enable with feature: cl_khr_command_buffer.
 
-#![allow(clippy::too_many_arguments)]
+#![allow(clippy::too_many_arguments, clippy::missing_safety_doc)]
 
 use super::event::Event;
 use super::memory::*;
