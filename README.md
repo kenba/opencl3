@@ -237,6 +237,8 @@ In version 0.6.0 the Info enums were removed from the underlying [cl3](https://c
 
 In version 0.8.0 deprecation warnings are given for OpenCL API functions that are deprecated by an enabled OpenCL version e.g., `clCreateCommandQueue` is deprecated whenever "CL_VERSION_2_0" is enabled.
 
+In version 0.9.0 many OpenCL API functions are declared `unsafe` since they may cause undefined behaviour if called incorrectly.
+
 For information on other changes, see [Releases](RELEASES.md).
 
 ## Contribution

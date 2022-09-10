@@ -1,5 +1,16 @@
 # Releases
 
+## Version 0.9.0 (2022-09-10)
+
+### Breaking Changes
+
+* Issue [#51](https://github.com/kenba/opencl3/issues/51) Undefined behaviour when using underlying OpenCL pointers without any unsafe.
+* Issue [#52](https://github.com/kenba/opencl3/issues/52) `CL_MEM_USE_HOST_PTR` can result in undefined behaviour.
+
+### New Features
+
+* PR [#53](https://github.com/kenba/opencl3/issues/50) added `sync` for all threadsafe OpenCL objects.
+
 ## Version 0.8.1 (2022-07-23)
 
 ### Bug fixes
