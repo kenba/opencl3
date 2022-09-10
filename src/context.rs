@@ -103,6 +103,7 @@ impl Drop for Context {
 }
 
 unsafe impl Send for Context {}
+unsafe impl Sync for Context {}
 
 impl Context {
     fn new(context: cl_context, devices: &[cl_device_id]) -> Context {

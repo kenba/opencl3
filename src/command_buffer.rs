@@ -62,6 +62,7 @@ impl Drop for CommandBuffer {
 }
 
 unsafe impl Send for CommandBuffer {}
+unsafe impl Sync for CommandBuffer {}
 
 impl CommandBuffer {
     fn new(buffer: cl_command_buffer_khr) -> CommandBuffer {

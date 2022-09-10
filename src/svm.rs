@@ -49,6 +49,7 @@ struct SvmRawVec<'a, T> {
 }
 
 unsafe impl<'a, T: Send> Send for SvmRawVec<'a, T> {}
+unsafe impl<'a, T: Sync> Sync for SvmRawVec<'a, T> {}
 
 impl<'a, T> SvmRawVec<'a, T> {
     fn new(context: &'a Context, svm_capabilities: cl_device_svm_capabilities) -> Self {
