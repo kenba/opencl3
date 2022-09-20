@@ -1,5 +1,15 @@
 # Releases
 
+## Version 0.9.1 (2022-09-20)
+
+### Bug fixes
+
+* PR [#54](https://github.com/kenba/opencl3/issues/54) Unshadow device re-exports.
+
+### New Features
+
+* Issue [#55](https://github.com/kenba/opencl3/issues/55) Add Khronos `cl_khr_command_buffer_mutable_dispatch` extension.
+
 ## Version 0.9.0 (2022-09-10)
 
 ### Breaking Changes
@@ -9,7 +19,7 @@
 
 ### New Features
 
-* PR [#53](https://github.com/kenba/opencl3/issues/50) added `sync` for all threadsafe OpenCL objects.
+* PR [#53](https://github.com/kenba/opencl3/issues/53) added `sync` for all threadsafe OpenCL objects.
 
 ## Version 0.8.1 (2022-07-23)
 
