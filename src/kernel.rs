@@ -372,7 +372,7 @@ impl<'a> ExecuteKernel<'a> {
     ///
     /// This function is unsafe because arg must be valid.
     #[track_caller]
-    pub unsafe fn set_arg<'b, T>(&'b mut self, arg: &T) -> &'b mut Self {
+    pub unsafe fn set_arg<T>(mut self, arg: &T) -> Self {
         assert!(
             self.arg_index < self.num_args,
             "ExecuteKernel::set_arg too many args"
@@ -403,7 +403,7 @@ impl<'a> ExecuteKernel<'a> {
     ///
     /// This function is unsafe because size must be valid.
     #[track_caller]
-    pub unsafe fn set_arg_local_buffer(&mut self, size: size_t) -> &mut Self {
+    pub unsafe fn set_arg_local_buffer(mut self, size: size_t) -> Self {
         assert!(
             self.arg_index < self.num_args,
             "ExecuteKernel::set_arg_local_buffer too many args"
@@ -436,7 +436,7 @@ impl<'a> ExecuteKernel<'a> {
     /// This function is unsafe because ptr must be valid.
     #[cfg(feature = "CL_VERSION_2_0")]
     #[track_caller]
-    pub unsafe fn set_arg_svm<T>(&mut self, arg_ptr: *const T) -> &mut Self {
+    pub unsafe fn set_arg_svm<T>(mut self, arg_ptr: *const T) -> Self {
         assert!(
             self.arg_index < self.num_args,
             "ExecuteKernel::set_arg_svm too many args"
