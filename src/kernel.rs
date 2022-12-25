@@ -468,10 +468,11 @@ impl<'a> ExecuteKernel<'a> {
     /// This function is unsafe because name and ptr must be valid.
     #[cfg(feature = "CL_VERSION_2_0")]
     pub unsafe fn set_exec_info<T>(
-        &mut self,
+        #[allow(unused_mut)]
+        mut self, // mut for safety
         param_name: cl_kernel_exec_info,
         param_ptr: *const T,
-    ) -> &mut Self {
+    ) -> Self {
         self.kernel.set_exec_info(param_name, param_ptr).unwrap();
         self
     }
@@ -481,7 +482,7 @@ impl<'a> ExecuteKernel<'a> {
     /// * `size` - the size of the global work offset.
     ///
     /// returns a reference to self.
-    pub fn set_global_work_offset(&mut self, size: size_t) -> &mut Self {
+    pub fn set_global_work_offset(mut self, size: size_t) -> Self {
         self.global_work_offsets.push(size);
         self
     }
@@ -495,7 +496,7 @@ impl<'a> ExecuteKernel<'a> {
     /// * `sizes` - the sizes of the global work offset.
     ///
     /// returns a reference to self.
-    pub fn set_global_work_offsets(&mut self, sizes: &[size_t]) -> &mut Self {
+    pub fn set_global_work_offsets(mut self, sizes: &[size_t]) -> Self {
         assert!(
             self.global_work_offsets.is_empty(),
             "ExecuteKernel::set_global_work_offsets already set"
@@ -510,7 +511,7 @@ impl<'a> ExecuteKernel<'a> {
     /// * `size` - the size of the global work size.
     ///
     /// returns a reference to self.
-    pub fn set_global_work_size(&mut self, size: size_t) -> &mut Self {
+    pub fn set_global_work_size(mut self, size: size_t) -> Self {
         self.global_work_sizes.push(size);
         self
     }
@@ -524,7 +525,7 @@ impl<'a> ExecuteKernel<'a> {
     /// * `sizes` - the sizes of the global work sizes.
     ///
     /// returns a reference to self.
-    pub fn set_global_work_sizes<'b>(&'b mut self, sizes: &[size_t]) -> &'b mut Self {
+    pub fn set_global_work_sizes(mut self, sizes: &[size_t]) -> Self {
         assert!(
             self.global_work_sizes.is_empty(),
             "ExecuteKernel::global_work_sizes already set"
@@ -539,7 +540,7 @@ impl<'a> ExecuteKernel<'a> {
     /// * `size` - the size of the local work size.
     ///
     /// returns a reference to self.
-    pub fn set_local_work_size(&mut self, size: size_t) -> &mut Self {
+    pub fn set_local_work_size(mut self, size: size_t) -> Self {
         self.local_work_sizes.push(size);
         self
     }
@@ -553,7 +554,7 @@ impl<'a> ExecuteKernel<'a> {
     /// * `sizes` - the sizes of the local work sizes.
     ///
     /// returns a reference to self.
-    pub fn set_local_work_sizes<'b>(&'b mut self, sizes: &[size_t]) -> &'b mut Self {
+    pub fn set_local_work_sizes(mut self, sizes: &[size_t]) -> Self {
         assert!(
             self.local_work_sizes.is_empty(),
             "ExecuteKernel::local_work_sizes already set"
