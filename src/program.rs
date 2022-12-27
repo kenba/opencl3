@@ -404,7 +404,7 @@ impl Program {
     ///
     /// returns an empty Result or the error code from the OpenCL C API function.
     #[cfg(feature = "CL_VERSION_2_2")]
-    pub fn set_release_callback(
+    pub unsafe fn set_release_callback(
         &self,
         pfn_notify: Option<extern "C" fn(program: cl_program, user_data: *mut c_void)>,
         user_data: *mut c_void,
@@ -426,7 +426,7 @@ impl Program {
     ///
     /// returns an empty Result or the error code from the OpenCL C API function.
     #[cfg(feature = "CL_VERSION_2_2")]
-    pub fn set_specialization_constant(
+    pub unsafe fn set_specialization_constant(
         &self,
         spec_id: cl_uint,
         spec_size: size_t,
