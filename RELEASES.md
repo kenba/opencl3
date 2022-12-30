@@ -1,5 +1,11 @@
 # Releases
 
+## Version 0.9.2 (2022-12-30)
+
+### Bug fixes
+
+* PR [#58](https://github.com/kenba/opencl3/issues/58) Compile failure due to unmarked unsafe function call in program.rs.
+
 ## Version 0.9.1 (2022-09-20)
 
 ### Bug fixes
