@@ -766,6 +766,16 @@ impl Device {
         Ok(value.bus as cl_uint)
     }
 
+    pub fn pcibusinfokhr_intel(&self) -> Result<cl_device_pci_bus_info_khr> {
+        let value: Vec<u8> = get_device_info(self.id(), CL_DEVICE_PCI_BUS_INFO_KHR)?.into();
+        Ok(get_device_pci_bus_info_khr(&value))
+    }
+
+    pub fn pci_bus_id_intel(&self) -> Result<cl_uint> {
+        let value = self.pcibusinfokhr_intel()?;
+        Ok(value.pci_bus as cl_uint)
+    }
+
     pub fn board_name_amd(&self) -> Result<String> {
         Ok(get_device_info(self.id(), CL_DEVICE_BOARD_NAME_AMD)?.into())
     }
@@ -1870,6 +1880,20 @@ mod tests {
                 println!("pci_bus_id_amd: {}", value)
             }
             Err(e) => println!("OpenCL error, pci_bus_id_amd: {:?}, {}", e, e),
+        };
+
+        match device.pcibusinfokhr_intel() {
+            Ok(value) => {
+                println!("CL_DEVICE_PCI_BUS_INFO_KHR: {:?}", value)
+            }
+            Err(e) => println!("OpenCL error, CL_DEVICE_PCI_BUS_INFO_KHR: {:?}, {}", e, e),
+        };
+
+        match device.pci_bus_id_intel() {
+            Ok(value) => {
+                println!("pci_bus_id_intel: {}", value)
+            }
+            Err(e) => println!("OpenCL error, pci_bus_id_intel: {:?}, {}", e, e),
         };
 
         match device.board_name_amd() {
