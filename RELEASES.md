@@ -1,16 +1,22 @@
 # Releases
 
+## Version 0.9.3 (2023-05-11)
+
+### New Features
+
+* PR [#60](https://github.com/kenba/opencl3/pull/60) Support querying PCIE information for Intel devices.
+
 ## Version 0.9.2 (2022-12-30)
 
 ### Bug fixes
 
-* PR [#58](https://github.com/kenba/opencl3/issues/58) Compile failure due to unmarked unsafe function call in program.rs.
+* Issue [#58](https://github.com/kenba/opencl3/issues/58) Compile failure due to unmarked unsafe function call in program.rs.
 
 ## Version 0.9.1 (2022-09-20)
 
 ### Bug fixes
 
-* PR [#54](https://github.com/kenba/opencl3/issues/54) Unshadow device re-exports.
+* PR [#54](https://github.com/kenba/opencl3/pull/54) Unshadow device re-exports.
 
 ### New Features
 
@@ -25,7 +31,7 @@
 
 ### New Features
 
-* PR [#53](https://github.com/kenba/opencl3/issues/53) added `sync` for all threadsafe OpenCL objects.
+* PR [#53](https://github.com/kenba/opencl3/pull/53) added `sync` for all threadsafe OpenCL objects.
 
 ## Version 0.8.1 (2022-07-23)
 
