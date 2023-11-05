@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2022 Via Technology Ltd.
+// Copyright (c) 2020-2023 Via Technology Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -192,7 +192,7 @@ impl Platform {
 
     /// Unload an OpenCL compiler for a platform.
     /// CL_VERSION_1_2
-    /// 
+    ///
     /// # Safety
     ///
     /// Compiling is unsafe after the compiler has been unloaded.

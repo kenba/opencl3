@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2020-2023 Via Technology Ltd. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,10 +15,6 @@
 pub use cl3::event::*;
 
 use super::Result;
-use cl3::types::{
-    cl_command_queue, cl_context, cl_event, cl_event_info, cl_int, cl_profiling_info, cl_uint,
-    cl_ulong,
-};
 use libc::c_void;
 
 /// An OpenCL event object.  

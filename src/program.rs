@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2020-2023 Via Technology Ltd. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,8 +21,6 @@ use super::Result;
 use cl3::error_codes::CL_BUILD_PROGRAM_FAILURE;
 #[allow(unused_imports)]
 use cl3::ext;
-#[allow(unused_imports)]
-use cl3::types::{cl_context, cl_device_id, cl_int, cl_program, cl_uchar, cl_uint, CL_FALSE};
 #[allow(unused_imports)]
 use libc::{c_void, intptr_t, size_t};
 #[allow(unused_imports)]
@@ -158,7 +156,7 @@ impl Program {
     ///
     /// returns a Result containing the new Program
     /// or the error code from the OpenCL C API function.
-    /// 
+    ///
     /// # Safety
     ///
     /// This is unsafe when a device is not a member of context.
@@ -182,7 +180,7 @@ impl Program {
     ///
     /// returns a Result containing the new Program
     /// or the error code from the OpenCL C API function.
-    /// 
+    ///
     /// # Safety
     ///
     /// This is unsafe when a device is not a member of context.
@@ -370,7 +368,7 @@ impl Program {
     ///
     /// returns a null Result
     /// or the error code from the OpenCL C API function.
-    /// 
+    ///
     /// # Safety
     ///
     /// This is unsafe when a device is not a member of context.

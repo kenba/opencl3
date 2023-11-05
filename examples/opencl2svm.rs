@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2021-2023 Via Technology Ltd. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -63,10 +63,9 @@ fn main() -> Result<()> {
     let kernel = Kernel::create(&program, KERNEL_NAME).expect("Kernel::create failed");
 
     // Create a command_queue on the Context's device
-    let queue = unsafe {
+    let queue =
         CommandQueue::create_default_with_properties(&context, CL_QUEUE_PROFILING_ENABLE, 0)
-            .expect("CommandQueue::create_default_with_properties failed")
-    };
+            .expect("CommandQueue::create_default_with_properties failed");
 
     // The input data
     const ARRAY_SIZE: usize = 8;

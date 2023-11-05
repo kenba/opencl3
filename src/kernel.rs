@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2020-2023 Via Technology Ltd. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,10 +22,7 @@ use super::Result;
 #[allow(unused_imports)]
 use cl3::ext;
 #[allow(unused_imports)]
-use cl3::types::{
-    cl_context, cl_device_id, cl_event, cl_kernel, cl_kernel_arg_access_qualifier,
-    cl_kernel_exec_info, cl_kernel_info, cl_kernel_work_group_info, cl_program, cl_uint, cl_ulong,
-};
+use cl3::types::{cl_context, cl_event};
 use libc::{c_void, size_t};
 use std::ffi::CString;
 use std::mem;
@@ -647,7 +644,7 @@ impl<'a> ExecuteKernel<'a> {
     ///
     /// return the [Event] for this command
     /// or the error code from the OpenCL C API function.
-    /// 
+    ///
     /// # Safety
     ///
     /// This is unsafe when the kernel arguments have not been set up correctly.

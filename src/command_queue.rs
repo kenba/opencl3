@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2022 Via Technology Ltd.
+// Copyright (c) 2020-2023 Via Technology Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,12 +35,6 @@ use cl3::egl;
 #[allow(unused_imports)]
 use cl3::ext;
 use cl3::gl;
-#[allow(unused_imports)]
-use cl3::types::{
-    cl_bool, cl_command_queue, cl_command_queue_info, cl_command_queue_properties, cl_context,
-    cl_device_id, cl_event, cl_kernel, cl_map_flags, cl_mem, cl_mem_migration_flags,
-    cl_queue_properties, cl_uint, cl_ulong,
-};
 use libc::{c_void, size_t};
 use std::mem;
 use std::ptr;
@@ -99,7 +93,7 @@ impl CommandQueue {
     ///
     /// returns a Result containing the new CommandQueue
     /// or the error code from the OpenCL C API function.
-    /// 
+    ///
     /// # Safety
     ///
     /// This is unsafe when a device is not a member of context.
@@ -168,7 +162,7 @@ impl CommandQueue {
     ///
     /// returns a Result containing the new CommandQueue
     /// or the error code from the OpenCL C API function.
-    /// 
+    ///
     /// # Safety
     ///
     /// This is unsafe when a device is not a member of context.
@@ -266,7 +260,7 @@ impl CommandQueue {
             buffer.get(),
             blocking_read,
             offset,
-            (data.len() * mem::size_of::<T>()) as size_t,
+            mem::size_of_val(data),
             data.as_mut_ptr() as cl_mem,
             event_wait_list.len() as cl_uint,
             if !event_wait_list.is_empty() {
@@ -327,7 +321,7 @@ impl CommandQueue {
             buffer.get_mut(),
             blocking_write,
             offset,
-            (data.len() * mem::size_of::<T>()) as size_t,
+            mem::size_of_val(data),
             data.as_ptr() as cl_mem,
             event_wait_list.len() as cl_uint,
             if !event_wait_list.is_empty() {
@@ -388,7 +382,7 @@ impl CommandQueue {
             self.queue,
             buffer.get_mut(),
             pattern.as_ptr() as cl_mem,
-            pattern.len() * mem::size_of::<T>(),
+            mem::size_of_val(pattern),
             offset,
             size,
             event_wait_list.len() as cl_uint,
@@ -939,7 +933,7 @@ impl CommandQueue {
             self.queue,
             svm_ptr,
             pattern.as_ptr() as *const c_void,
-            pattern.len() * mem::size_of::<T>(),
+            mem::size_of_val(pattern),
             size,
             event_wait_list.len() as cl_uint,
             if !event_wait_list.is_empty() {
@@ -964,7 +958,7 @@ impl CommandQueue {
             blocking_map,
             flags,
             svm.as_mut_ptr() as *mut c_void,
-            svm.len() * mem::size_of::<T>(),
+            mem::size_of_val(svm),
             event_wait_list.len() as cl_uint,
             if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()

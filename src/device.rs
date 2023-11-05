@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2022 Via Technology Ltd.
+// Copyright (c) 2020-2023 Via Technology Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,11 +19,6 @@ pub use cl3::ext::cl_device_feature_capabilities_intel;
 use super::platform::get_platforms;
 use super::Result;
 #[allow(unused_imports)]
-use cl3::types::{
-    cl_device_fp_config, cl_device_id, cl_device_info, cl_device_partition_property,
-    cl_device_svm_capabilities, cl_device_type, cl_name_version, cl_platform_id, cl_uint, cl_ulong,
-    CL_FALSE,
-};
 use libc::{intptr_t, size_t};
 
 /// Get the ids of all available devices of the given type.

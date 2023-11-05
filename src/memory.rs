@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2022 Via Technology Ltd.
+// Copyright (c) 2020-2023 Via Technology Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,10 +34,7 @@ use cl3::sampler;
 
 #[allow(unused_imports)]
 use cl3::types::{
-    cl_addressing_mode, cl_bool, cl_buffer_create_type, cl_buffer_region, cl_context,
-    cl_filter_mode, cl_image_desc, cl_image_format, cl_image_info, cl_int, cl_mem, cl_mem_flags,
-    cl_mem_info, cl_mem_object_type, cl_mem_properties, cl_pipe_info, cl_sampler, cl_sampler_info,
-    cl_sampler_properties, cl_uint, cl_ulong, CL_FALSE,
+    cl_addressing_mode, cl_bool, cl_filter_mode, cl_sampler, cl_sampler_info, cl_sampler_properties,
 };
 
 use libc::{c_void, intptr_t, size_t};
