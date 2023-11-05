@@ -35,7 +35,10 @@ use cl3::egl;
 #[allow(unused_imports)]
 use cl3::ext;
 use cl3::gl;
-use libc::{c_void, size_t};
+#[allow(unused_imports)]
+use cl3::types::cl_program;
+#[allow(unused_imports)]
+use libc::{c_char, c_void, size_t};
 use std::mem;
 use std::ptr;
 
@@ -1324,6 +1327,60 @@ impl CommandQueue {
             mipmap_filter_mode,
             array_region,
             mip_region,
+            if !event_wait_list.is_empty() {
+                event_wait_list.as_ptr()
+            } else {
+                ptr::null()
+            },
+        )?;
+        Ok(Event::new(event))
+    }
+
+    #[cfg(feature = "cl_intel_program_scope_host_pipe")]
+    pub unsafe fn enqueue_read_host_pipe_intel(
+        &self,
+        program: cl_program,
+        pipe_symbol: *const c_char,
+        blocking_read: cl_bool,
+        ptr: *mut c_void,
+        size: size_t,
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
+        let event = ext::enqueue_read_host_pipe_intel(
+            self.queue,
+            program,
+            pipe_symbol,
+            blocking_read,
+            ptr,
+            size,
+            event_wait_list.len() as cl_uint,
+            if !event_wait_list.is_empty() {
+                event_wait_list.as_ptr()
+            } else {
+                ptr::null()
+            },
+        )?;
+        Ok(Event::new(event))
+    }
+
+    #[cfg(feature = "cl_intel_program_scope_host_pipe")]
+    pub unsafe fn enqueue_write_host_pipe_intel(
+        &self,
+        program: cl_program,
+        pipe_symbol: *const c_char,
+        blocking_write: cl_bool,
+        ptr: *const c_void,
+        size: size_t,
+        event_wait_list: &[cl_event],
+    ) -> Result<Event> {
+        let event = ext::enqueue_write_host_pipe_intel(
+            self.queue,
+            program,
+            pipe_symbol,
+            blocking_write,
+            ptr,
+            size,
+            event_wait_list.len() as cl_uint,
             if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {

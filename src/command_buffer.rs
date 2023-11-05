@@ -1,4 +1,4 @@
-// Copyright (c) 2021-2022 Via Technology Ltd.
+// Copyright (c) 2021-2023 Via Technology Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,16 +22,17 @@ use super::Result;
 
 #[allow(unused_imports)]
 use cl3::ext::{
-    cl_command_buffer_info_khr, cl_command_buffer_khr, cl_command_buffer_properties_khr,
-    cl_ndrange_kernel_command_properties_khr, cl_sync_point_khr,
+    cl_bool, cl_command_buffer_info_khr, cl_command_buffer_khr, cl_command_buffer_properties_khr,
+    cl_mutable_command_khr, cl_ndrange_kernel_command_properties_khr, cl_sync_point_khr,
     command_barrier_with_wait_list_khr, command_copy_buffer_khr, command_copy_buffer_rect_khr,
     command_copy_buffer_to_image_khr, command_copy_image_khr, command_copy_image_to_buffer_khr,
     command_fill_buffer_khr, command_fill_image_khr, command_nd_range_kernel_khr,
-    create_command_buffer_khr, enqueue_command_buffer_khr, finalize_command_buffer_khr,
-    get_command_buffer_data_khr, get_command_buffer_info_khr, release_command_buffer_khr,
-    CL_COMMAND_BUFFER_NUM_QUEUES_KHR, CL_COMMAND_BUFFER_PROPERTIES_ARRAY_KHR,
-    CL_COMMAND_BUFFER_QUEUES_KHR, CL_COMMAND_BUFFER_REFERENCE_COUNT_KHR,
-    CL_COMMAND_BUFFER_STATE_KHR,
+    command_svm_mem_fill_khr, command_svm_memcpy_khr, create_command_buffer_khr,
+    enqueue_command_buffer_khr, finalize_command_buffer_khr, get_command_buffer_data_khr,
+    get_command_buffer_info_khr, get_command_buffer_mutable_dispatch_data,
+    release_command_buffer_khr, CL_COMMAND_BUFFER_NUM_QUEUES_KHR,
+    CL_COMMAND_BUFFER_PROPERTIES_ARRAY_KHR, CL_COMMAND_BUFFER_QUEUES_KHR,
+    CL_COMMAND_BUFFER_REFERENCE_COUNT_KHR, CL_COMMAND_BUFFER_STATE_KHR,
 };
 #[allow(unused_imports)]
 use cl3::types::{cl_command_queue, cl_event, cl_kernel, cl_mem, cl_uint};
@@ -110,7 +111,7 @@ impl CommandBuffer {
     }
 
     /// Records a barrier operation used as a synchronization point.
-    pub fn command_barrier_with_wait_list(
+    pub unsafe fn command_barrier_with_wait_list(
         &self,
         queue: cl_command_queue,
         sync_point_wait_list: &[cl_sync_point_khr],
@@ -287,7 +288,7 @@ impl CommandBuffer {
             queue,
             buffer.get_mut(),
             pattern.as_ptr() as cl_mem,
-            pattern.len() * mem::size_of::<T>(),
+            mem::size_of_val(pattern),
             offset,
             size,
             sync_point_wait_list,
@@ -351,6 +352,54 @@ impl CommandBuffer {
         Ok(sync_point)
     }
 
+    pub unsafe fn svm_memcpy(
+        &self,
+        queue: cl_command_queue,
+        dst_ptr: *mut c_void,
+        src_ptr: *const c_void,
+        size: size_t,
+        sync_point_wait_list: &[cl_sync_point_khr],
+        mutable_handle: *mut cl_mutable_command_khr,
+    ) -> Result<cl_sync_point_khr> {
+        let mut sync_point = 0;
+        command_svm_memcpy_khr(
+            self.buffer,
+            queue,
+            dst_ptr,
+            src_ptr,
+            size,
+            sync_point_wait_list,
+            &mut sync_point,
+            mutable_handle,
+        )?;
+        Ok(sync_point)
+    }
+
+    pub unsafe fn svm_mem_fill(
+        &self,
+        queue: cl_command_queue,
+        svm_ptr: *mut c_void,
+        pattern: *const c_void,
+        pattern_size: size_t,
+        size: size_t,
+        sync_point_wait_list: &[cl_sync_point_khr],
+        mutable_handle: *mut cl_mutable_command_khr,
+    ) -> Result<cl_sync_point_khr> {
+        let mut sync_point = 0;
+        command_svm_mem_fill_khr(
+            self.buffer,
+            queue,
+            svm_ptr,
+            pattern,
+            pattern_size,
+            size,
+            sync_point_wait_list,
+            &mut sync_point,
+            mutable_handle,
+        )?;
+        Ok(sync_point)
+    }
+
     pub fn num_queues(&self) -> Result<cl_uint> {
         Ok(get_command_buffer_info_khr(self.buffer, CL_COMMAND_BUFFER_NUM_QUEUES_KHR)?.into())
     }
@@ -377,5 +426,24 @@ impl CommandBuffer {
 
     pub fn get_data(&self, param_name: cl_command_buffer_info_khr) -> Result<Vec<u8>> {
         Ok(get_command_buffer_data_khr(self.buffer, param_name)?)
+    }
+
+    #[cfg(feature = "cl_khr_command_buffer_multi_device")]
+    pub unsafe fn get_mutable_dispatch_data(
+        &self,
+        automatic: cl_bool,
+        queues: &[cl_command_queue],
+        handles: &[cl_mutable_command_khr],
+        handles_ret: *mut cl_mutable_command_khr,
+    ) -> Result<cl_command_buffer_khr> {
+        Ok(get_command_buffer_mutable_dispatch_data(
+            self.buffer,
+            automatic,
+            queues.len() as cl_uint,
+            queues.as_ptr(),
+            handles.len() as cl_uint,
+            handles.as_ptr(),
+            handles_ret,
+        )?)
     }
 }
