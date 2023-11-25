@@ -16,9 +16,7 @@ use cl3::ext::{
     CL_DEVICE_IMAGE_SUPPORT, CL_DEVICE_MAX_READ_IMAGE_ARGS, CL_DEVICE_MAX_READ_WRITE_IMAGE_ARGS,
     CL_DEVICE_MAX_SAMPLERS, CL_DEVICE_MAX_WRITE_IMAGE_ARGS, CL_IMAGE_FORMAT_NOT_SUPPORTED,
 };
-use cl3::memory::{
-    CL_MEM_OBJECT_IMAGE2D, CL_MEM_WRITE_ONLY, CL_RGBA, CL_UNSIGNED_INT8,
-};
+use cl3::memory::{CL_MEM_OBJECT_IMAGE2D, CL_MEM_WRITE_ONLY, CL_RGBA, CL_UNSIGNED_INT8};
 use cl3::types::{cl_image_desc, cl_image_format, CL_NON_BLOCKING};
 use libc::c_void;
 use opencl3::command_queue::{CommandQueue, CL_QUEUE_PROFILING_ENABLE};
@@ -119,7 +117,7 @@ fn main() -> Result<()> {
             .expect("CommandQueue::create_default_with_properties failed");
 
     // Create a set of images
-    let image = unsafe {
+    let mut image = unsafe {
         Image::create(
             &context,
             CL_MEM_WRITE_ONLY,
@@ -154,6 +152,21 @@ fn main() -> Result<()> {
 
     let mut events: Vec<cl_event> = Vec::default();
     events.push(kernel_event.get());
+
+    // Fill the middle of the image with a solid color
+    let fill_color = [11u32, 22u32, 33u32, 44u32];
+    let fill_event = unsafe {
+        queue.enqueue_fill_image(
+            &mut image,
+            fill_color.as_ptr() as *const c_void,
+            &[3usize, 3usize, 0usize] as *const usize,
+            &[4usize, 4usize, 1usize] as *const usize,
+            &events,
+        )?
+    };
+
+    let mut events: Vec<cl_event> = Vec::default();
+    events.push(fill_event.get());
 
     // Read the image data from the device
     let mut image_data = [0u8; 10 * 10 * 4];
