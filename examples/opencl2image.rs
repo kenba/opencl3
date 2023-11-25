@@ -116,7 +116,7 @@ fn main() -> Result<()> {
         CommandQueue::create_default_with_properties(&context, CL_QUEUE_PROFILING_ENABLE, 0)
             .expect("CommandQueue::create_default_with_properties failed");
 
-    // Create a set of images
+    // Create an image
     let mut image = unsafe {
         Image::create(
             &context,
