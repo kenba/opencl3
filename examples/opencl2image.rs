@@ -1,4 +1,4 @@
-// Copyright (c) 2021-2023 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2023 Via Technology Ltd. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,10 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use cl3::ext::{
-    CL_DEVICE_IMAGE_SUPPORT, CL_DEVICE_MAX_READ_IMAGE_ARGS, CL_DEVICE_MAX_READ_WRITE_IMAGE_ARGS,
-    CL_DEVICE_MAX_SAMPLERS, CL_DEVICE_MAX_WRITE_IMAGE_ARGS, CL_IMAGE_FORMAT_NOT_SUPPORTED,
-};
+use cl3::ext::CL_IMAGE_FORMAT_NOT_SUPPORTED;
 use cl3::memory::{CL_MEM_OBJECT_IMAGE2D, CL_MEM_WRITE_ONLY, CL_RGBA, CL_UNSIGNED_INT8};
 use cl3::types::{cl_image_desc, cl_image_format, CL_NON_BLOCKING};
 use libc::c_void;
@@ -52,45 +49,25 @@ fn main() -> Result<()> {
     let context = Context::from_device(&device).expect("Context::from_device failed");
 
     // Print some information about the device
-    let result = device.get_data(CL_DEVICE_IMAGE_SUPPORT)?;
     println!(
         "CL_DEVICE_IMAGE_SUPPORT: {:?}",
-        ((result[3] as u32) << 24)
-            | ((result[2] as u32) << 16)
-            | ((result[1] as u32) << 8)
-            | (result[0] as u32)
+        device.image_support().unwrap()
     );
-    let result = device.get_data(CL_DEVICE_MAX_READ_WRITE_IMAGE_ARGS)?;
     println!(
         "CL_DEVICE_MAX_READ_WRITE_IMAGE_ARGS: {:?}",
-        ((result[3] as u32) << 24)
-            | ((result[2] as u32) << 16)
-            | ((result[1] as u32) << 8)
-            | (result[0] as u32)
+        device.max_read_write_image_args().unwrap()
     );
-    let result = device.get_data(CL_DEVICE_MAX_READ_IMAGE_ARGS)?;
     println!(
         "CL_DEVICE_MAX_READ_IMAGE_ARGS: {:?}",
-        ((result[3] as u32) << 24)
-            | ((result[2] as u32) << 16)
-            | ((result[1] as u32) << 8)
-            | (result[0] as u32)
+        device.max_read_image_args().unwrap()
     );
-    let result = device.get_data(CL_DEVICE_MAX_WRITE_IMAGE_ARGS)?;
     println!(
         "CL_DEVICE_MAX_WRITE_IMAGE_ARGS: {:?}",
-        ((result[3] as u32) << 24)
-            | ((result[2] as u32) << 16)
-            | ((result[1] as u32) << 8)
-            | (result[0] as u32)
+        device.max_write_image_args().unwrap()
     );
-    let result = device.get_data(CL_DEVICE_MAX_SAMPLERS)?;
     println!(
         "CL_DEVICE_MAX_SAMPLERS: {:?}",
-        ((result[3] as u32) << 24)
-            | ((result[2] as u32) << 16)
-            | ((result[1] as u32) << 8)
-            | (result[0] as u32)
+        device.max_device_samples().unwrap()
     );
     let supported_formats =
         context.get_supported_image_formats(CL_MEM_WRITE_ONLY, CL_MEM_OBJECT_IMAGE2D)?;
