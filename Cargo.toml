@@ -37,6 +37,7 @@ cl_khr_subgroups = ["cl3/cl_khr_subgroups"]
 cl_khr_suggested_local_work_size = ["cl3/cl_khr_suggested_local_work_size"]
 cl_khr_external_memory = ["cl3/cl_khr_external_memory"]
 cl_khr_external_semaphore = ["cl3/cl_khr_external_semaphore"]
+cl_khr_external_semaphore_sync_fd = ["cl3/cl_khr_external_semaphore_sync_fd"]
 cl_khr_semaphore = ["cl3/cl_khr_semaphore"]
 cl_arm_import_memory = ["cl3/cl_arm_import_memory"]
 cl_arm_shared_virtual_memory = ["cl3/cl_arm_shared_virtual_memory"]
@@ -58,6 +59,10 @@ cl_khr_dx9_media_sharing = ["cl3/cl_khr_dx9_media_sharing"]
 cl_intel_dx9_media_sharing = ["cl3/cl_intel_dx9_media_sharing"]
 cl_khr_d3d10_sharing = ["cl3/cl_khr_d3d10_sharing"]
 cl_khr_d3d11_sharing = ["cl3/cl_khr_d3d11_sharing"]
+
+cl_loader_info = ["cl3/cl_loader_info"]
+cl_pocl_content_size = ["cl3/cl_pocl_content_size"]
+cl_loader_layers = ["cl3/cl_loader_layers"]
 
 # Default features:
 default = ["CL_VERSION_1_1", "CL_VERSION_1_2", "CL_VERSION_2_0"]
