@@ -41,6 +41,9 @@ This library has:
 The library is object based with most OpenCL objects represented by rust structs.
 For example, an OpenCL `cl_device_id` is represented by [Device](src/device.rs) with methods to get information about the device instead of calling `clGetDeviceInfo` with the relevant `cl_device_info` value.  
 
+![OpenCL Context](docs/images/opencl_context_objects.svg)  
+*OpenCL Context Class Diagram*
+
 The struct methods are simpler to use than their equivalent standalone functions in [cl3](https://github.com/kenba/cl3) because they convert the `InfoType` enum into the correct underlying type returned by the `clGetDeviceInfo` call for the `cl_device_info` value.
 
 Nearly all the structs implement the `Drop` trait to release their corresponding
@@ -63,7 +66,7 @@ OpenCL 2.0 ICD loader then just add the following to your project's `Cargo.toml`
 
 ```toml
 [dependencies]
-opencl3 = "0.8"
+opencl3 = "0.9"
 ```
 
 If your OpenCL ICD loader supports higher versions of OpenCL then add the
@@ -72,7 +75,7 @@ following to your project's `Cargo.toml` instead:
 
 ```toml
 [dependencies.opencl3]
-version = "0.8"
+version = "0.9"
 features = ["CL_VERSION_2_1", "CL_VERSION_2_2", "CL_VERSION_3_0"]
 ```
 
@@ -80,7 +83,7 @@ OpenCL extensions and `serde` support can also be enabled by adding their featur
 
 ```toml
 [dependencies.opencl3]
-version = "0.8"
+version = "0.9"
 features = ["cl_khr_gl_sharing", "cl_khr_dx9_media_sharing", "serde"]
 ```
 
