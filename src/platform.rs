@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2023 Via Technology Ltd.
+// Copyright (c) 2020-2024 Via Technology Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,6 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+#![allow(clippy::missing_safety_doc)]
 
 pub use cl3::platform;
 
@@ -85,7 +87,7 @@ impl Platform {
     }
 
     #[cfg(feature = "cl_khr_dx9_media_sharing")]
-    pub fn get_device_ids_from_dx9_intel(
+    pub unsafe fn get_device_ids_from_dx9_intel(
         &self,
         dx9_device_source: dx9_media_sharing::cl_dx9_device_source_intel,
         dx9_object: *mut c_void,

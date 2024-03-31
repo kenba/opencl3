@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2023 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2020-2024 Via Technology Ltd. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,6 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+#![allow(clippy::missing_safety_doc)]
 
 pub use cl3::program::*;
 
@@ -210,16 +212,13 @@ impl Program {
     /// or the error code from the OpenCL C API function.
     #[cfg(feature = "CL_VERSION_2_1")]
     pub fn create_from_il(context: &Context, il: &[u8]) -> Result<Program> {
-        Ok(Program::new(
-            create_program_with_il(context.get(), &il)?,
-            "",
-        ))
+        Ok(Program::new(create_program_with_il(context.get(), il)?, ""))
     }
 
     #[cfg(feature = "cl_khr_il_program")]
     pub fn create_from_il_khr(context: &Context, il: &[u8]) -> Result<Program> {
         Ok(Program::new(
-            ext::create_program_with_il_khr(context.get(), &il)?,
+            ext::create_program_with_il_khr(context.get(), il)?,
             "",
         ))
     }
@@ -323,7 +322,7 @@ impl Program {
         il: &[u8],
         options: &str,
     ) -> Result<Program> {
-        let mut program = Program::create_from_il(&context, il)?;
+        let mut program = Program::create_from_il(context, il)?;
         program.build(context.devices(), options)?;
         Ok(program)
     }
@@ -391,27 +390,6 @@ impl Program {
         )?;
         self.kernel_names = self.get_kernel_names()?;
         Ok(())
-    }
-
-    /// Register a callback function with a program object that is called when the
-    /// program object is destroyed.
-    /// CL_VERSION_2_2
-    ///
-    /// * `pfn_notify` - function pointer to the notification routine.
-    /// * `user_data` - passed as an argument when pfn_notify is called, or ptr::null_mut().
-    ///
-    /// returns an empty Result or the error code from the OpenCL C API function.
-    #[cfg(feature = "CL_VERSION_2_2")]
-    pub unsafe fn set_release_callback(
-        &self,
-        pfn_notify: Option<extern "C" fn(program: cl_program, user_data: *mut c_void)>,
-        user_data: *mut c_void,
-    ) -> Result<()> {
-        Ok(set_program_release_callback(
-            self.program,
-            pfn_notify,
-            user_data,
-        )?)
     }
 
     /// Set the value of a specialization constant.

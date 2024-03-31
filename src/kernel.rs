@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2023 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2020-2024 Via Technology Ltd. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ use super::Result;
 #[allow(unused_imports)]
 use cl3::ext;
 #[allow(unused_imports)]
-use cl3::types::{cl_context, cl_event};
+use cl3::types::{cl_command_queue, cl_context, cl_event};
 use libc::{c_void, size_t};
 use std::ffi::CString;
 use std::mem;
@@ -278,16 +278,15 @@ impl Kernel {
     pub fn get_kernel_sub_group_info_khr(
         &self,
         device: cl_device_id,
-        device: cl_device_id,
-        param_name: ext::KernelSubGroupInfoKhr,
+        param_name: cl_kernel_sub_group_info,
         input_values: &[size_t],
     ) -> Result<size_t> {
-        Ok(get_kernel_sub_group_info_khr(
+        Ok(ext::get_kernel_sub_group_info_khr(
             self.kernel,
             device,
             param_name,
             input_values.len(),
-            input_values.as_ptr(),
+            input_values.as_ptr().cast::<c_void>(),
         )?)
     }
 
@@ -299,7 +298,7 @@ impl Kernel {
         global_work_offset: *const size_t,
         global_work_size: *const size_t,
     ) -> Result<size_t> {
-        Ok(get_kernel_suggested_local_work_size_khr(
+        Ok(ext::get_kernel_suggested_local_work_size_khr(
             command_queue,
             self.kernel,
             work_dim,

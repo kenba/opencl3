@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2023 Via Technology Ltd.
+// Copyright (c) 2020-2024 Via Technology Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -1225,48 +1225,6 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "cl_khr_dx9_media_sharing")]
-    #[inline]
-    pub unsafe fn enqueue_acquire_dx9_media_surfaces_khr(
-        &self,
-        mem_objects: &[*const c_void],
-        event_wait_list: &[cl_event],
-    ) -> Result<Event> {
-        let event = dx9_media_sharing::enqueue_acquire_dx9_media_surfaces_khr(
-            self.queue,
-            mem_objects.len() as cl_uint,
-            mem_objects.as_ptr() as *const *mut c_void,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }
-
-    #[cfg(feature = "cl_khr_dx9_media_sharing")]
-    #[inline]
-    pub unsafe fn enqueue_release_dx9_media_surfaces_khr(
-        &self,
-        mem_objects: &[*const c_void],
-        event_wait_list: &[cl_event],
-    ) -> Result<Event> {
-        let event = dx9_media_sharing::enqueue_release_dx9_media_surfaces_khr(
-            self.queue,
-            mem_objects.len() as cl_uint,
-            mem_objects.as_ptr() as *const *mut c_void,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }
-
     #[cfg(feature = "cl_intel_dx9_media_sharing")]
     #[inline]
     pub unsafe fn enqueue_acquire_dx9_objects_intel(
@@ -1310,12 +1268,13 @@ impl CommandQueue {
     }
 
     #[cfg(feature = "cl_img_generate_mipmap")]
+    #[allow(clippy::cast_possible_truncation)]
     #[inline]
     pub unsafe fn enqueue_generate_mipmap_img(
         &self,
         src_image: cl_mem,
         dst_image: cl_mem,
-        mipmap_filter_mode: cl_mipmap_filter_mode_img,
+        mipmap_filter_mode: ext::cl_mipmap_filter_mode_img,
         array_region: *const size_t,
         mip_region: *const size_t,
         event_wait_list: &[cl_event],
@@ -1327,6 +1286,7 @@ impl CommandQueue {
             mipmap_filter_mode,
             array_region,
             mip_region,
+            event_wait_list.len() as cl_uint,
             if !event_wait_list.is_empty() {
                 event_wait_list.as_ptr()
             } else {

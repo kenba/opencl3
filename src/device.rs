@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2023 Via Technology Ltd.
+// Copyright (c) 2020-2024 Via Technology Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ pub use cl3::ext::cl_device_feature_capabilities_intel;
 
 use super::platform::get_platforms;
 use super::Result;
+#[allow(unused_imports)]
+use cl3::ext;
 #[allow(unused_imports)]
 use libc::{intptr_t, size_t};
 

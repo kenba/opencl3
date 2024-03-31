@@ -1,4 +1,4 @@
-// Copyright (c) 2021-2023 Via Technology Ltd.
+// Copyright (c) 2021-2024 Via Technology Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -426,24 +426,5 @@ impl CommandBuffer {
 
     pub fn get_data(&self, param_name: cl_command_buffer_info_khr) -> Result<Vec<u8>> {
         Ok(get_command_buffer_data_khr(self.buffer, param_name)?)
-    }
-
-    #[cfg(feature = "cl_khr_command_buffer_multi_device")]
-    pub unsafe fn get_mutable_dispatch_data(
-        &self,
-        automatic: cl_bool,
-        queues: &[cl_command_queue],
-        handles: &[cl_mutable_command_khr],
-        handles_ret: *mut cl_mutable_command_khr,
-    ) -> Result<cl_command_buffer_khr> {
-        Ok(get_command_buffer_mutable_dispatch_data(
-            self.buffer,
-            automatic,
-            queues.len() as cl_uint,
-            queues.as_ptr(),
-            handles.len() as cl_uint,
-            handles.as_ptr(),
-            handles_ret,
-        )?)
     }
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2022 Via Technology Ltd.
+// Copyright (c) 2020-2024 Via Technology Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,6 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+#![allow(clippy::missing_safety_doc)]
 
 pub use cl3::context;
 
@@ -54,7 +56,7 @@ pub fn get_current_device_for_gl_context_khr(
 ) -> Result<cl_device_id> {
     let device = intptr_t::from(gl::get_gl_context_info_khr(
         properties.as_ptr() as *mut cl_context_properties,
-        gl::GlCL_CURRENT_DEVICE_FOR_GL_CONTEXT_KHR,
+        gl::CL_CURRENT_DEVICE_FOR_GL_CONTEXT_KHR,
     )?) as cl_device_id;
     Ok(device)
 }
@@ -71,7 +73,7 @@ pub fn get_devices_for_gl_context_khr(
 ) -> Result<Vec<cl_device_id>> {
     let dev_ptrs: Vec<intptr_t> = gl::get_gl_context_info_khr(
         properties.as_ptr() as *mut cl_context_properties,
-        gl::GlCL_DEVICES_FOR_GL_CONTEXT_KHR,
+        gl::CL_DEVICES_FOR_GL_CONTEXT_KHR,
     )?
     .into();
     let devices = dev_ptrs
@@ -249,7 +251,7 @@ impl Context {
     }
 
     #[cfg(feature = "cl_arm_import_memory")]
-    pub fn import_memory_arm(
+    pub unsafe fn import_memory_arm(
         &self,
         flags: cl_mem_flags,
         properties: *const ext::cl_import_properties_arm,
@@ -303,7 +305,7 @@ impl Context {
     }
 
     #[cfg(feature = "cl_khr_terminate_context")]
-    pub fn terminate(&self) -> Result<()> {
+    pub unsafe fn terminate(&self) -> Result<()> {
         Ok(ext::terminate_context_khr(self.context)?)
     }
 
@@ -315,7 +317,7 @@ impl Context {
     /// returns a Result containing the new OpenCL event
     /// or the error code from the OpenCL C API function.
     #[cfg(feature = "cl_khr_gl_sharing")]
-    pub fn create_event_from_gl_sync_khr(&self, sync: gl::gl_sync) -> Result<cl_event> {
+    pub fn create_event_from_gl_sync_khr(&self, sync: gl::cl_GLsync) -> Result<cl_event> {
         Ok(gl::create_event_from_gl_sync_khr(self.context, sync)?)
     }
 
@@ -328,7 +330,7 @@ impl Context {
     /// returns a Result containing the new OpenCL event
     /// or the error code from the OpenCL C API function.
     #[cfg(feature = "cl_khr_egl_event")]
-    pub fn create_event_from_egl_sync_khr(
+    pub unsafe fn create_event_from_egl_sync_khr(
         &self,
         sync: egl::CLeglSyncKHR,
         display: egl::CLeglDisplayKHR,
@@ -361,14 +363,14 @@ impl Context {
         image_type: cl_mem_object_type,
         plane: cl_uint,
     ) -> Result<Vec<cl_uint>> {
-        Ok(
+        Ok(unsafe {
             dx9_media_sharing::get_supported_dx9_media_surface_formats_intel(
                 self.context,
                 flags,
                 image_type,
                 plane,
-            )?,
-        )
+            )
+        }?)
     }
 
     #[cfg(feature = "cl_khr_d3d10_sharing")]
@@ -377,11 +379,9 @@ impl Context {
         flags: cl_mem_flags,
         image_type: cl_mem_object_type,
     ) -> Result<Vec<cl_uint>> {
-        Ok(d3d10::get_supported_d3d10_texture_formats_intel(
-            self.context,
-            flags,
-            image_type,
-        )?)
+        Ok(unsafe {
+            d3d10::get_supported_d3d10_texture_formats_intel(self.context, flags, image_type)
+        }?)
     }
 
     #[cfg(feature = "cl_khr_d3d11_sharing")]
@@ -391,12 +391,9 @@ impl Context {
         image_type: cl_mem_object_type,
         plane: cl_uint,
     ) -> Result<Vec<cl_uint>> {
-        Ok(d3d11::get_supported_d3d11_texture_formats_intel(
-            self.context,
-            flags,
-            image_type,
-            plane,
-        )?)
+        Ok(unsafe {
+            d3d11::get_supported_d3d11_texture_formats_intel(self.context, flags, image_type, plane)
+        }?)
     }
 }
 
