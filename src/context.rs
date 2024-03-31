@@ -51,6 +51,7 @@ use std::ptr;
 /// returns a Result containing the device
 /// or the error code from the OpenCL C API function.
 #[cfg(feature = "cl_khr_gl_sharing")]
+#[allow(clippy::as_ptr_cast_mut)]
 pub fn get_current_device_for_gl_context_khr(
     properties: &[cl_context_properties],
 ) -> Result<cl_device_id> {
@@ -68,6 +69,7 @@ pub fn get_current_device_for_gl_context_khr(
 /// returns a Result containing the devices
 /// or the error code from the OpenCL C API function.
 #[cfg(feature = "cl_khr_gl_sharing")]
+#[allow(clippy::as_ptr_cast_mut)]
 pub fn get_devices_for_gl_context_khr(
     properties: &[cl_context_properties],
 ) -> Result<Vec<cl_device_id>> {
@@ -108,15 +110,15 @@ unsafe impl Send for Context {}
 unsafe impl Sync for Context {}
 
 impl Context {
-    fn new(context: cl_context, devices: &[cl_device_id]) -> Context {
-        Context {
+    fn new(context: cl_context, devices: &[cl_device_id]) -> Self {
+        Self {
             context,
             devices: devices.to_vec(),
         }
     }
 
     /// Get the underlying OpenCL cl_context.
-    pub fn get(&self) -> cl_context {
+    pub const fn get(&self) -> cl_context {
         self.context
     }
 
@@ -135,14 +137,14 @@ impl Context {
         properties: &[cl_context_properties],
         pfn_notify: Option<unsafe extern "C" fn(*const c_char, *const c_void, size_t, *mut c_void)>,
         user_data: *mut c_void,
-    ) -> Result<Context> {
+    ) -> Result<Self> {
         let properties_ptr = if !properties.is_empty() {
             properties.as_ptr()
         } else {
             ptr::null()
         };
         let context = context::create_context(devices, properties_ptr, pfn_notify, user_data)?;
-        Ok(Context::new(context, devices))
+        Ok(Self::new(context, devices))
     }
 
     /// Create a Context from a [Device].
@@ -151,10 +153,10 @@ impl Context {
     ///
     /// returns a Result containing the new OpenCL context
     /// or the error code from the OpenCL C API function.
-    pub fn from_device(device: &Device) -> Result<Context> {
+    pub fn from_device(device: &Device) -> Result<Self> {
         let devices: Vec<cl_device_id> = vec![device.id()];
         let properties = Vec::<cl_context_properties>::default();
-        Context::from_devices(&devices, &properties, None, ptr::null_mut())
+        Self::from_devices(&devices, &properties, None, ptr::null_mut())
     }
 
     /// Create a Context from a slice of SubDevices.  
@@ -173,12 +175,12 @@ impl Context {
         properties: &[cl_context_properties],
         pfn_notify: Option<unsafe extern "C" fn(*const c_char, *const c_void, size_t, *mut c_void)>,
         user_data: *mut c_void,
-    ) -> Result<Context> {
+    ) -> Result<Self> {
         let devices = sub_devices
             .iter()
             .map(|dev| dev.id())
             .collect::<Vec<cl_device_id>>();
-        Context::from_devices(&devices, properties, pfn_notify, user_data)
+        Self::from_devices(&devices, properties, pfn_notify, user_data)
     }
 
     /// Create a Context from a cl_device_type.  
@@ -196,7 +198,7 @@ impl Context {
         properties: &[cl_context_properties],
         pfn_notify: Option<unsafe extern "C" fn(*const c_char, *const c_void, size_t, *mut c_void)>,
         user_data: *mut c_void,
-    ) -> Result<Context> {
+    ) -> Result<Self> {
         let properties_ptr = if !properties.is_empty() {
             properties.as_ptr()
         } else {
@@ -210,7 +212,7 @@ impl Context {
             .iter()
             .map(|ptr| *ptr as cl_device_id)
             .collect::<Vec<cl_device_id>>();
-        Ok(Context::new(context, &devices))
+        Ok(Self::new(context, &devices))
     }
 
     /// Get the common Shared Virtual Memory (SVM) capabilities of the

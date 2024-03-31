@@ -50,7 +50,7 @@ impl Clone for Kernel {
     /// or the error code from the OpenCL C API function.
     fn clone(&self) -> Self {
         let kernel = clone_kernel(self.kernel).expect("Error: clCloneKernel");
-        Kernel { kernel }
+        Self { kernel }
     }
 }
 
@@ -70,12 +70,12 @@ impl Kernel {
     /// returns a Result containing the new Kernel
     /// or the error code from the OpenCL C API function to get the number
     /// of kernel arguments.
-    pub fn new(kernel: cl_kernel) -> Kernel {
-        Kernel { kernel }
+    pub const fn new(kernel: cl_kernel) -> Self {
+        Self { kernel }
     }
 
     /// Get the underlying OpenCL cl_kernel.
-    pub fn get(&self) -> cl_kernel {
+    pub const fn get(&self) -> cl_kernel {
         self.kernel
     }
 
@@ -87,7 +87,7 @@ impl Kernel {
     /// returns a Result containing the new Kernel
     /// or the error code from the OpenCL C API function to get the number
     /// of kernel arguments.
-    pub fn create(program: &Program, name: &str) -> Result<Kernel> {
+    pub fn create(program: &Program, name: &str) -> Result<Self> {
         // Ensure c_name string is null terminated
         let c_name = CString::new(name).expect("Kernel::create, invalid name");
         Ok(Self::new(create_kernel(program.get(), &c_name)?))

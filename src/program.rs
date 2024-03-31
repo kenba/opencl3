@@ -89,7 +89,7 @@ pub struct Program {
 
 impl From<Program> for cl_program {
     fn from(value: Program) -> Self {
-        value.program as cl_program
+        value.program as Self
     }
 }
 
@@ -103,15 +103,15 @@ unsafe impl Send for Program {}
 unsafe impl Sync for Program {}
 
 impl Program {
-    fn new(program: cl_program, kernel_names: &str) -> Program {
-        Program {
+    fn new(program: cl_program, kernel_names: &str) -> Self {
+        Self {
             program,
             kernel_names: kernel_names.to_owned(),
         }
     }
 
     /// Get the underlying OpenCL cl_program.
-    pub fn get(&self) -> cl_program {
+    pub const fn get(&self) -> cl_program {
         self.program
     }
 
@@ -128,8 +128,8 @@ impl Program {
     ///
     /// returns a Result containing the new Program
     /// or the error code from the OpenCL C API function.
-    pub fn create_from_sources(context: &Context, sources: &[&str]) -> Result<Program> {
-        Ok(Program::new(
+    pub fn create_from_sources(context: &Context, sources: &[&str]) -> Result<Self> {
+        Ok(Self::new(
             create_program_with_source(context.get(), sources)?,
             "",
         ))
@@ -142,9 +142,9 @@ impl Program {
     ///
     /// returns a Result containing the new Program
     /// or the error code from the OpenCL C API function.
-    pub fn create_from_source(context: &Context, src: &str) -> Result<Program> {
+    pub fn create_from_source(context: &Context, src: &str) -> Result<Self> {
         let sources = [src];
-        Ok(Program::new(
+        Ok(Self::new(
             create_program_with_source(context.get(), &sources)?,
             "",
         ))
@@ -166,8 +166,8 @@ impl Program {
         context: &Context,
         devices: &[cl_device_id],
         binaries: &[&[u8]],
-    ) -> Result<Program> {
-        Ok(Program::new(
+    ) -> Result<Self> {
+        Ok(Self::new(
             create_program_with_binary(context.get(), devices, binaries)?,
             "",
         ))
@@ -191,11 +191,11 @@ impl Program {
         context: &Context,
         devices: &[cl_device_id],
         kernel_names: &str,
-    ) -> Result<Program> {
+    ) -> Result<Self> {
         // Ensure options string is null terminated
         let c_names = CString::new(kernel_names)
             .expect("Program::create_from_builtin_kernels, invalid kernel_names");
-        Ok(Program::new(
+        Ok(Self::new(
             create_program_with_builtin_kernels(context.get(), devices, &c_names)?,
             kernel_names,
         ))
@@ -211,13 +211,13 @@ impl Program {
     /// returns a Result containing the new Program
     /// or the error code from the OpenCL C API function.
     #[cfg(feature = "CL_VERSION_2_1")]
-    pub fn create_from_il(context: &Context, il: &[u8]) -> Result<Program> {
-        Ok(Program::new(create_program_with_il(context.get(), il)?, ""))
+    pub fn create_from_il(context: &Context, il: &[u8]) -> Result<Self> {
+        Ok(Self::new(create_program_with_il(context.get(), il)?, ""))
     }
 
     #[cfg(feature = "cl_khr_il_program")]
-    pub fn create_from_il_khr(context: &Context, il: &[u8]) -> Result<Program> {
-        Ok(Program::new(
+    pub fn create_from_il_khr(context: &Context, il: &[u8]) -> Result<Self> {
+        Ok(Self::new(
             ext::create_program_with_il_khr(context.get(), il)?,
             "",
         ))
@@ -253,8 +253,8 @@ impl Program {
         context: &Context,
         sources: &[&str],
         options: &str,
-    ) -> result::Result<Program, String> {
-        let mut program = Program::create_from_sources(context, sources).map_err(String::from)?;
+    ) -> result::Result<Self, String> {
+        let mut program = Self::create_from_sources(context, sources).map_err(String::from)?;
         match program.build(context.devices(), options) {
             Ok(_) => Ok(program),
             Err(e) => {
@@ -282,9 +282,9 @@ impl Program {
         context: &Context,
         src: &str,
         options: &str,
-    ) -> result::Result<Program, String> {
+    ) -> result::Result<Self, String> {
         let sources = [src];
-        Program::create_and_build_from_sources(context, &sources, options)
+        Self::create_and_build_from_sources(context, &sources, options)
     }
 
     /// Create and build an OpenCL Program from binaries with the given options.  
@@ -299,9 +299,9 @@ impl Program {
         context: &Context,
         binaries: &[&[u8]],
         options: &str,
-    ) -> Result<Program> {
+    ) -> Result<Self> {
         let mut program =
-            unsafe { Program::create_from_binary(context, context.devices(), binaries)? };
+            unsafe { Self::create_from_binary(context, context.devices(), binaries)? };
         program.build(context.devices(), options)?;
         Ok(program)
     }
@@ -314,15 +314,11 @@ impl Program {
     /// * `il` - a slice of program intermediate language code.
     /// * `options` - the build options in a null-terminated string.
     ///
-    /// returns a Result containing the new Program
+    /// returns a Result containing the new `Program`
     /// or the error code from the OpenCL C API function.
     #[cfg(feature = "CL_VERSION_2_1")]
-    pub fn create_and_build_from_il(
-        context: &Context,
-        il: &[u8],
-        options: &str,
-    ) -> Result<Program> {
-        let mut program = Program::create_from_il(context, il)?;
+    pub fn create_and_build_from_il(context: &Context, il: &[u8], options: &str) -> Result<Self> {
+        let mut program = Self::create_from_il(context, il)?;
         program.build(context.devices(), options)?;
         Ok(program)
     }

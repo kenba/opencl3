@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2022 Via Technology Ltd.
+// Copyright (c) 2020-2024 Via Technology Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -100,11 +100,12 @@ impl<'a, T> SvmRawVec<'a, T> {
     fn grow(&mut self, count: usize) -> Result<()> {
         let elem_size = mem::size_of::<T>();
 
-        let mut new_cap = count;
         // if pushing or inserting, double the capacity
-        if (0 < self.cap) && (count - self.cap == 1) {
-            new_cap = 2 * self.cap;
-        }
+        let new_cap = if (0 < self.cap) && (count - self.cap == 1) {
+            2 * self.cap
+        } else {
+            count
+        };
 
         let size = elem_size * new_cap;
 
@@ -246,49 +247,48 @@ impl<'a, T> Drop for SvmRawVec<'a, T> {
 /// # Ok(())
 /// # }
 /// ```
-
 pub struct SvmVec<'a, T> {
     buf: SvmRawVec<'a, T>,
     len: usize,
 }
 
 impl<'a, T> SvmVec<'a, T> {
-    fn ptr(&self) -> *mut T {
+    const fn ptr(&self) -> *mut T {
         self.buf.ptr
     }
 
     /// The capacity of the vector.
-    pub fn cap(&self) -> usize {
+    pub const fn cap(&self) -> usize {
         self.buf.cap
     }
 
     /// The length of the vector.
-    pub fn len(&self) -> usize {
+    pub const fn len(&self) -> usize {
         self.len
     }
 
     /// Whether the vector is empty
-    pub fn is_empty(&self) -> bool {
+    pub const fn is_empty(&self) -> bool {
         self.len == 0
     }
 
     /// Whether the vector is fine grain buffer
-    pub fn is_fine_grain_buffer(&self) -> bool {
+    pub const fn is_fine_grain_buffer(&self) -> bool {
         self.buf.fine_grain_buffer
     }
 
     /// Whether the vector is fine grain system
-    pub fn is_fine_grain_system(&self) -> bool {
+    pub const fn is_fine_grain_system(&self) -> bool {
         self.buf.fine_grain_system
     }
 
     /// Whether the vector is fine grained
-    pub fn is_fine_grained(&self) -> bool {
+    pub const fn is_fine_grained(&self) -> bool {
         self.buf.fine_grain_buffer || self.buf.fine_grain_system
     }
 
     /// Whether the vector can use atomics
-    pub fn has_atomics(&self) -> bool {
+    pub const fn has_atomics(&self) -> bool {
         self.buf.atomics
     }
 
@@ -613,7 +613,7 @@ unsafe impl<T: Send> Send for RawValIter<T> {}
 
 impl<T> RawValIter<T> {
     unsafe fn new(slice: &[T]) -> Self {
-        RawValIter {
+        Self {
             start: slice.as_ptr(),
             end: if mem::size_of::<T>() == 0 {
                 ((slice.as_ptr() as usize) + slice.len()) as *const _

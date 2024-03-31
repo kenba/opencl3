@@ -42,7 +42,7 @@ pub struct Platform {
 
 impl From<cl_platform_id> for Platform {
     fn from(value: cl_platform_id) -> Self {
-        Platform {
+        Self {
             id: value as intptr_t,
         }
     }
@@ -50,7 +50,7 @@ impl From<cl_platform_id> for Platform {
 
 impl From<Platform> for cl_platform_id {
     fn from(value: Platform) -> Self {
-        value.id as cl_platform_id
+        value.id as Self
     }
 }
 
@@ -58,12 +58,12 @@ unsafe impl Send for Platform {}
 unsafe impl Sync for Platform {}
 
 impl Platform {
-    pub fn new(id: cl_platform_id) -> Platform {
-        Platform { id: id as intptr_t }
+    pub fn new(id: cl_platform_id) -> Self {
+        Self { id: id as intptr_t }
     }
 
     /// Accessor for the underlying platform id.
-    pub fn id(&self) -> cl_platform_id {
+    pub const fn id(&self) -> cl_platform_id {
         self.id as cl_platform_id
     }
 

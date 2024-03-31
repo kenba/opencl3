@@ -10,6 +10,7 @@ If you've noticed a bug or have a feature request then please raise a [new issue
 It's generally best to check the [issues](https://github.com/kenba/opencl3/issues) and [pull requests](https://github.com/kenba/opencl3/pulls) (open and closed) to ensure that someone else has not noticed it before you. I recommend that you wait for confirmation of your bug or approval for your feature request in this way before starting to code.
 
 Note: many OpenCL issues are hardware specific, so it is often useful to describe your setup, i.e.:
+
 - `opencl3` features, e.g. ["serde", "CL_VERSION_1_2", "CL_VERSION_2_0", "CL_VERSION_2_1", "CL_VERSION_2_1"] or default
 - OpenCL target device vendor and version
 - OpenCL ICD loader vendor and version
@@ -23,6 +24,7 @@ Please abide by our [Code of Conduct](CODE_OF_CONDUCT.md) in all issues and pull
 
 If the issue is something you think that you can fix, then [fork opencl3](https://docs.github.com/en/get-started/quickstart/fork-a-repo) and create a branch from `develop` with a descriptive name.  
 E.g. a good branch name would be (where issue #42 is the issue you're working on):
+
 ```shell
 git checkout develop
 git checkout -b 42-fix-some-bug
@@ -31,13 +33,17 @@ git checkout -b 42-fix-some-bug
 ## Get the test suite running
 
 Run the unit tests:
+
 ```shell
 cargo test -- --test-threads=1 --show-output
 ```
+
 and integration tests:
+
 ```shell
 cargo test -- --test-threads=1 --show-output --ignored
 ```
+
 To ensure that you haven't broken anything.
 Please feel free to add tests, especially where the new test(s) demonstrates a bug that you noticed.
 
@@ -52,10 +58,13 @@ Feel free to ask for help; everyone is a beginner at first.
 
 Your patch should follow the same conventions & pass the same code quality checks as the rest of the project.  
 I recommend installing and running `clippy`:
+
 ```shell
-cargo clippy
+cargo clippy --all-features
 ```
+
 and `fmt`:
+
 ```shell
 cargo fmt
 ```
@@ -63,17 +72,21 @@ cargo fmt
 ## Make a Pull Request
 
 At this point, you should switch back to your develop branch and make sure it's up to date with opencl3's `develop` branch:
+
 ```shell
 git remote add upstream git@github.com:kenba/opencl3.git
 git checkout develop
 git pull upstream develop
 ```
+
 Then update your feature branch from your local copy of master, and push it!
+
 ```shell
 git checkout 42-fix-some-bug
 git rebase master
 git push --set-upstream origin 42-fix-some-bug
 ```
+
 Finally, go to GitHub and make a [Pull Request](https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request).
 
 Github Actions will then build your PR.
@@ -91,6 +104,7 @@ You should *not* introduce a fantastic new feature that you've just thought of! 
 If a maintainer asks you to "rebase" your PR, they're saying that a lot of code has changed, and that you need to update your branch so it's easier to merge.
 
 Github have a good guide about [rebasing in Git](https://docs.github.com/en/get-started/using-git/about-git-rebase) here's our suggested workflow:
+
 ```shell
 git checkout 42-fix-some-bug
 git pull --rebase upstream develop

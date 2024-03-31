@@ -66,12 +66,12 @@ unsafe impl Send for CommandBuffer {}
 unsafe impl Sync for CommandBuffer {}
 
 impl CommandBuffer {
-    fn new(buffer: cl_command_buffer_khr) -> CommandBuffer {
-        CommandBuffer { buffer }
+    const fn new(buffer: cl_command_buffer_khr) -> Self {
+        Self { buffer }
     }
 
     /// Get the underlying OpenCL cl_command_buffer_khr.
-    pub fn get(&self) -> cl_command_buffer_khr {
+    pub const fn get(&self) -> cl_command_buffer_khr {
         self.buffer
     }
 
@@ -79,9 +79,9 @@ impl CommandBuffer {
     pub fn create(
         queues: &[cl_command_queue],
         properties: &[cl_command_buffer_properties_khr],
-    ) -> Result<CommandBuffer> {
+    ) -> Result<Self> {
         let buffer = create_command_buffer_khr(queues, properties.as_ptr())?;
-        Ok(CommandBuffer::new(buffer))
+        Ok(Self::new(buffer))
     }
 
     /// Finalizes command recording ready for enqueuing the command-buffer on a command-queue.
@@ -273,6 +273,7 @@ impl CommandBuffer {
     }
 
     /// Records a command to fill a buffer object with a pattern of a given pattern size.
+    #[allow(clippy::as_ptr_cast_mut)]
     pub unsafe fn fill_buffer<T>(
         &self,
         queue: cl_command_queue,

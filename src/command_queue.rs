@@ -67,21 +67,21 @@ unsafe impl Send for CommandQueue {}
 unsafe impl Sync for CommandQueue {}
 
 impl CommandQueue {
-    fn new(queue: cl_command_queue, max_work_item_dimensions: cl_uint) -> CommandQueue {
-        CommandQueue {
+    const fn new(queue: cl_command_queue, max_work_item_dimensions: cl_uint) -> Self {
+        Self {
             queue,
             max_work_item_dimensions,
         }
     }
 
     /// Get the underlying OpenCL cl_command_queue.
-    pub fn get(&self) -> cl_command_queue {
+    pub const fn get(&self) -> cl_command_queue {
         self.queue
     }
 
     /// Get the max_work_item_dimensions for the device that the underlying OpenCL
     /// device.
-    pub fn max_work_item_dimensions(&self) -> cl_uint {
+    pub const fn max_work_item_dimensions(&self) -> cl_uint {
         self.max_work_item_dimensions
     }
 
@@ -117,11 +117,11 @@ impl CommandQueue {
         context: &Context,
         device_id: cl_device_id,
         properties: cl_command_queue_properties,
-    ) -> Result<CommandQueue> {
+    ) -> Result<Self> {
         let queue = create_command_queue(context.get(), device_id, properties)?;
         let device = Device::new(device_id);
         let max_work_item_dimensions = device.max_work_item_dimensions()?;
-        Ok(CommandQueue::new(queue, max_work_item_dimensions))
+        Ok(Self::new(queue, max_work_item_dimensions))
     }
 
     /// Create an OpenCL command-queue on the context default device.  
@@ -150,7 +150,7 @@ impl CommandQueue {
     pub fn create_default(
         context: &Context,
         properties: cl_command_queue_properties,
-    ) -> Result<CommandQueue> {
+    ) -> Result<Self> {
         unsafe { Self::create(context, context.default_device(), properties) }
     }
 
@@ -175,7 +175,7 @@ impl CommandQueue {
         device_id: cl_device_id,
         properties: cl_command_queue_properties,
         queue_size: cl_uint,
-    ) -> Result<CommandQueue> {
+    ) -> Result<Self> {
         let queue = if (0 < properties) || (0 < queue_size) {
             let mut props: [cl_queue_properties; 5] = [0; 5];
 
@@ -197,7 +197,7 @@ impl CommandQueue {
 
         let device = Device::new(device_id);
         let max_work_item_dimensions = device.max_work_item_dimensions()?;
-        Ok(CommandQueue::new(queue, max_work_item_dimensions))
+        Ok(Self::new(queue, max_work_item_dimensions))
     }
 
     /// Create an OpenCL command-queue on the default device.  
@@ -215,7 +215,7 @@ impl CommandQueue {
         context: &Context,
         properties: cl_command_queue_properties,
         queue_size: cl_uint,
-    ) -> Result<CommandQueue> {
+    ) -> Result<Self> {
         unsafe {
             Self::create_with_properties(context, context.default_device(), properties, queue_size)
         }
@@ -226,7 +226,7 @@ impl CommandQueue {
         context: &Context,
         device_id: cl_device_id,
         properties: &[ext::cl_queue_properties_khr],
-    ) -> Result<CommandQueue> {
+    ) -> Result<Self> {
         let queue = ext::create_command_queue_with_properties_khr(
             context.get(),
             device_id,
@@ -235,7 +235,7 @@ impl CommandQueue {
 
         let device = Device::new(device_id);
         let max_work_item_dimensions = device.max_work_item_dimensions()?;
-        Ok(CommandQueue::new(queue, max_work_item_dimensions))
+        Ok(Self::new(queue, max_work_item_dimensions))
     }
 
     /// Flush commands to a device.  
@@ -275,6 +275,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
+    #[allow(clippy::as_ptr_cast_mut)]
     pub unsafe fn enqueue_read_buffer_rect<T>(
         &self,
         buffer: &Buffer<T>,
@@ -311,6 +312,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
+    #[allow(clippy::as_ptr_cast_mut)]
     pub unsafe fn enqueue_write_buffer<T>(
         &self,
         buffer: &mut Buffer<T>,
@@ -373,6 +375,7 @@ impl CommandQueue {
     }
 
     #[cfg(feature = "CL_VERSION_1_2")]
+    #[allow(clippy::as_ptr_cast_mut)]
     pub unsafe fn enqueue_fill_buffer<T>(
         &self,
         buffer: &mut Buffer<T>,
@@ -804,6 +807,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
+    #[allow(clippy::as_ptr_cast_mut)]
     pub unsafe fn enqueue_native_kernel(
         &self,
         user_func: Option<unsafe extern "C" fn(*mut c_void)>,
@@ -973,6 +977,7 @@ impl CommandQueue {
     }
 
     #[cfg(feature = "CL_VERSION_2_0")]
+    #[allow(clippy::as_ptr_cast_mut)]
     pub unsafe fn enqueue_svm_unmap<T>(
         &self,
         svm: &[T],

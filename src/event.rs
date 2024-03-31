@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2023 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2020-2024 Via Technology Ltd. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,13 +28,13 @@ pub struct Event {
 
 impl From<cl_event> for Event {
     fn from(event: cl_event) -> Self {
-        Event { event }
+        Self { event }
     }
 }
 
 impl From<Event> for cl_event {
     fn from(value: Event) -> Self {
-        value.event as cl_event
+        value.event as Self
     }
 }
 
@@ -53,12 +53,12 @@ impl Event {
     /// * `event` - a valid OpenCL cl_event.
     ///
     /// returns the new Event
-    pub fn new(event: cl_event) -> Self {
+    pub const fn new(event: cl_event) -> Self {
         Self { event }
     }
 
     /// Get the underlying OpenCL cl_event.
-    pub fn get(&self) -> cl_event {
+    pub const fn get(&self) -> cl_event {
         self.event
     }
 

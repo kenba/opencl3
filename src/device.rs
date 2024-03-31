@@ -44,7 +44,7 @@ pub struct SubDevice {
 #[cfg(feature = "CL_VERSION_1_2")]
 impl From<cl_device_id> for SubDevice {
     fn from(id: cl_device_id) -> Self {
-        SubDevice { id }
+        Self { id }
     }
 }
 
@@ -70,12 +70,12 @@ unsafe impl Sync for SubDevice {}
 
 #[cfg(feature = "CL_VERSION_1_2")]
 impl SubDevice {
-    pub fn new(id: cl_device_id) -> SubDevice {
-        SubDevice { id }
+    pub const fn new(id: cl_device_id) -> Self {
+        Self { id }
     }
 
     /// Accessor for the underlying device id.
-    pub fn id(&self) -> cl_device_id {
+    pub const fn id(&self) -> cl_device_id {
         self.id
     }
 }
@@ -90,7 +90,7 @@ pub struct Device {
 
 impl From<cl_device_id> for Device {
     fn from(value: cl_device_id) -> Self {
-        Device {
+        Self {
             id: value as intptr_t,
         }
     }
@@ -98,7 +98,7 @@ impl From<cl_device_id> for Device {
 
 impl From<Device> for cl_device_id {
     fn from(value: Device) -> Self {
-        value.id as cl_device_id
+        value.id as Self
     }
 }
 
@@ -106,12 +106,12 @@ unsafe impl Send for Device {}
 unsafe impl Sync for Device {}
 
 impl Device {
-    pub fn new(id: cl_device_id) -> Device {
-        Device { id: id as intptr_t }
+    pub fn new(id: cl_device_id) -> Self {
+        Self { id: id as intptr_t }
     }
 
     /// Accessor for the underlying device id.
-    pub fn id(&self) -> cl_device_id {
+    pub const fn id(&self) -> cl_device_id {
         self.id as cl_device_id
     }
 
@@ -916,22 +916,16 @@ impl Device {
     /// Determine if the device supports the given half floating point capability.  
     /// Returns true if the device supports it, false otherwise.
     pub fn supports_half(&self, min_fp_capability: cl_device_fp_config) -> bool {
-        if let Ok(fp) = self.half_fp_config() {
-            0 < fp & min_fp_capability
-        } else {
-            false
-        }
+        self.half_fp_config()
+            .map_or(false, |fp| 0 < fp & min_fp_capability)
     }
     /// Determine if the device supports the given double floating point capability.  
     /// Returns true if the device supports it, false otherwise.
     ///
     /// CL_VERSION_1_2
     pub fn supports_double(&self, min_fp_capability: cl_device_fp_config) -> bool {
-        if let Ok(fp) = self.double_fp_config() {
-            0 < fp & min_fp_capability
-        } else {
-            false
-        }
+        self.double_fp_config()
+            .map_or(false, |fp| 0 < fp & min_fp_capability)
     }
 
     /// Determine if the device supports SVM and, if so, what kind of SVM.  
@@ -939,11 +933,7 @@ impl Device {
     ///
     /// CL_VERSION_2_0
     pub fn svm_mem_capability(&self) -> cl_device_svm_capabilities {
-        if let Ok(svm) = self.svm_capabilities() {
-            svm
-        } else {
-            0
-        }
+        self.svm_capabilities().map_or(0, |svm| svm)
     }
 
     #[cfg(feature = "cl_khr_external_semaphore")]
