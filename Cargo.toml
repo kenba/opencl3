@@ -79,3 +79,4 @@ opencl3 = { path = ".", features = ["serde"] }
 [lints.clippy]
 enum_glob_use = "deny"
 nursery = "deny"
+unwrap_used = "deny"

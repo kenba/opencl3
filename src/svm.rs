@@ -97,6 +97,7 @@ impl<'a, T> SvmRawVec<'a, T> {
         Ok(v)
     }
 
+    #[allow(clippy::cast_possible_truncation)]
     fn grow(&mut self, count: usize) -> Result<()> {
         let elem_size = mem::size_of::<T>();
 
@@ -114,8 +115,8 @@ impl<'a, T> SvmRawVec<'a, T> {
 
         // allocation, determine whether to use svm_alloc or not
         let ptr = if self.fine_grain_system {
-            let new_layout = Layout::array::<T>(new_cap).unwrap();
-            let new_ptr = unsafe { alloc::alloc(new_layout) as *mut c_void };
+            let new_layout = Layout::array::<T>(new_cap).expect("Layout::array failure.");
+            let new_ptr = unsafe { alloc::alloc(new_layout).cast::<c_void>() };
             if new_ptr.is_null() {
                 alloc::handle_alloc_error(new_layout);
             }
@@ -143,18 +144,18 @@ impl<'a, T> SvmRawVec<'a, T> {
 
         // reallocation, copy old data to new pointer and free old memory
         if 0 < self.cap {
-            unsafe { ptr::copy(self.ptr, ptr as *mut T, self.cap) };
+            unsafe { ptr::copy(self.ptr, ptr.cast::<T>(), self.cap) };
             if self.fine_grain_system {
-                let layout = Layout::array::<T>(self.cap).unwrap();
+                let layout = Layout::array::<T>(self.cap).expect("Layout::array failure.");
                 unsafe {
-                    alloc::dealloc(self.ptr as *mut u8, layout);
+                    alloc::dealloc(self.ptr.cast::<u8>(), layout);
                 }
             } else {
-                unsafe { svm_free(self.context.get(), self.ptr as *mut c_void) };
+                unsafe { svm_free(self.context.get(), self.ptr.cast::<c_void>()) };
             }
         }
 
-        self.ptr = ptr as *mut T;
+        self.ptr = ptr.cast::<T>();
         self.cap = new_cap;
 
         Ok(())
@@ -169,12 +170,12 @@ impl<'a, T> Drop for SvmRawVec<'a, T> {
     fn drop(&mut self) {
         if !self.ptr.is_null() {
             if self.fine_grain_system {
-                let layout = Layout::array::<T>(self.cap).unwrap();
+                let layout = Layout::array::<T>(self.cap).expect("Layout::array failure.");
                 unsafe {
-                    alloc::dealloc(self.ptr as *mut u8, layout);
+                    alloc::dealloc(self.ptr.cast::<u8>(), layout);
                 }
             } else {
-                unsafe { svm_free(self.context.get(), self.ptr as *mut c_void) };
+                unsafe { svm_free(self.context.get(), self.ptr.cast::<c_void>()) };
             }
             self.ptr = ptr::null_mut();
         }
@@ -253,41 +254,49 @@ pub struct SvmVec<'a, T> {
 }
 
 impl<'a, T> SvmVec<'a, T> {
+    #[must_use]
     const fn ptr(&self) -> *mut T {
         self.buf.ptr
     }
 
     /// The capacity of the vector.
+    #[must_use]
     pub const fn cap(&self) -> usize {
         self.buf.cap
     }
 
     /// The length of the vector.
+    #[must_use]
     pub const fn len(&self) -> usize {
         self.len
     }
 
     /// Whether the vector is empty
+    #[must_use]
     pub const fn is_empty(&self) -> bool {
         self.len == 0
     }
 
     /// Whether the vector is fine grain buffer
+    #[must_use]
     pub const fn is_fine_grain_buffer(&self) -> bool {
         self.buf.fine_grain_buffer
     }
 
     /// Whether the vector is fine grain system
+    #[must_use]
     pub const fn is_fine_grain_system(&self) -> bool {
         self.buf.fine_grain_system
     }
 
     /// Whether the vector is fine grained
+    #[must_use]
     pub const fn is_fine_grained(&self) -> bool {
         self.buf.fine_grain_buffer || self.buf.fine_grain_system
     }
 
     /// Whether the vector can use atomics
+    #[must_use]
     pub const fn has_atomics(&self) -> bool {
         self.buf.atomics
     }
@@ -319,6 +328,7 @@ impl<'a, T> SvmVec<'a, T> {
     /// CL_DEVICE_SVM_COARSE_GRAIN_BUFFER or CL_DEVICE_SVM_FINE_GRAIN_BUFFER.  
     /// The cl_device_svm_capabilities must *not* include CL_DEVICE_SVM_FINE_GRAIN_SYSTEM,
     /// a standard Rust `Vec!` should be used instead.
+    #[must_use]
     pub fn new(context: &'a Context) -> Self {
         let svm_capabilities = context.get_svm_mem_capability();
         SvmVec {
@@ -397,14 +407,17 @@ impl<'a, T> SvmVec<'a, T> {
     ///
     /// # Panics
     ///
-    /// The function will panic if a coarse grain buffer attempts to grow the vector.
+    /// The function will panic the vector cannot be grown, either because
+    /// the SVM is not fine grained or it has reached its limit.
     pub fn push(&mut self, elem: T) {
         if self.len == self.cap() {
             assert!(
                 self.is_fine_grained(),
                 "SVM is not fine grained, cannot grow the vector."
             );
-            self.buf.grow(self.len + 1).unwrap();
+            self.buf
+                .grow(self.len + 1)
+                .expect("Cannot grow the vector.");
         }
 
         unsafe {
@@ -438,7 +451,7 @@ impl<'a, T> SvmVec<'a, T> {
                 self.is_fine_grained(),
                 "SVM is not fine grained, cannot grow the vector."
             );
-            self.buf.grow(self.len + 1).unwrap();
+            self.buf.grow(self.len + 1).expect("Layout::array failure.");
         }
 
         unsafe {

@@ -468,7 +468,9 @@ impl<'a> ExecuteKernel<'a> {
         param_name: cl_kernel_exec_info,
         param_ptr: *const T,
     ) -> &mut Self {
-        self.kernel.set_exec_info(param_name, param_ptr).unwrap();
+        self.kernel
+            .set_exec_info(param_name, param_ptr)
+            .expect("Invalid param_name or param_ptr");
         self
     }
 
