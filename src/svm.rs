@@ -151,7 +151,7 @@ impl<'a, T> SvmRawVec<'a, T> {
                     alloc::dealloc(self.ptr.cast::<u8>(), layout);
                 }
             } else {
-                unsafe { svm_free(self.context.get(), self.ptr.cast::<c_void>()) };
+                unsafe { let _ = svm_free(self.context.get(), self.ptr.cast::<c_void>()); };
             }
         }
 
@@ -175,7 +175,7 @@ impl<'a, T> Drop for SvmRawVec<'a, T> {
                     alloc::dealloc(self.ptr.cast::<u8>(), layout);
                 }
             } else {
-                unsafe { svm_free(self.context.get(), self.ptr.cast::<c_void>()) };
+                unsafe { let _ = svm_free(self.context.get(), self.ptr.cast::<c_void>()); };
             }
             self.ptr = ptr::null_mut();
         }

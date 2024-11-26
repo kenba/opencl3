@@ -14,6 +14,10 @@ edition = "2021"
 
 [features]
 
+static  = ["cl3/static"]
+dynamic = ["cl3/dynamic"]
+
+# CL_VERSION_1_0 = ["cl3/CL_VERSION_1_0"]
 CL_VERSION_1_1 = ["cl3/CL_VERSION_1_1"]
 CL_VERSION_1_2 = ["cl3/CL_VERSION_1_2"]
 CL_VERSION_2_0 = ["cl3/CL_VERSION_2_0"]
@@ -65,11 +69,13 @@ cl_pocl_content_size = ["cl3/cl_pocl_content_size"]
 cl_loader_layers = ["cl3/cl_loader_layers"]
 
 # Default features:
-default = ["CL_VERSION_1_1", "CL_VERSION_1_2", "CL_VERSION_2_0"]
+default = ["static", "CL_VERSION_1_1", "CL_VERSION_1_2", "CL_VERSION_2_0"]
+# default = ["dynamic"]
 
 [dependencies]
 libc = "0.2"
-cl3 = "0.10"
+# cl3 = "0.10"
+cl3 = { git = "https://github.com/kenba/cl3", branch = "develop" }
 serde = { version = "1.0", optional = true }
 
 [dev-dependencies]
