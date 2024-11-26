@@ -32,7 +32,8 @@ use cl3::types::{
 #[allow(unused_imports)]
 use libc::{c_void, intptr_t};
 
-/// An OpenCL platform id and methods to query it.  
+/// An OpenCL platform id and methods to query it.
+///
 /// The query methods calls clGetPlatformInfo with the relevant param_name, see:
 /// [Platform Queries](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#platform-queries-table).
 #[derive(Copy, Clone, Debug)]

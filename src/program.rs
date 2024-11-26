@@ -325,11 +325,12 @@ impl Program {
 
     /// Compile a program’s source for the devices the OpenCL context associated
     /// with the program.
+    ///
     /// * `devices` - a slice of devices that are in context.
     /// * `options` - the compilation options in a null-terminated string.
     /// * `input_headers` - a slice of programs that describe headers in the input_headers.
     /// * `header_include_names` - an array that has a one to one correspondence with
-    /// input_headers.
+    ///   input_headers.
     ///
     /// returns a null Result
     /// or the error code from the OpenCL C API function.
@@ -394,7 +395,7 @@ impl Program {
     /// * `spec_id` - the specialization constant whose value will be set.
     /// * `spec_size` - size in bytes of the data pointed to by spec_value.
     /// * `spec_value` - pointer to the memory location that contains the value
-    /// of the specialization constant.
+    ///   of the specialization constant.
     ///
     /// returns an empty Result or the error code from the OpenCL C API function.
     #[cfg(feature = "CL_VERSION_2_2")]

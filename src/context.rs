@@ -126,7 +126,7 @@ impl Context {
     ///
     /// * `devices` - a slice of cl_device_ids for an OpenCL Platform.
     /// * `properties` - a null terminated list of cl_context_properties, see
-    /// [Context Properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#context-properties-table).
+    ///   [Context Properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#context-properties-table).
     /// * `pfn_notify` - an optional callback function that can be registered by the application.
     /// * `user_data` - passed as the user_data argument when pfn_notify is called.
     ///
@@ -163,7 +163,7 @@ impl Context {
     ///
     /// * `devices` - a slice of SubDevices for an OpenCL Platform.
     /// * `properties` - a null terminated list of cl_context_properties, see
-    /// [Context Properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#context-properties-table).
+    ///   [Context Properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#context-properties-table).
     /// * `pfn_notify` - an optional callback function that can be registered by the application.
     /// * `user_data` - passed as the user_data argument when pfn_notify is called.
     ///
@@ -187,7 +187,7 @@ impl Context {
     ///
     /// * `device_type` - the cl_device_type to create a Context for.
     /// * `properties` - a null terminated list of cl_context_properties, see
-    /// [Context Properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#context-properties-table).
+    ///   [Context Properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#context-properties-table).
     /// * `pfn_notify` - an optional callback function that can be registered by the application.
     /// * `user_data` - passed as the user_data argument when pfn_notify is called.
     ///
@@ -230,12 +230,13 @@ impl Context {
     }
 
     /// Get the list of image formats supported by the Context for an image type,
-    /// and allocation information.  
+    /// and allocation information.
+    ///
     /// Calls clGetSupportedImageFormats to get the desired information about the context.
     ///
     /// * `flags` - a bit-field used to specify allocation and usage information
-    /// about the image memory object being created, see:
-    /// [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
+    ///   about the image memory object being created, see:
+    ///   [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
     /// * `image_type` - describes the image type.
     ///
     /// returns a Result containing the desired information in an InfoType enum

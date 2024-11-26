@@ -80,7 +80,8 @@ impl SubDevice {
     }
 }
 
-/// An OpenCL device id and methods to query it.  
+/// An OpenCL device id and methods to query it.
+///
 /// The query methods calls clGetDeviceInfo with the relevant param_name, see:
 /// [Device Queries](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#device-queries-table).
 #[derive(Copy, Clone, Debug)]
@@ -118,7 +119,7 @@ impl Device {
     /// Create sub-devices by partitioning an OpenCL device.
     ///
     /// * `properties` - the slice of cl_device_partition_property, see
-    /// [Subdevice Partition](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#subdevice-partition-table).
+    ///   [Subdevice Partition](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#subdevice-partition-table).
     ///
     /// returns a Result containing a vector of available SubDevices
     /// or the error code from the OpenCL C API function.

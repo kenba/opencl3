@@ -148,7 +148,7 @@ impl Kernel {
     /// Pass additional information other than argument values to a kernel.  
     ///
     /// * `param_name` - the information to be passed to kernel, see:
-    /// [Kernel Execution Properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#kernel-exec-info-table).
+    ///   [Kernel Execution Properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#kernel-exec-info-table).
     /// * `param_ptr` - pointer to the data for the param_name.
     ///
     /// returns an empty Result or the error code from the OpenCL C API function.
@@ -322,8 +322,9 @@ pub fn create_program_kernels(program: &Program) -> Result<Vec<Kernel>> {
         .collect::<Vec<Kernel>>())
 }
 
-/// A struct that implements the [builder pattern](https://doc.rust-lang.org/1.0.0/style/ownership/builders.html)
-/// to simplify setting up [Kernel] arguments and the [NDRange](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#_mapping_work_items_onto_an_ndrange)
+/// A struct that implements the [builder pattern](https://doc.rust-lang.org/1.0.0/style/ownership/builders.html).
+///
+/// To simplify setting up [Kernel] arguments and the [NDRange](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#_mapping_work_items_onto_an_ndrange)
 /// when enqueueing a [Kernel] on a [CommandQueue].
 #[derive(Debug)]
 pub struct ExecuteKernel<'a> {
@@ -338,7 +339,7 @@ pub struct ExecuteKernel<'a> {
 }
 
 impl<'a> ExecuteKernel<'a> {
-    pub fn new(kernel: &'a Kernel) -> ExecuteKernel {
+    pub fn new(kernel: &'a Kernel) -> Self {
         ExecuteKernel {
             kernel,
             num_args: kernel
@@ -454,7 +455,7 @@ impl<'a> ExecuteKernel<'a> {
     /// Pass additional information other than argument values to a kernel.  
     ///
     /// * `param_name` - the information to be passed to kernel, see:
-    /// [Kernel Execution Properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#kernel-exec-info-table).
+    ///   [Kernel Execution Properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#kernel-exec-info-table).
     /// * `param_ptr` - pointer to the data for the param_name.
     ///
     /// returns a reference to self.
@@ -637,9 +638,9 @@ impl<'a> ExecuteKernel<'a> {
     /// * no global_work_sizes have been set
     /// * too many global_work_sizes have been set
     /// * global_work_offsets have been set and their dimensions do not match
-    /// global_work_sizes
+    ///   global_work_sizes
     /// * local_work_sizes have been set and their dimensions do not match
-    /// global_work_sizes
+    ///   global_work_sizes
     ///
     /// * `queue` - the [CommandQueue] to enqueue the [Kernel] on.
     ///

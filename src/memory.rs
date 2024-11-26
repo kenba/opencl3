@@ -108,7 +108,8 @@ pub trait ClMem {
     }
 }
 
-/// An OpenCL buffer.  
+/// An OpenCL buffer.
+///
 /// Implements the Drop trait to call release_mem_object when the object is dropped.
 #[derive(Debug)]
 pub struct Buffer<T> {
@@ -154,11 +155,11 @@ impl<T> Buffer<T> {
     ///
     /// * `context` - a valid OpenCL context.
     /// * `flags` - a bit-field used to specify allocation and usage information
-    /// about the image memory object being created, see:
-    /// [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
+    ///   about the image memory object being created, see:
+    ///   [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
     /// * `count` - the number of T objects to be allocated.
     /// * `host_ptr` - a pointer to the buffer data that may already be allocated
-    /// by the application.
+    ///   by the application.
     ///
     /// returns a Result containing the new OpenCL buffer object
     /// or the error code from the OpenCL C API function.
@@ -173,17 +174,18 @@ impl<T> Buffer<T> {
         Ok(Self::new(buffer))
     }
 
-    /// Create an OpenCL buffer object for a context.  
+    /// Create an OpenCL buffer object for a context.
+    ///
     /// CL_VERSION_3_0
     ///
     /// * `context` - a valid OpenCL context.
     /// * `properties` - an optional null terminated list of properties.
     /// * `flags` - a bit-field used to specify allocation and usage information
-    /// about the image memory object being created, see:
-    /// [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
+    ///   about the image memory object being created, see:
+    ///   [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
     /// * `count` - the number of T objects to be allocated.
     /// * `host_ptr` - a pointer to the buffer data that may already be allocated
-    /// by the application.
+    ///   by the application.
     ///
     /// returns a Result containing the new OpenCL buffer object
     /// or the error code from the OpenCL C API function.
@@ -209,8 +211,8 @@ impl<T> Buffer<T> {
     ///
     /// * `context` - a valid OpenCL context created from an OpenGL context.
     /// * `flags` - a bit-field used to specify allocation and usage information
-    /// about the image memory object being created, see:
-    /// [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
+    ///   about the image memory object being created, see:
+    ///   [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
     /// * `bufobj` - the OpenGL buffer.  
     ///
     /// returns a Result containing the new OpenCL buffer object
@@ -242,12 +244,13 @@ impl<T> Buffer<T> {
         Ok(Self::new(buffer))
     }
 
-    /// Create an new OpenCL buffer object from an existing buffer object.  
+    /// Create an new OpenCL buffer object from an existing buffer object.
+    ///
     /// See: [SubBuffer Attributes](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#subbuffer-create-info-table).  
     ///
     /// * `flags` - a bit-field used to specify allocation and usage information
-    /// about the sub-buffer memory object being created, see:
-    /// [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
+    ///   about the sub-buffer memory object being created, see:
+    ///   [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
     /// * `origin` - the offset in number of objects of type <T>.
     /// * `count` - the size of the sub-buffer in number of objects of type <T>.
     ///
@@ -273,7 +276,8 @@ impl<T> Buffer<T> {
     }
 }
 
-/// An OpenCL image.  
+/// An OpenCL image.
+///
 /// Has methods to return information from calls to clGetImageInfo with the
 /// appropriate parameters.  
 /// Implements the Drop trait to call release_mem_object when the object is dropped.
@@ -315,14 +319,14 @@ impl Image {
     ///
     /// * `context` - a valid OpenCL context.
     /// * `flags` - a bit-field used to specify allocation and usage information
-    /// about the image memory object being created, see:
-    /// [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
+    ///   about the image memory object being created, see:
+    ///   [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
     /// * `image_format` - a pointer to a structure that describes format properties
-    /// of the image to be allocated.
+    ///   of the image to be allocated.
     /// * `image_desc` - a pointer to a structure that describes type and dimensions
-    /// of the image to be allocated.
+    ///   of the image to be allocated.
     /// * `host_ptr` - a pointer to the image data that may already be allocated
-    /// by the application.
+    ///   by the application.
     ///
     /// returns a Result containing the new OpenCL image object
     /// or the error code from the OpenCL C API function.
@@ -338,20 +342,21 @@ impl Image {
         Ok(Self::new(image))
     }
 
-    /// Create an OpenCL image object for a context.  
+    /// Create an OpenCL image object for a context.
+    ///
     /// CL_VERSION_3_0
     ///
     /// * `context` - a valid OpenCL context.
     /// * `properties` - an optional null terminated list of properties.
     /// * `flags` - a bit-field used to specify allocation and usage information
-    /// about the image memory object being created, see:
-    /// [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
+    ///   about the image memory object being created, see:
+    ///   [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
     /// * `image_format` - a pointer to a structure that describes format properties
-    /// of the image to be allocated.
+    ///   of the image to be allocated.
     /// * `image_desc` - a pointer to a structure that describes type and dimensions
-    /// of the image to be allocated.
+    ///   of the image to be allocated.
     /// * `host_ptr` - a pointer to the image data that may already be allocated
-    /// by the application.
+    ///   by the application.
     ///
     /// returns a Result containing the new OpenCL image object
     /// or the error code from the OpenCL C API function.
@@ -376,13 +381,15 @@ impl Image {
     }
 
     /// Create an OpenCL image object, image array object, or image buffer object
-    /// for a context from an OpenGL texture object, texture array object,
-    /// texture buffer object, or a single face of an OpenGL cubemap texture object.  
+    /// for a context.
+    ///
+    /// From an OpenGL: texture object, texture array object, texture buffer object,
+    /// or a single face of an OpenGL cubemap texture object.  
     ///
     /// * `context` - a valid OpenCL context created from an OpenGL context.
     /// * `flags` - a bit-field used to specify allocation and usage information
-    /// about the image memory object being created, see:
-    /// [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
+    ///   about the image memory object being created, see:
+    ///   [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
     /// * `texture_target` - used to define the image type of texture.  
     /// * `miplevel ` - used to define the mipmap level.  
     /// * `texture  ` - the name of a GL buffer texture object.
@@ -405,8 +412,8 @@ impl Image {
     ///
     /// * `context` - a valid OpenCL context created from an OpenGL context.
     /// * `flags` - a bit-field used to specify allocation and usage information
-    /// about the image memory object being created, see:
-    /// [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
+    ///   about the image memory object being created, see:
+    ///   [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
     /// * `renderbuffer`  - a GL renderbuffer object.  
     ///
     /// returns a Result containing the new OpenCL image object
@@ -428,7 +435,7 @@ impl Image {
     /// * `image` - should be of type EGLImageKHR, cast into the type CLeglImageKHR.  
     /// * `flags` -  usage information about the memory object being created.  
     /// * `properties` - a null terminated list of property names and their
-    /// corresponding values.  
+    ///   corresponding values.  
     ///
     /// returns a Result containing the new OpenCL image object
     /// or the error code from the OpenCL C API function.

@@ -42,7 +42,8 @@ use libc::{c_char, c_void, size_t};
 use std::mem;
 use std::ptr;
 
-/// An OpenCL command-queue.  
+/// An OpenCL command-queue.
+///
 /// Operations on OpenCL memory and kernel objects are performed using a
 /// command-queue.
 #[derive(Debug)]
@@ -85,14 +86,15 @@ impl CommandQueue {
         self.max_work_item_dimensions
     }
 
-    /// Create an OpenCL command-queue on a specific device.  
+    /// Create an OpenCL command-queue on a specific device.
+    ///
     /// Queries the device the max_work_item_dimensions.  
     /// Deprecated in CL_VERSION_2_0 by create_command_queue_with_properties.
     ///
     /// * `context` - a valid OpenCL context.
     /// * `device_id` - a device or sub-device associated with context.
     /// * `properties` - a list of properties for the command-queue, see
-    /// [cl_command_queue_properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#legacy-queue-properties-table).
+    ///   [cl_command_queue_properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#legacy-queue-properties-table).
     ///
     /// returns a Result containing the new CommandQueue
     /// or the error code from the OpenCL C API function.
@@ -130,7 +132,7 @@ impl CommandQueue {
     ///
     /// * `context` - a valid OpenCL context.
     /// * `properties` - a list of properties for the command-queue, see
-    /// [cl_command_queue_properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#legacy-queue-properties-table).
+    ///   [cl_command_queue_properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#legacy-queue-properties-table).
     ///
     /// returns a Result containing the new CommandQueue
     /// or the error code from the OpenCL C API function.
@@ -161,7 +163,7 @@ impl CommandQueue {
     /// * `context` - a valid OpenCL context.
     /// * `device_id` - a device or sub-device associated with context.
     /// * `properties` - a null terminated list of properties for the command-queue, see
-    /// [cl_queue_properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#queue-properties-table).
+    ///   [cl_queue_properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#queue-properties-table).
     ///
     /// returns a Result containing the new CommandQueue
     /// or the error code from the OpenCL C API function.
@@ -206,7 +208,7 @@ impl CommandQueue {
     ///
     /// * `context` - a valid OpenCL context.
     /// * `properties` - a null terminated list of properties for the command-queue, see
-    /// [cl_queue_properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#queue-properties-table).
+    ///   [cl_queue_properties](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#queue-properties-table).
     ///
     /// returns a Result containing the new CommandQueue
     /// or the error code from the OpenCL C API function.

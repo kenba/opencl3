@@ -17,7 +17,8 @@ pub use cl3::event::*;
 use super::Result;
 use libc::c_void;
 
-/// An OpenCL event object.  
+/// An OpenCL event object.
+///
 /// Has methods to return information from calls to clGetEventInfo and
 /// clGetEventProfilingInfo with the appropriate parameters.  
 /// Implements the Drop trait to call release_event when the object is dropped.

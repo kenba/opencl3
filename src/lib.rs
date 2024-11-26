@@ -52,42 +52,42 @@
 //! considers OpenCL as four models:
 //!
 //! * **Platform Model**  
-//! The physical OpenCL hardware: a *host* containing one or more OpenCL [platform]s,
-//! each connected to one or more OpenCL [device]s.  
-//! An OpenCL application running on the *host*, creates an OpenCL environment
-//! called a [context] on a single [platform] to process data on one or more
-//! of the OpenCL [device]s connected to the [platform].
+//!   The physical OpenCL hardware: a *host* containing one or more OpenCL [platform]s,
+//!   each connected to one or more OpenCL [device]s.  
+//!   An OpenCL application running on the *host*, creates an OpenCL environment
+//!   called a [context] on a single [platform] to process data on one or more
+//!   of the OpenCL [device]s connected to the [platform].
 //!
 //! * **Programming Model**  
-//! An OpenCL [program] consists of OpenCL [kernel] functions that can run
-//! on OpenCL [device]s within a [context].  
-//! OpenCL [program]s must be created (and most must be built) for a [context]
-//! before their OpenCL [kernel] functions can be created from them,
-//! the exception being "built-in" [kernel]s which don't need to be built
-//! (or compiled and linked).  
-//! OpenCL [kernel]s are controlled by an OpenCL application that runs on the
-//! *host*, see **Execution Model**.
+//!   An OpenCL [program] consists of OpenCL [kernel] functions that can run
+//!   on OpenCL [device]s within a [context].  
+//!   OpenCL [program]s must be created (and most must be built) for a [context]
+//!   before their OpenCL [kernel] functions can be created from them,
+//!   the exception being "built-in" [kernel]s which don't need to be built
+//!   (or compiled and linked).  
+//!   OpenCL [kernel]s are controlled by an OpenCL application that runs on the
+//!   *host*, see **Execution Model**.
 //!
 //! * **Memory Model**  
-//! **OpenCL 1.2** memory is divided into two fundamental memory regions:
-//! **host memory** and **device memory**.  
-//! OpenCL [kernel]s run on **device memory**; an OpenCL application must write
-//! **host memory** to **device memory** for OpenCL [kernel]s to process.
-//! An OpenCL application must also read results from **device memory** to
-//! **host memory** after a [kernel] has completed execution.  
-//! **OpenCL 2.0** shared virtual memory ([svm]) is shared between the host
-//! and device(s) and synchronised by OpenCL; eliminating the explicit transfer
-//! of memory between host and device(s) memory regions.
+//!   **OpenCL 1.2** memory is divided into two fundamental memory regions:
+//!   **host memory** and **device memory**.  
+//!   OpenCL [kernel]s run on **device memory**; an OpenCL application must write
+//!   **host memory** to **device memory** for OpenCL [kernel]s to process.
+//!   An OpenCL application must also read results from **device memory** to
+//!   **host memory** after a [kernel] has completed execution.  
+//!   **OpenCL 2.0** shared virtual memory ([svm]) is shared between the host
+//!   and device(s) and synchronised by OpenCL; eliminating the explicit transfer
+//!   of memory between host and device(s) memory regions.
 //!
 //! * **Execution Model**  
-//! An OpenCL application creates at least one OpenCL [command_queue] for each
-//! OpenCL [device] (or *sub-device*) within it's OpenCL [context].  
-//! OpenCL [kernel] executions and **OpenCL 1.2** memory reads and writes are
-//! "enqueued" by the OpenCL application on each [command_queue].
-//! An application can wait for all "enqueued" commands to finish on a
-//! [command_queue] or it can wait for specific [event]s to complete.
-//! Normally [command_queue]s run commands in the order that they are given.
-//! However, [event]s can be used to execute [kernel]s out-of-order.
+//!   An OpenCL application creates at least one OpenCL [command_queue] for each
+//!   OpenCL [device] (or *sub-device*) within it's OpenCL [context].  
+//!   OpenCL [kernel] executions and **OpenCL 1.2** memory reads and writes are
+//!   "enqueued" by the OpenCL application on each [command_queue].
+//!   An application can wait for all "enqueued" commands to finish on a
+//!   [command_queue] or it can wait for specific [event]s to complete.
+//!   Normally [command_queue]s run commands in the order that they are given.
+//!   However, [event]s can be used to execute [kernel]s out-of-order.
 //!
 //! # OpenCL Objects
 //!

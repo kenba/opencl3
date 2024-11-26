@@ -40,7 +40,8 @@ use libc::{c_void, size_t};
 use std::mem;
 use std::ptr;
 
-/// An OpenCL command-buffer.  
+/// An OpenCL command-buffer.
+///
 /// This extension adds the ability to record and replay buffers of OpenCL commands.  
 /// See [cl_khr_command_buffer](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_Ext.html#cl_khr_command_buffer)
 #[derive(Debug)]
