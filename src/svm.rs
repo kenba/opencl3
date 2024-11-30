@@ -48,8 +48,8 @@ struct SvmRawVec<'a, T> {
     atomics: bool,
 }
 
-unsafe impl<'a, T: Send> Send for SvmRawVec<'a, T> {}
-unsafe impl<'a, T: Sync> Sync for SvmRawVec<'a, T> {}
+unsafe impl<T: Send> Send for SvmRawVec<'_, T> {}
+unsafe impl<T: Sync> Sync for SvmRawVec<'_, T> {}
 
 impl<'a, T> SvmRawVec<'a, T> {
     fn new(context: &'a Context, svm_capabilities: cl_device_svm_capabilities) -> Self {
@@ -168,7 +168,7 @@ impl<'a, T> SvmRawVec<'a, T> {
     }
 }
 
-impl<'a, T> Drop for SvmRawVec<'a, T> {
+impl<T> Drop for SvmRawVec<'_, T> {
     fn drop(&mut self) {
         if !self.ptr.is_null() {
             if self.fine_grain_system {
@@ -523,27 +523,27 @@ impl<'a, T> IntoIterator for SvmVec<'a, T> {
     }
 }
 
-impl<'a, T> Drop for SvmVec<'a, T> {
+impl<T> Drop for SvmVec<'_, T> {
     fn drop(&mut self) {
         while self.pop().is_some() {}
         // allocation is handled by SvmRawVec
     }
 }
 
-impl<'a, T> Deref for SvmVec<'a, T> {
+impl<T> Deref for SvmVec<'_, T> {
     type Target = [T];
     fn deref(&self) -> &[T] {
         unsafe { std::slice::from_raw_parts(self.ptr(), self.len) }
     }
 }
 
-impl<'a, T> DerefMut for SvmVec<'a, T> {
+impl<T> DerefMut for SvmVec<'_, T> {
     fn deref_mut(&mut self) -> &mut [T] {
         unsafe { std::slice::from_raw_parts_mut(self.ptr(), self.len) }
     }
 }
 
-impl<'a, T: Debug> fmt::Debug for SvmVec<'a, T> {
+impl<T: Debug> fmt::Debug for SvmVec<'_, T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Debug::fmt(&**self, f)
     }
@@ -556,7 +556,7 @@ impl<'a, T: Debug> fmt::Debug for SvmVec<'a, T> {
 pub struct ExtendSvmVec<'a, 'b, T: 'a>(pub &'a mut SvmVec<'b, T>);
 
 #[cfg(feature = "serde")]
-impl<'de, 'a, 'b, T> DeserializeSeed<'de> for ExtendSvmVec<'a, 'b, T>
+impl<'de, T> DeserializeSeed<'de> for ExtendSvmVec<'_, '_, T>
 where
     T: Deserialize<'de>,
 {
@@ -571,7 +571,7 @@ where
         // Visitor implementation to walk an array of the deserializer input.
         struct ExtendSvmVecVisitor<'a, 'b, T: 'a>(&'a mut SvmVec<'b, T>);
 
-        impl<'de, 'a, 'b, T> Visitor<'de> for ExtendSvmVecVisitor<'a, 'b, T>
+        impl<'de, T> Visitor<'de> for ExtendSvmVecVisitor<'_, '_, T>
         where
             T: Deserialize<'de>,
         {
@@ -604,7 +604,7 @@ where
 }
 
 #[cfg(feature = "serde")]
-impl<'a, T> Serialize for SvmVec<'a, T>
+impl<T> Serialize for SvmVec<'_, T>
 where
     T: Serialize,
 {
@@ -691,7 +691,7 @@ pub struct IntoIter<'a, T> {
     iter: RawValIter<T>,
 }
 
-impl<'a, T> Iterator for IntoIter<'a, T> {
+impl<T> Iterator for IntoIter<'_, T> {
     type Item = T;
     fn next(&mut self) -> Option<T> {
         self.iter.next()
@@ -701,13 +701,13 @@ impl<'a, T> Iterator for IntoIter<'a, T> {
     }
 }
 
-impl<'a, T> DoubleEndedIterator for IntoIter<'a, T> {
+impl<T> DoubleEndedIterator for IntoIter<'_, T> {
     fn next_back(&mut self) -> Option<T> {
         self.iter.next_back()
     }
 }
 
-impl<'a, T> Drop for IntoIter<'a, T> {
+impl<T> Drop for IntoIter<'_, T> {
     fn drop(&mut self) {
         for _ in &mut *self {}
     }
@@ -718,7 +718,7 @@ pub struct Drain<'a, T: 'a> {
     iter: RawValIter<T>,
 }
 
-impl<'a, T> Iterator for Drain<'a, T> {
+impl<T> Iterator for Drain<'_, T> {
     type Item = T;
     fn next(&mut self) -> Option<T> {
         self.iter.next()
@@ -728,13 +728,13 @@ impl<'a, T> Iterator for Drain<'a, T> {
     }
 }
 
-impl<'a, T> DoubleEndedIterator for Drain<'a, T> {
+impl<T> DoubleEndedIterator for Drain<'_, T> {
     fn next_back(&mut self) -> Option<T> {
         self.iter.next_back()
     }
 }
 
-impl<'a, T> Drop for Drain<'a, T> {
+impl<T> Drop for Drain<'_, T> {
     fn drop(&mut self) {
         // pre-drain the iter
         for _ in &mut self.iter {}
