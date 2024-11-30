@@ -15,9 +15,7 @@ edition = "2021"
 [features]
 
 static  = ["cl3/static"]
-dynamic = ["cl3/dynamic"]
 
-# CL_VERSION_1_0 = ["cl3/CL_VERSION_1_0"]
 CL_VERSION_1_1 = ["cl3/CL_VERSION_1_1"]
 CL_VERSION_1_2 = ["cl3/CL_VERSION_1_2"]
 CL_VERSION_2_0 = ["cl3/CL_VERSION_2_0"]
@@ -68,9 +66,8 @@ cl_loader_info = ["cl3/cl_loader_info"]
 cl_pocl_content_size = ["cl3/cl_pocl_content_size"]
 cl_loader_layers = ["cl3/cl_loader_layers"]
 
-# Default features:
-default = ["static", "CL_VERSION_1_1", "CL_VERSION_1_2", "CL_VERSION_2_0"]
-# default = ["dynamic"]
+# Use dynamic linking instead of static linking
+dynamic = ["cl3/dynamic"]
 
 [dependencies]
 libc = "0.2"
@@ -80,7 +77,8 @@ serde = { version = "1.0", optional = true }
 
 [dev-dependencies]
 serde_json = "1.0"
-opencl3 = { path = ".", features = ["serde"] }
+opencl3 = { path = ".", features = ["serde", "static", "CL_VERSION_1_1", "CL_VERSION_1_2", "CL_VERSION_2_0"] }
+# opencl3 = { path = ".", features = ["serde", "dynamic"] }
 
 [lints.clippy]
 enum_glob_use = "deny"

@@ -10,39 +10,30 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  check:
-    name: Check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install Rust
-        run: rustup update stable
-      - name: Unit test
-        run: cargo check
+  # Tests "runs-on:" a GPU hosted runner which requires an enterprise subscription...
+  # test:
+  #   name: Tests
+  #   runs-on: ubuntu-latest
 
-  build:
-    name: Build
-    runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Load OpenCL
+  #     run: |
+  #       wget -qO - https://repositories.intel.com/graphics/intel-graphics.key |
+  #         sudo apt-key add -
+  #       sudo add-apt-repository \
+  #         'deb [arch=amd64] https://repositories.intel.com/graphics/ubuntu focal main'
+  #       sudo apt-get update
+  #       sudo apt-get install \
+  #         intel-opencl-icd \
+  #         intel-level-zero-gpu level-zero \
+  #         intel-media-va-driver-non-free libmfx1
+  #       sudo apt-get install ocl-icd-opencl-dev
 
-    steps:
-    - name: Load OpenCL
-      run: |
-        wget -qO - https://repositories.intel.com/graphics/intel-graphics.key |
-          sudo apt-key add -
-        sudo add-apt-repository \
-          'deb [arch=amd64] https://repositories.intel.com/graphics/ubuntu focal main'
-        sudo apt-get update
-        sudo apt-get install \
-          intel-opencl-icd \
-          intel-level-zero-gpu level-zero \
-          intel-media-va-driver-non-free libmfx1
-        sudo apt-get install ocl-icd-opencl-dev
-
-    - uses: actions/checkout@v2
-    - name: Build
-      run: cargo build --verbose
-#     - name: Run tests
-#       run: cargo test --verbose
+  #   - uses: actions/checkout@v4
+  #   - name: Install Rust
+  #     run: rustup update stable
+  #   - name: Unit test
+  #     run: cargo test --verbose -- --test-threads=1
 
   clippy:
     name: Clippy
