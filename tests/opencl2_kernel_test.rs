@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2021-2024 Via Technology Ltd. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ const PROGRAM_SOURCE: &str = r#"
 kernel void sum_int (global int* sums,
                     global int const* values)
 {
-    int value = work_group_reduce_add(values[get_global_id(0)]);
+    int value = sub_group_reduce_add(values[get_global_id(0)]);
 
     if (0u == get_local_id(0))
         sums[get_group_id(0)] = value;
@@ -55,10 +55,10 @@ kernel void inclusive_scan_int (global int* output,
     for (size_t i = 0u; i < num_groups; ++i)
     {
         size_t lidx = i * lsize + lid;
-        int value = work_group_scan_inclusive_add(values[lidx]);
+        int value = sub_group_scan_inclusive_add(values[lidx]);
         output[lidx] = sum + value;
 
-        sum += work_group_broadcast(value, lsize - 1);
+        sum += sub_group_broadcast(value, lsize - 1);
     }
 }"#;
 
