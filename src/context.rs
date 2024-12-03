@@ -17,7 +17,7 @@
 pub use cl3::context;
 
 use super::device::Device;
-#[cfg(feature = "CL_VERSION_1_2")]
+#[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
 use super::device::SubDevice;
 use super::Result;
 
@@ -169,7 +169,7 @@ impl Context {
     ///
     /// returns a Result containing the new OpenCL context
     /// or the error code from the OpenCL C API function.
-    #[cfg(feature = "CL_VERSION_1_2")]
+    #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     pub fn from_sub_devices(
         sub_devices: &[SubDevice],
         properties: &[cl_context_properties],
@@ -282,7 +282,7 @@ impl Context {
         self.devices.len() as cl_uint
     }
 
-    #[cfg(feature = "CL_VERSION_3_0")]
+    #[cfg(any(feature = "CL_VERSION_3_0", feature = "dynamic"))]
     #[inline]
     pub fn set_destructor_callback(
         &self,

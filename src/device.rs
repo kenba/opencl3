@@ -35,40 +35,40 @@ pub fn get_all_devices(device_type: cl_device_type) -> Result<Vec<cl_device_id>>
     Ok(device_ids)
 }
 
-#[cfg(feature = "CL_VERSION_1_2")]
+#[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
 #[derive(Debug)]
 pub struct SubDevice {
     id: cl_device_id,
 }
 
-#[cfg(feature = "CL_VERSION_1_2")]
+#[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
 impl From<cl_device_id> for SubDevice {
     fn from(id: cl_device_id) -> Self {
         Self { id }
     }
 }
 
-#[cfg(feature = "CL_VERSION_1_2")]
+#[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
 impl From<SubDevice> for cl_device_id {
     fn from(value: SubDevice) -> Self {
         value.id
     }
 }
 
-#[cfg(feature = "CL_VERSION_1_2")]
+#[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
 impl Drop for SubDevice {
     fn drop(&mut self) {
         unsafe { release_device(self.id()).expect("Error: clReleaseDevice") };
     }
 }
 
-#[cfg(feature = "CL_VERSION_1_2")]
+#[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
 unsafe impl Send for SubDevice {}
 
-#[cfg(feature = "CL_VERSION_1_2")]
+#[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
 unsafe impl Sync for SubDevice {}
 
-#[cfg(feature = "CL_VERSION_1_2")]
+#[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
 impl SubDevice {
     pub const fn new(id: cl_device_id) -> Self {
         Self { id }
@@ -123,7 +123,7 @@ impl Device {
     ///
     /// returns a Result containing a vector of available SubDevices
     /// or the error code from the OpenCL C API function.
-    #[cfg(feature = "CL_VERSION_1_2")]
+    #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     pub fn create_sub_devices(
         &self,
         properties: &[cl_device_partition_property],
@@ -135,13 +135,13 @@ impl Device {
             .collect::<Vec<SubDevice>>())
     }
 
-    #[cfg(feature = "CL_VERSION_2_1")]
+    #[cfg(any(feature = "CL_VERSION_2_1", feature = "dynamic"))]
     #[inline]
     pub fn get_device_and_host_timer(&self) -> Result<[cl_ulong; 2]> {
         Ok(get_device_and_host_timer(self.id())?)
     }
 
-    #[cfg(feature = "CL_VERSION_2_1")]
+    #[cfg(any(feature = "CL_VERSION_2_1", feature = "dynamic"))]
     #[inline]
     pub fn get_host_timer(&self) -> Result<cl_ulong> {
         Ok(get_host_timer(self.id())?)
@@ -956,7 +956,7 @@ mod tests {
     use super::*;
     use crate::platform::get_platforms;
     use cl3::info_type::InfoType;
-    #[cfg(feature = "CL_VERSION_1_2")]
+    #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     use std::ptr;
 
     #[test]
@@ -986,7 +986,7 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "CL_VERSION_1_2")]
+    #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     #[test]
     fn test_get_sub_devices() {
         let platforms = get_platforms().unwrap();

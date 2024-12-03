@@ -150,7 +150,7 @@ fn test_opencl_1_2_example() -> Result<()> {
     Ok(())
 }
 
-#[cfg(feature = "CL_VERSION_2_0")]
+#[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
 #[test]
 #[ignore]
 fn test_opencl_svm_example() -> Result<()> {

@@ -41,7 +41,7 @@ impl From<Kernel> for cl_kernel {
     }
 }
 
-#[cfg(feature = "CL_VERSION_2_1")]
+#[cfg(any(feature = "CL_VERSION_2_1", feature = "dynamic"))]
 impl Clone for Kernel {
     /// Clone an OpenCL kernel object.  
     /// CL_VERSION_2_1 see: [Copying Kernel Objects](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#_copying_kernel_objects)
@@ -136,7 +136,7 @@ impl Kernel {
     /// # Safety
     ///
     /// This function is unsafe because the index and ptr must be valid.
-    #[cfg(feature = "CL_VERSION_2_0")]
+    #[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
     pub unsafe fn set_arg_svm_pointer(
         &self,
         arg_index: cl_uint,
@@ -156,7 +156,7 @@ impl Kernel {
     /// # Safety
     ///
     /// This function is unsafe because the name and ptr must be valid.
-    #[cfg(feature = "CL_VERSION_2_0")]
+    #[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
     pub unsafe fn set_exec_info<T>(
         &self,
         param_name: cl_kernel_exec_info,
@@ -200,34 +200,34 @@ impl Kernel {
         Ok(get_kernel_data(self.kernel, param_name)?)
     }
 
-    #[cfg(feature = "CL_VERSION_1_2")]
+    #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     pub fn get_arg_address_qualifier(&self, arg_indx: cl_uint) -> Result<cl_uint> {
         Ok(get_kernel_arg_info(self.kernel, arg_indx, CL_KERNEL_ARG_ADDRESS_QUALIFIER)?.into())
     }
 
-    #[cfg(feature = "CL_VERSION_1_2")]
+    #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     pub fn get_arg_access_qualifier(&self, arg_indx: cl_uint) -> Result<cl_uint> {
         Ok(get_kernel_arg_info(self.kernel, arg_indx, CL_KERNEL_ARG_ACCESS_QUALIFIER)?.into())
     }
 
-    #[cfg(feature = "CL_VERSION_1_2")]
+    #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     pub fn get_arg_type_qualifier(&self, arg_indx: cl_uint) -> Result<cl_ulong> {
         Ok(get_kernel_arg_info(self.kernel, arg_indx, CL_KERNEL_ARG_TYPE_QUALIFIER)?.into())
     }
 
-    #[cfg(feature = "CL_VERSION_1_2")]
+    #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     pub fn get_arg_type_name(&self, arg_indx: cl_uint) -> Result<String> {
         Ok(get_kernel_arg_info(self.kernel, arg_indx, CL_KERNEL_ARG_TYPE_NAME)?.into())
     }
 
-    #[cfg(feature = "CL_VERSION_1_2")]
+    #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     pub fn get_arg_name(&self, arg_indx: cl_uint) -> Result<String> {
         Ok(get_kernel_arg_info(self.kernel, arg_indx, CL_KERNEL_ARG_NAME)?.into())
     }
 
     /// Get data about arguments of an OpenCL kernel.
     /// Calls clGetKernelArgInfo to get the desired data about arguments of the kernel.
-    #[cfg(feature = "CL_VERSION_1_2")]
+    #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     pub fn get_arg_data(
         &self,
         arg_indx: cl_uint,
@@ -431,7 +431,7 @@ impl<'a> ExecuteKernel<'a> {
     /// # Safety
     ///
     /// This function is unsafe because ptr must be valid.
-    #[cfg(feature = "CL_VERSION_2_0")]
+    #[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
     #[track_caller]
     pub unsafe fn set_arg_svm<T>(&mut self, arg_ptr: *const T) -> &mut Self {
         assert!(
@@ -463,7 +463,7 @@ impl<'a> ExecuteKernel<'a> {
     /// # Safety
     ///
     /// This function is unsafe because name and ptr must be valid.
-    #[cfg(feature = "CL_VERSION_2_0")]
+    #[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
     pub unsafe fn set_exec_info<T>(
         &mut self,
         param_name: cl_kernel_exec_info,
@@ -752,7 +752,7 @@ mod tests {
         println!("kernel.attributes(): {}", value);
         // assert!(value.is_empty());
 
-        #[cfg(feature = "CL_VERSION_1_2")]
+        #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
         {
             let arg0_address = kernels[0]
                 .get_arg_address_qualifier(0)

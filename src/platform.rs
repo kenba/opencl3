@@ -199,7 +199,7 @@ impl Platform {
     /// # Safety
     ///
     /// Compiling is unsafe after the compiler has been unloaded.
-    #[cfg(feature = "CL_VERSION_1_2")]
+    #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     pub unsafe fn unload_compiler(&self) -> Result<()> {
         Ok(program::unload_platform_compiler(self.id())?)
     }

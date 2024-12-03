@@ -102,7 +102,7 @@ impl CommandQueue {
     /// # Safety
     ///
     /// This is unsafe when a device is not a member of context.
-    #[cfg(feature = "CL_VERSION_1_2")]
+    #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     #[cfg_attr(
         any(
             feature = "CL_VERSION_2_0",
@@ -136,7 +136,7 @@ impl CommandQueue {
     ///
     /// returns a Result containing the new CommandQueue
     /// or the error code from the OpenCL C API function.
-    #[cfg(feature = "CL_VERSION_1_2")]
+    #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     #[cfg_attr(
         any(
             feature = "CL_VERSION_2_0",
@@ -171,7 +171,7 @@ impl CommandQueue {
     /// # Safety
     ///
     /// This is unsafe when a device is not a member of context.
-    #[cfg(feature = "CL_VERSION_2_0")]
+    #[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
     pub unsafe fn create_with_properties(
         context: &Context,
         device_id: cl_device_id,
@@ -212,7 +212,7 @@ impl CommandQueue {
     ///
     /// returns a Result containing the new CommandQueue
     /// or the error code from the OpenCL C API function.
-    #[cfg(feature = "CL_VERSION_2_0")]
+    #[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
     pub fn create_default_with_properties(
         context: &Context,
         properties: cl_command_queue_properties,
@@ -376,7 +376,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "CL_VERSION_1_2")]
+    #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     #[allow(clippy::as_ptr_cast_mut)]
     pub unsafe fn enqueue_fill_buffer<T>(
         &self,
@@ -523,7 +523,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "CL_VERSION_1_2")]
+    #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     pub unsafe fn enqueue_fill_image(
         &self,
         image: &mut Image,
@@ -706,7 +706,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "CL_VERSION_1_2")]
+    #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     pub unsafe fn enqueue_migrate_mem_object(
         &self,
         num_mem_objects: cl_uint,
@@ -778,7 +778,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "CL_VERSION_1_2")]
+    #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     #[cfg_attr(
         any(
             feature = "CL_VERSION_2_0",
@@ -840,7 +840,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "CL_VERSION_1_2")]
+    #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     pub unsafe fn enqueue_marker_with_wait_list(
         &self,
         event_wait_list: &[cl_event],
@@ -857,7 +857,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "CL_VERSION_1_2")]
+    #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     pub unsafe fn enqueue_barrier_with_wait_list(
         &self,
         event_wait_list: &[cl_event],
@@ -874,7 +874,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "CL_VERSION_2_0")]
+    #[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
     pub unsafe fn enqueue_svm_free(
         &self,
         svm_pointers: &[*const c_void],
@@ -905,7 +905,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "CL_VERSION_2_0")]
+    #[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
     pub unsafe fn enqueue_svm_mem_cpy(
         &self,
         blocking_copy: cl_bool,
@@ -930,7 +930,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "CL_VERSION_2_0")]
+    #[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
     pub unsafe fn enqueue_svm_mem_fill<T>(
         &self,
         svm_ptr: *mut c_void,
@@ -954,7 +954,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "CL_VERSION_2_0")]
+    #[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
     pub unsafe fn enqueue_svm_map<T>(
         &self,
         blocking_map: cl_bool,
@@ -978,7 +978,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "CL_VERSION_2_0")]
+    #[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
     #[allow(clippy::as_ptr_cast_mut)]
     pub unsafe fn enqueue_svm_unmap<T>(
         &self,
@@ -998,7 +998,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "CL_VERSION_2_1")]
+    #[cfg(any(feature = "CL_VERSION_2_1", feature = "dynamic"))]
     pub unsafe fn enqueue_svm_migrate_mem(
         &self,
         svm_pointers: &[*const c_void],

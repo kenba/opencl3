@@ -189,7 +189,7 @@ impl<T> Buffer<T> {
     ///
     /// returns a Result containing the new OpenCL buffer object
     /// or the error code from the OpenCL C API function.
-    #[cfg(feature = "CL_VERSION_3_0")]
+    #[cfg(any(feature = "CL_VERSION_3_0", feature = "dynamic"))]
     pub unsafe fn create_with_properties(
         context: &Context,
         properties: *const cl_mem_properties,
@@ -330,7 +330,7 @@ impl Image {
     ///
     /// returns a Result containing the new OpenCL image object
     /// or the error code from the OpenCL C API function.
-    #[cfg(feature = "CL_VERSION_1_2")]
+    #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     pub unsafe fn create(
         context: &Context,
         flags: cl_mem_flags,
@@ -360,7 +360,7 @@ impl Image {
     ///
     /// returns a Result containing the new OpenCL image object
     /// or the error code from the OpenCL C API function.
-    #[cfg(feature = "CL_VERSION_3_0")]
+    #[cfg(any(feature = "CL_VERSION_3_0", feature = "dynamic"))]
     pub unsafe fn create_with_properties(
         context: &Context,
         properties: *const cl_mem_properties,
@@ -597,7 +597,7 @@ impl Sampler {
         Ok(Self::new(sampler))
     }
 
-    #[cfg(feature = "CL_VERSION_2_0")]
+    #[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
     pub fn create_with_properties(
         context: &Context,
         properties: *const cl_sampler_properties,
@@ -651,27 +651,27 @@ impl Sampler {
 /// Has methods to return information from calls to clGetPipeInfo with the
 /// appropriate parameters.  
 /// Implements the Drop trait to call release_mem_object when the object is dropped.
-#[cfg(feature = "CL_VERSION_2_0")]
+#[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
 #[derive(Debug)]
 pub struct Pipe {
     pipe: cl_mem,
 }
 
-#[cfg(feature = "CL_VERSION_2_0")]
+#[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
 impl From<cl_mem> for Pipe {
     fn from(pipe: cl_mem) -> Self {
         Self { pipe }
     }
 }
 
-#[cfg(feature = "CL_VERSION_2_0")]
+#[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
 impl From<Pipe> for cl_mem {
     fn from(value: Pipe) -> Self {
         value.pipe as Self
     }
 }
 
-#[cfg(feature = "CL_VERSION_2_0")]
+#[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
 impl ClMem for Pipe {
     fn get(&self) -> cl_mem {
         self.pipe
@@ -682,14 +682,14 @@ impl ClMem for Pipe {
     }
 }
 
-#[cfg(feature = "CL_VERSION_2_0")]
+#[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
 impl Drop for Pipe {
     fn drop(&mut self) {
         unsafe { memory::release_mem_object(self.get()).expect("Error: clReleaseMemObject") };
     }
 }
 
-#[cfg(feature = "CL_VERSION_2_0")]
+#[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
 impl Pipe {
     pub const fn new(pipe: cl_mem) -> Self {
         Self { pipe }

@@ -186,7 +186,7 @@ impl Program {
     /// # Safety
     ///
     /// This is unsafe when a device is not a member of context.
-    #[cfg(feature = "CL_VERSION_1_2")]
+    #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     pub unsafe fn create_from_builtin_kernels(
         context: &Context,
         devices: &[cl_device_id],
@@ -210,7 +210,7 @@ impl Program {
     ///
     /// returns a Result containing the new Program
     /// or the error code from the OpenCL C API function.
-    #[cfg(feature = "CL_VERSION_2_1")]
+    #[cfg(any(feature = "CL_VERSION_2_1", feature = "dynamic"))]
     pub fn create_from_il(context: &Context, il: &[u8]) -> Result<Self> {
         Ok(Self::new(create_program_with_il(context.get(), il)?, ""))
     }
@@ -316,7 +316,7 @@ impl Program {
     ///
     /// returns a Result containing the new `Program`
     /// or the error code from the OpenCL C API function.
-    #[cfg(feature = "CL_VERSION_2_1")]
+    #[cfg(any(feature = "CL_VERSION_2_1", feature = "dynamic"))]
     pub fn create_and_build_from_il(context: &Context, il: &[u8], options: &str) -> Result<Self> {
         let mut program = Self::create_from_il(context, il)?;
         program.build(context.devices(), options)?;
@@ -334,7 +334,7 @@ impl Program {
     ///
     /// returns a null Result
     /// or the error code from the OpenCL C API function.
-    #[cfg(feature = "CL_VERSION_1_2")]
+    #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     pub fn compile(
         &mut self,
         devices: &[cl_device_id],
@@ -368,7 +368,7 @@ impl Program {
     /// # Safety
     ///
     /// This is unsafe when a device is not a member of context.
-    #[cfg(feature = "CL_VERSION_1_2")]
+    #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     pub unsafe fn link(
         &mut self,
         devices: &[cl_device_id],
@@ -398,7 +398,7 @@ impl Program {
     ///   of the specialization constant.
     ///
     /// returns an empty Result or the error code from the OpenCL C API function.
-    #[cfg(feature = "CL_VERSION_2_2")]
+    #[cfg(any(feature = "CL_VERSION_2_2", feature = "dynamic"))]
     pub unsafe fn set_specialization_constant(
         &self,
         spec_id: cl_uint,
