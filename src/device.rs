@@ -937,7 +937,7 @@ impl Device {
         self.svm_capabilities().map_or(0, |svm| svm)
     }
 
-    #[cfg(feature = "cl_khr_external_semaphore")]
+    #[cfg(any(feature = "cl_khr_external_semaphore", feature = "dynamic"))]
     pub fn get_semaphore_handle_for_type_khr(
         &self,
         sema_object: ext::cl_semaphore_khr,

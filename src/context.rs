@@ -24,10 +24,12 @@ use super::Result;
 #[allow(unused_imports)]
 use cl3::dx9_media_sharing;
 
-#[cfg(feature = "cl_khr_d3d10_sharing")]
+#[cfg(any(feature = "cl_khr_d3d10_sharing", feature = "dynamic"))]
+#[allow(unused_imports)]
 use cl3::d3d10;
 
-#[cfg(feature = "cl_khr_d3d11_sharing")]
+#[cfg(any(feature = "cl_khr_d3d11_sharing", feature = "dynamic"))]
+#[allow(unused_imports)]
 use cl3::d3d11;
 
 #[allow(unused_imports)]
@@ -50,7 +52,7 @@ use std::ptr;
 ///
 /// returns a Result containing the device
 /// or the error code from the OpenCL C API function.
-#[cfg(feature = "cl_khr_gl_sharing")]
+#[cfg(any(feature = "cl_khr_gl_sharing", feature = "dynamic"))]
 #[allow(clippy::as_ptr_cast_mut)]
 pub fn get_current_device_for_gl_context_khr(
     properties: &[cl_context_properties],
@@ -68,7 +70,7 @@ pub fn get_current_device_for_gl_context_khr(
 ///
 /// returns a Result containing the devices
 /// or the error code from the OpenCL C API function.
-#[cfg(feature = "cl_khr_gl_sharing")]
+#[cfg(any(feature = "cl_khr_gl_sharing", feature = "dynamic"))]
 #[allow(clippy::as_ptr_cast_mut)]
 pub fn get_devices_for_gl_context_khr(
     properties: &[cl_context_properties],
@@ -253,7 +255,7 @@ impl Context {
         )?)
     }
 
-    #[cfg(feature = "cl_arm_import_memory")]
+    #[cfg(any(feature = "cl_arm_import_memory", feature = "dynamic"))]
     pub unsafe fn import_memory_arm(
         &self,
         flags: cl_mem_flags,
@@ -307,7 +309,7 @@ impl Context {
         Ok(context::get_context_data(self.context, param_name)?)
     }
 
-    #[cfg(feature = "cl_khr_terminate_context")]
+    #[cfg(any(feature = "cl_khr_terminate_context", feature = "dynamic"))]
     pub unsafe fn terminate(&self) -> Result<()> {
         Ok(ext::terminate_context_khr(self.context)?)
     }
@@ -319,7 +321,7 @@ impl Context {
     ///
     /// returns a Result containing the new OpenCL event
     /// or the error code from the OpenCL C API function.
-    #[cfg(feature = "cl_khr_gl_sharing")]
+    #[cfg(any(feature = "cl_khr_gl_sharing", feature = "dynamic"))]
     pub fn create_event_from_gl_sync_khr(&self, sync: gl::cl_GLsync) -> Result<cl_event> {
         Ok(gl::create_event_from_gl_sync_khr(self.context, sync)?)
     }
@@ -332,7 +334,7 @@ impl Context {
     ///
     /// returns a Result containing the new OpenCL event
     /// or the error code from the OpenCL C API function.
-    #[cfg(feature = "cl_khr_egl_event")]
+    #[cfg(any(feature = "cl_khr_egl_event", feature = "dynamic"))]
     pub unsafe fn create_event_from_egl_sync_khr(
         &self,
         sync: egl::CLeglSyncKHR,
@@ -345,7 +347,7 @@ impl Context {
         )?)
     }
 
-    #[cfg(feature = "cl_khr_semaphore")]
+    #[cfg(any(feature = "cl_khr_semaphore", feature = "dynamic"))]
     pub fn create_semaphore_with_properties_khr(
         &self,
         sema_props: *const ext::cl_semaphore_properties_khr,
@@ -358,7 +360,8 @@ impl Context {
 
     #[cfg(any(
         feature = "cl_khr_dx9_media_sharing",
-        feature = "cl_intel_dx9_media_sharing"
+        feature = "cl_intel_dx9_media_sharing",
+        feature = "dynamic"
     ))]
     pub fn get_supported_dx9_media_surface_formats_intel(
         &self,
@@ -376,7 +379,7 @@ impl Context {
         }?)
     }
 
-    #[cfg(feature = "cl_khr_d3d10_sharing")]
+    #[cfg(any(feature = "cl_khr_d3d10_sharing", feature = "dynamic"))]
     pub fn get_supported_d3d10_texture_formats_intel(
         &self,
         flags: cl_mem_flags,
@@ -387,7 +390,7 @@ impl Context {
         }?)
     }
 
-    #[cfg(feature = "cl_khr_d3d11_sharing")]
+    #[cfg(any(feature = "cl_khr_d3d11_sharing", feature = "dynamic"))]
     pub fn get_supported_d3d11_texture_formats_intel(
         &self,
         flags: cl_mem_flags,

@@ -223,7 +223,7 @@ impl CommandQueue {
         }
     }
 
-    #[cfg(feature = "cl_khr_create_command_queue")]
+    #[cfg(any(feature = "cl_khr_create_command_queue", feature = "dynamic"))]
     pub fn create_with_properties_khr(
         context: &Context,
         device_id: cl_device_id,
@@ -729,7 +729,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "cl_ext_migrate_memobject")]
+    #[cfg(any(feature = "cl_ext_migrate_memobject", feature = "dynamic"))]
     pub unsafe fn enqueue_migrate_mem_object_ext(
         &self,
         num_mem_objects: cl_uint,
@@ -1060,7 +1060,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "cl_khr_egl_image")]
+    #[cfg(any(feature = "cl_khr_egl_image", feature = "dynamic"))]
     #[inline]
     pub unsafe fn enqueue_acquire_egl_objects(
         &self,
@@ -1081,7 +1081,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "cl_khr_egl_image")]
+    #[cfg(any(feature = "cl_khr_egl_image", feature = "dynamic"))]
     #[inline]
     pub unsafe fn enqueue_release_egl_objects(
         &self,
@@ -1102,7 +1102,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "cl_img_use_gralloc_ptr")]
+    #[cfg(any(feature = "cl_img_use_gralloc_ptr", feature = "dynamic"))]
     #[inline]
     pub unsafe fn enqueue_acquire_gralloc_objects_img(
         &self,
@@ -1123,7 +1123,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "cl_img_use_gralloc_ptr")]
+    #[cfg(any(feature = "cl_img_use_gralloc_ptr", feature = "dynamic"))]
     #[inline]
     pub unsafe fn enqueue_release_gralloc_objects_img(
         &self,
@@ -1144,7 +1144,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "cl_khr_external_memory")]
+    #[cfg(any(feature = "cl_khr_external_memory", feature = "dynamic"))]
     #[inline]
     pub unsafe fn enqueue_acquire_external_mem_objects_khr(
         &self,
@@ -1165,7 +1165,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "cl_khr_external_memory")]
+    #[cfg(any(feature = "cl_khr_external_memory", feature = "dynamic"))]
     #[inline]
     pub unsafe fn enqueue_release_external_mem_objects_khr(
         &self,
@@ -1186,7 +1186,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "cl_khr_semaphore")]
+    #[cfg(any(feature = "cl_khr_semaphore", feature = "dynamic"))]
     #[inline]
     pub unsafe fn enqueue_wait_semaphores_khr(
         &self,
@@ -1209,7 +1209,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "cl_khr_semaphore")]
+    #[cfg(any(feature = "cl_khr_semaphore", feature = "dynamic"))]
     #[inline]
     pub unsafe fn enqueue_signal_semaphores_khr(
         &self,
@@ -1232,7 +1232,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "cl_intel_dx9_media_sharing")]
+    #[cfg(any(feature = "cl_intel_dx9_media_sharing", feature = "dynamic"))]
     #[inline]
     pub unsafe fn enqueue_acquire_dx9_objects_intel(
         &self,
@@ -1253,7 +1253,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "cl_intel_dx9_media_sharing")]
+    #[cfg(any(feature = "cl_intel_dx9_media_sharing", feature = "dynamic"))]
     #[inline]
     pub unsafe fn enqueue_release_dx9_objects_intel(
         &self,
@@ -1274,7 +1274,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "cl_img_generate_mipmap")]
+    #[cfg(any(feature = "cl_img_generate_mipmap", feature = "dynamic"))]
     #[allow(clippy::cast_possible_truncation)]
     #[inline]
     pub unsafe fn enqueue_generate_mipmap_img(
@@ -1303,7 +1303,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "cl_intel_program_scope_host_pipe")]
+    #[cfg(any(feature = "cl_intel_program_scope_host_pipe", feature = "dynamic"))]
     pub unsafe fn enqueue_read_host_pipe_intel(
         &self,
         program: cl_program,
@@ -1330,7 +1330,7 @@ impl CommandQueue {
         Ok(Event::new(event))
     }
 
-    #[cfg(feature = "cl_intel_program_scope_host_pipe")]
+    #[cfg(any(feature = "cl_intel_program_scope_host_pipe", feature = "dynamic"))]
     pub unsafe fn enqueue_write_host_pipe_intel(
         &self,
         program: cl_program,

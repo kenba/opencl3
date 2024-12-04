@@ -274,7 +274,7 @@ impl Kernel {
         Ok(get_kernel_work_group_data(self.kernel, device, param_name)?)
     }
 
-    #[cfg(feature = "cl_khr_subgroups")]
+    #[cfg(any(feature = "cl_khr_subgroups", feature = "dynamic"))]
     pub fn get_kernel_sub_group_info_khr(
         &self,
         device: cl_device_id,
@@ -290,7 +290,7 @@ impl Kernel {
         )?)
     }
 
-    #[cfg(feature = "cl_khr_suggested_local_work_size")]
+    #[cfg(any(feature = "cl_khr_suggested_local_work_size", feature = "dynamic"))]
     pub fn get_kernel_suggested_local_work_size_khr(
         &self,
         command_queue: cl_command_queue,

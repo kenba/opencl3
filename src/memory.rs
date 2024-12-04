@@ -22,7 +22,8 @@ pub use cl3::memory::*;
 use super::context::Context;
 
 use super::Result;
-#[cfg(feature = "cl_intel_dx9_media_sharing")]
+#[cfg(any(feature = "cl_intel_dx9_media_sharing", feature = "dynamic"))]
+#[allow(unused_imports)]
 use cl3::dx9_media_sharing;
 #[allow(unused_imports)]
 use cl3::egl;
@@ -226,7 +227,10 @@ impl<T> Buffer<T> {
         Ok(Self::new(buffer))
     }
 
-    #[cfg(feature = "cl_intel_create_buffer_with_properties")]
+    #[cfg(any(
+        feature = "cl_intel_create_buffer_with_properties",
+        feature = "dynamic"
+    ))]
     pub unsafe fn create_with_properties_intel(
         context: &Context,
         properties: *const ext::cl_mem_properties_intel,
@@ -439,7 +443,7 @@ impl Image {
     ///
     /// returns a Result containing the new OpenCL image object
     /// or the error code from the OpenCL C API function.
-    #[cfg(feature = "cl_khr_egl_image")]
+    #[cfg(any(feature = "cl_khr_egl_image", feature = "dynamic"))]
     #[inline]
     pub unsafe fn create_from_egl_image(
         context: &Context,
@@ -453,7 +457,7 @@ impl Image {
         Ok(Self::new(image))
     }
 
-    #[cfg(feature = "cl_intel_dx9_media_sharing")]
+    #[cfg(any(feature = "cl_intel_dx9_media_sharing", feature = "dynamic"))]
     #[inline]
     pub unsafe fn create_from_dx9_media_surface_intel(
         context: &Context,

@@ -87,7 +87,7 @@ impl Platform {
         Ok(device::get_device_ids(self.id(), device_type)?)
     }
 
-    #[cfg(feature = "cl_khr_dx9_media_sharing")]
+    #[cfg(any(feature = "cl_khr_dx9_media_sharing", feature = "dynamic"))]
     pub unsafe fn get_device_ids_from_dx9_intel(
         &self,
         dx9_device_source: dx9_media_sharing::cl_dx9_device_source_intel,

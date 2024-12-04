@@ -215,7 +215,7 @@ impl Program {
         Ok(Self::new(create_program_with_il(context.get(), il)?, ""))
     }
 
-    #[cfg(feature = "cl_khr_il_program")]
+    #[cfg(any(feature = "cl_khr_il_program", feature = "dynamic"))]
     pub fn create_from_il_khr(context: &Context, il: &[u8]) -> Result<Self> {
         Ok(Self::new(
             ext::create_program_with_il_khr(context.get(), il)?,

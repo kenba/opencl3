@@ -200,7 +200,7 @@
 
 extern crate cl3;
 
-#[cfg(feature = "cl_khr_command_buffer")]
+#[cfg(any(feature = "cl_khr_command_buffer", feature = "dynamic"))]
 pub mod command_buffer;
 pub mod command_queue;
 pub mod context;
