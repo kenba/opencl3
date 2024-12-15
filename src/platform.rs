@@ -224,7 +224,7 @@ pub fn get_platforms() -> Result<Vec<Platform>> {
         .collect::<Vec<Platform>>())
 }
 
-#[cfg(feature = "cl_khr_icd")]
+#[cfg(any(feature = "cl_khr_icd", feature = "dynamic"))]
 pub fn icd_get_platform_ids_khr() -> Result<Vec<Platform>> {
     let platform_ids = ext::icd_get_platform_ids_khr()?;
     Ok(platform_ids

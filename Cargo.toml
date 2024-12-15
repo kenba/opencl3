@@ -69,16 +69,17 @@ cl_loader_layers = ["cl3/cl_loader_layers"]
 # Use dynamic linking instead of static linking
 dynamic = ["cl3/dynamic"]
 
+# Default features:
+default = ["dynamic"]
+
 [dependencies]
 libc = "0.2"
-# cl3 = "0.10"
-cl3 = { git = "https://github.com/kenba/cl3", branch = "develop" }
+cl3 = "0.11"
 serde = { version = "1.0", optional = true }
 
 [dev-dependencies]
 serde_json = "1.0"
-opencl3 = { path = ".", features = ["serde", "static", "CL_VERSION_1_1", "CL_VERSION_1_2", "CL_VERSION_2_0"] }
-# opencl3 = { path = ".", features = ["serde", "dynamic"] }
+opencl3 = { path = ".", features = ["dynamic", "serde"] }
 
 [lints.clippy]
 enum_glob_use = "deny"
