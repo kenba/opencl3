@@ -315,7 +315,7 @@ impl<'a, T> SvmVec<'a, T> {
     ///
     /// # Safety
     /// May fail to grow buf if memory is not available for new_len.
-    pub fn set_len(&mut self, new_len: usize) -> Result<()> {
+    pub unsafe fn set_len(&mut self, new_len: usize) -> Result<()> {
         if self.cap() < new_len {
             self.buf.grow(new_len)?;
         }

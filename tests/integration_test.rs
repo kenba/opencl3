@@ -281,11 +281,11 @@ fn test_opencl_svm_example() -> Result<()> {
             println!("kernel execution duration (ns): {}", duration);
         } else {
             // !is_fine_grained_svm
-            // unsafe { ones.set_len(ARRAY_SIZE) };
-            // unsafe { sums.set_len(ARRAY_SIZE) };
 
-            // Map the input SVM vectors, before setting their data
+            // Resize and map the input SVM vectors, before setting their data
             unsafe {
+                ones.set_len(ARRAY_SIZE)?;
+                sums.set_len(ARRAY_SIZE)? ;
                 queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut ones, &[])?;
                 queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut sums, &[])?;
             }
