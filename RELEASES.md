@@ -1,5 +1,16 @@
 # Releases
 
+## Version 0.10.0 (2024-12-21)
+
+### Bug fixes
+
+* Issue [#69](https://github.com/kenba/opencl3/issues/69) Unsound issue in SvmVec.
+
+### New Features
+
+* Issue [#70](https://github.com/kenba/opencl3/issues/70) UpdSupport dynamic linking.
+
+
 ## Version 0.9.5 (2023-12-22)
 
 ### New Features
