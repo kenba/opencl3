@@ -917,16 +917,14 @@ impl Device {
     /// Determine if the device supports the given half floating point capability.  
     /// Returns true if the device supports it, false otherwise.
     pub fn supports_half(&self, min_fp_capability: cl_device_fp_config) -> bool {
-        self.half_fp_config()
-            .map_or(false, |fp| 0 < fp & min_fp_capability)
+        self.half_fp_config().is_ok_and(|fp| 0 < fp & min_fp_capability)
     }
     /// Determine if the device supports the given double floating point capability.  
     /// Returns true if the device supports it, false otherwise.
     ///
     /// CL_VERSION_1_2
     pub fn supports_double(&self, min_fp_capability: cl_device_fp_config) -> bool {
-        self.double_fp_config()
-            .map_or(false, |fp| 0 < fp & min_fp_capability)
+        self.double_fp_config().is_ok_and(|fp| 0 < fp & min_fp_capability)
     }
 
     /// Determine if the device supports SVM and, if so, what kind of SVM.  
