@@ -255,8 +255,8 @@ impl<T> Buffer<T> {
     /// * `flags` - a bit-field used to specify allocation and usage information
     ///   about the sub-buffer memory object being created, see:
     ///   [Memory Flags](https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_API.html#memory-flags-table).
-    /// * `origin` - the offset in number of objects of type `T``.
-    /// * `count` - the size of the sub-buffer in number of objects of type `T``.
+    /// * `origin` - the offset in number of objects of type `T`.
+    /// * `count` - the size of the sub-buffer in number of objects of type `T`.
     ///
     /// returns a Result containing the new OpenCL buffer object
     /// or the error code from the OpenCL C API function.

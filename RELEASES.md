@@ -1,5 +1,11 @@
 # Releases
 
+## Version 0.11.0 (2025-02-19)
+
+### Changes
+
+* Up to date with OpenCL-Headers tag v2024.10.24.
+
 ## Version 0.10.0 (2024-12-21)
 
 ### Bug fixes
@@ -9,7 +15,6 @@
 ### New Features
 
 * Issue [#70](https://github.com/kenba/opencl3/issues/70) UpdSupport dynamic linking.
-
 
 ## Version 0.9.5 (2023-12-22)
 
