@@ -285,7 +285,7 @@ fn test_opencl_svm_example() -> Result<()> {
             // Resize and map the input SVM vectors, before setting their data
             unsafe {
                 ones.set_len(ARRAY_SIZE)?;
-                sums.set_len(ARRAY_SIZE)? ;
+                sums.set_len(ARRAY_SIZE)?;
                 queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut ones, &[])?;
                 queue.enqueue_svm_map(CL_BLOCKING, CL_MAP_WRITE, &mut sums, &[])?;
             }

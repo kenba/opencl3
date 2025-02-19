@@ -23,7 +23,7 @@ use super::Result;
 #[allow(unused_imports)]
 use cl3::ext::{
     cl_bool, cl_command_buffer_info_khr, cl_command_buffer_khr, cl_command_buffer_properties_khr,
-    cl_mutable_command_khr, cl_ndrange_kernel_command_properties_khr, cl_sync_point_khr,
+    cl_command_properties_khr, cl_mutable_command_khr, cl_sync_point_khr,
     command_barrier_with_wait_list_khr, command_copy_buffer_khr, command_copy_buffer_rect_khr,
     command_copy_buffer_to_image_khr, command_copy_image_khr, command_copy_image_to_buffer_khr,
     command_fill_buffer_khr, command_fill_image_khr, command_nd_range_kernel_khr,
@@ -115,6 +115,7 @@ impl CommandBuffer {
     pub unsafe fn command_barrier_with_wait_list(
         &self,
         queue: cl_command_queue,
+        properties: *const cl_command_properties_khr,
         sync_point_wait_list: &[cl_sync_point_khr],
     ) -> Result<cl_sync_point_khr> {
         let mut sync_point = 0;
@@ -122,6 +123,7 @@ impl CommandBuffer {
             command_barrier_with_wait_list_khr(
                 self.buffer,
                 queue,
+                properties,
                 sync_point_wait_list,
                 &mut sync_point,
                 ptr::null_mut(),
@@ -134,6 +136,7 @@ impl CommandBuffer {
     pub unsafe fn copy_buffer<T>(
         &self,
         queue: cl_command_queue,
+        properties: *const cl_command_properties_khr,
         src_buffer: &Buffer<T>,
         dst_buffer: &mut Buffer<T>,
         src_offset: size_t,
@@ -145,6 +148,7 @@ impl CommandBuffer {
         command_copy_buffer_khr(
             self.buffer,
             queue,
+            properties,
             src_buffer.get(),
             dst_buffer.get_mut(),
             src_offset,
@@ -161,6 +165,7 @@ impl CommandBuffer {
     pub unsafe fn copy_buffer_rect<T>(
         &self,
         queue: cl_command_queue,
+        properties: *const cl_command_properties_khr,
         src_buffer: &Buffer<T>,
         dst_buffer: &mut Buffer<T>,
         src_origin: *const size_t,
@@ -176,6 +181,7 @@ impl CommandBuffer {
         command_copy_buffer_rect_khr(
             self.buffer,
             queue,
+            properties,
             src_buffer.get(),
             dst_buffer.get_mut(),
             src_origin,
@@ -196,6 +202,7 @@ impl CommandBuffer {
     pub unsafe fn copy_buffer_to_image<T>(
         &self,
         queue: cl_command_queue,
+        properties: *const cl_command_properties_khr,
         src_buffer: &Buffer<T>,
         dst_image: &mut Image,
         src_offset: size_t,
@@ -207,6 +214,7 @@ impl CommandBuffer {
         command_copy_buffer_to_image_khr(
             self.buffer,
             queue,
+            properties,
             src_buffer.get(),
             dst_image.get_mut(),
             src_offset,
@@ -223,6 +231,7 @@ impl CommandBuffer {
     pub unsafe fn copy_image<T>(
         &self,
         queue: cl_command_queue,
+        properties: *const cl_command_properties_khr,
         src_image: Image,
         dst_image: &mut Image,
         src_origin: *const size_t,
@@ -234,6 +243,7 @@ impl CommandBuffer {
         command_copy_image_khr(
             self.buffer,
             queue,
+            properties,
             src_image.get(),
             dst_image.get_mut(),
             src_origin,
@@ -250,6 +260,7 @@ impl CommandBuffer {
     pub unsafe fn copy_image_to_buffer<T>(
         &self,
         queue: cl_command_queue,
+        properties: *const cl_command_properties_khr,
         src_image: &Image,
         dst_buffer: &mut Buffer<T>,
         src_origin: *const size_t,
@@ -261,6 +272,7 @@ impl CommandBuffer {
         command_copy_image_to_buffer_khr(
             self.buffer,
             queue,
+            properties,
             src_image.get(),
             dst_buffer.get_mut(),
             src_origin,
@@ -278,6 +290,7 @@ impl CommandBuffer {
     pub unsafe fn fill_buffer<T>(
         &self,
         queue: cl_command_queue,
+        properties: *const cl_command_properties_khr,
         buffer: &mut Buffer<T>,
         pattern: &[T],
         offset: size_t,
@@ -288,6 +301,7 @@ impl CommandBuffer {
         command_fill_buffer_khr(
             self.buffer,
             queue,
+            properties,
             buffer.get_mut(),
             pattern.as_ptr() as cl_mem,
             mem::size_of_val(pattern),
@@ -304,6 +318,7 @@ impl CommandBuffer {
     pub unsafe fn fill_image<T>(
         &self,
         queue: cl_command_queue,
+        properties: *const cl_command_properties_khr,
         image: &mut Image,
         fill_color: *const c_void,
         origin: *const size_t,
@@ -314,6 +329,7 @@ impl CommandBuffer {
         command_fill_image_khr(
             self.buffer,
             queue,
+            properties,
             image.get_mut(),
             fill_color,
             origin,
@@ -329,7 +345,7 @@ impl CommandBuffer {
     pub unsafe fn nd_range_kernel(
         &self,
         queue: cl_command_queue,
-        properties: *const cl_ndrange_kernel_command_properties_khr,
+        properties: *const cl_command_properties_khr,
         kernel: cl_kernel,
         work_dim: cl_uint,
         global_work_offsets: *const size_t,
@@ -357,6 +373,7 @@ impl CommandBuffer {
     pub unsafe fn svm_memcpy(
         &self,
         queue: cl_command_queue,
+        properties: *const cl_command_properties_khr,
         dst_ptr: *mut c_void,
         src_ptr: *const c_void,
         size: size_t,
@@ -367,6 +384,7 @@ impl CommandBuffer {
         command_svm_memcpy_khr(
             self.buffer,
             queue,
+            properties,
             dst_ptr,
             src_ptr,
             size,
@@ -380,6 +398,7 @@ impl CommandBuffer {
     pub unsafe fn svm_mem_fill(
         &self,
         queue: cl_command_queue,
+        properties: *const cl_command_properties_khr,
         svm_ptr: *mut c_void,
         pattern: *const c_void,
         pattern_size: size_t,
@@ -391,6 +410,7 @@ impl CommandBuffer {
         command_svm_mem_fill_khr(
             self.buffer,
             queue,
+            properties,
             svm_ptr,
             pattern,
             pattern_size,
