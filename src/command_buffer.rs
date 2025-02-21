@@ -16,23 +16,23 @@
 
 #![allow(clippy::too_many_arguments, clippy::missing_safety_doc)]
 
+use super::Result;
 use super::event::Event;
 use super::memory::*;
-use super::Result;
 
 #[allow(unused_imports)]
 use cl3::ext::{
-    cl_bool, cl_command_buffer_info_khr, cl_command_buffer_khr, cl_command_buffer_properties_khr,
-    cl_command_properties_khr, cl_mutable_command_khr, cl_sync_point_khr,
-    command_barrier_with_wait_list_khr, command_copy_buffer_khr, command_copy_buffer_rect_khr,
-    command_copy_buffer_to_image_khr, command_copy_image_khr, command_copy_image_to_buffer_khr,
-    command_fill_buffer_khr, command_fill_image_khr, command_nd_range_kernel_khr,
-    command_svm_mem_fill_khr, command_svm_memcpy_khr, create_command_buffer_khr,
-    enqueue_command_buffer_khr, finalize_command_buffer_khr, get_command_buffer_data_khr,
-    get_command_buffer_info_khr, get_command_buffer_mutable_dispatch_data,
-    release_command_buffer_khr, CL_COMMAND_BUFFER_NUM_QUEUES_KHR,
-    CL_COMMAND_BUFFER_PROPERTIES_ARRAY_KHR, CL_COMMAND_BUFFER_QUEUES_KHR,
-    CL_COMMAND_BUFFER_REFERENCE_COUNT_KHR, CL_COMMAND_BUFFER_STATE_KHR,
+    CL_COMMAND_BUFFER_NUM_QUEUES_KHR, CL_COMMAND_BUFFER_PROPERTIES_ARRAY_KHR,
+    CL_COMMAND_BUFFER_QUEUES_KHR, CL_COMMAND_BUFFER_REFERENCE_COUNT_KHR,
+    CL_COMMAND_BUFFER_STATE_KHR, cl_bool, cl_command_buffer_info_khr, cl_command_buffer_khr,
+    cl_command_buffer_properties_khr, cl_command_properties_khr, cl_mutable_command_khr,
+    cl_sync_point_khr, command_barrier_with_wait_list_khr, command_copy_buffer_khr,
+    command_copy_buffer_rect_khr, command_copy_buffer_to_image_khr, command_copy_image_khr,
+    command_copy_image_to_buffer_khr, command_fill_buffer_khr, command_fill_image_khr,
+    command_nd_range_kernel_khr, command_svm_mem_fill_khr, command_svm_memcpy_khr,
+    create_command_buffer_khr, enqueue_command_buffer_khr, finalize_command_buffer_khr,
+    get_command_buffer_data_khr, get_command_buffer_info_khr,
+    get_command_buffer_mutable_dispatch_data, release_command_buffer_khr,
 };
 #[allow(unused_imports)]
 use cl3::types::{cl_command_queue, cl_event, cl_kernel, cl_mem, cl_uint};
@@ -96,20 +96,22 @@ impl CommandBuffer {
         &self,
         queues: &mut [cl_command_queue],
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_command_buffer_khr(
-            queues.len() as cl_uint,
-            queues.as_mut_ptr(),
-            self.buffer,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_command_buffer_khr(
+                queues.len() as cl_uint,
+                queues.as_mut_ptr(),
+                self.buffer,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     /// Records a barrier operation used as a synchronization point.
     pub unsafe fn command_barrier_with_wait_list(
@@ -143,23 +145,25 @@ impl CommandBuffer {
         dst_offset: size_t,
         size: size_t,
         sync_point_wait_list: &[cl_sync_point_khr],
-    ) -> Result<cl_sync_point_khr> { unsafe {
-        let mut sync_point = 0;
-        command_copy_buffer_khr(
-            self.buffer,
-            queue,
-            properties,
-            src_buffer.get(),
-            dst_buffer.get_mut(),
-            src_offset,
-            dst_offset,
-            size,
-            sync_point_wait_list,
-            &mut sync_point,
-            ptr::null_mut(),
-        )?;
-        Ok(sync_point)
-    }}
+    ) -> Result<cl_sync_point_khr> {
+        unsafe {
+            let mut sync_point = 0;
+            command_copy_buffer_khr(
+                self.buffer,
+                queue,
+                properties,
+                src_buffer.get(),
+                dst_buffer.get_mut(),
+                src_offset,
+                dst_offset,
+                size,
+                sync_point_wait_list,
+                &mut sync_point,
+                ptr::null_mut(),
+            )?;
+            Ok(sync_point)
+        }
+    }
 
     /// Records a command to copy a rectangular region from a buffer object to another buffer object.
     pub unsafe fn copy_buffer_rect<T>(
@@ -176,27 +180,29 @@ impl CommandBuffer {
         dst_row_pitch: size_t,
         dst_slice_pitch: size_t,
         sync_point_wait_list: &[cl_sync_point_khr],
-    ) -> Result<cl_sync_point_khr> { unsafe {
-        let mut sync_point = 0;
-        command_copy_buffer_rect_khr(
-            self.buffer,
-            queue,
-            properties,
-            src_buffer.get(),
-            dst_buffer.get_mut(),
-            src_origin,
-            dst_origin,
-            region,
-            src_row_pitch,
-            src_slice_pitch,
-            dst_row_pitch,
-            dst_slice_pitch,
-            sync_point_wait_list,
-            &mut sync_point,
-            ptr::null_mut(),
-        )?;
-        Ok(sync_point)
-    }}
+    ) -> Result<cl_sync_point_khr> {
+        unsafe {
+            let mut sync_point = 0;
+            command_copy_buffer_rect_khr(
+                self.buffer,
+                queue,
+                properties,
+                src_buffer.get(),
+                dst_buffer.get_mut(),
+                src_origin,
+                dst_origin,
+                region,
+                src_row_pitch,
+                src_slice_pitch,
+                dst_row_pitch,
+                dst_slice_pitch,
+                sync_point_wait_list,
+                &mut sync_point,
+                ptr::null_mut(),
+            )?;
+            Ok(sync_point)
+        }
+    }
 
     /// Records a command to copy a buffer object to an image object.
     pub unsafe fn copy_buffer_to_image<T>(
@@ -209,23 +215,25 @@ impl CommandBuffer {
         dst_origin: *const size_t,
         region: *const size_t,
         sync_point_wait_list: &[cl_sync_point_khr],
-    ) -> Result<cl_sync_point_khr> { unsafe {
-        let mut sync_point = 0;
-        command_copy_buffer_to_image_khr(
-            self.buffer,
-            queue,
-            properties,
-            src_buffer.get(),
-            dst_image.get_mut(),
-            src_offset,
-            dst_origin,
-            region,
-            sync_point_wait_list,
-            &mut sync_point,
-            ptr::null_mut(),
-        )?;
-        Ok(sync_point)
-    }}
+    ) -> Result<cl_sync_point_khr> {
+        unsafe {
+            let mut sync_point = 0;
+            command_copy_buffer_to_image_khr(
+                self.buffer,
+                queue,
+                properties,
+                src_buffer.get(),
+                dst_image.get_mut(),
+                src_offset,
+                dst_origin,
+                region,
+                sync_point_wait_list,
+                &mut sync_point,
+                ptr::null_mut(),
+            )?;
+            Ok(sync_point)
+        }
+    }
 
     /// Records a command to copy image objects.
     pub unsafe fn copy_image<T>(
@@ -238,23 +246,25 @@ impl CommandBuffer {
         dst_origin: *const size_t,
         region: *const size_t,
         sync_point_wait_list: &[cl_sync_point_khr],
-    ) -> Result<cl_sync_point_khr> { unsafe {
-        let mut sync_point = 0;
-        command_copy_image_khr(
-            self.buffer,
-            queue,
-            properties,
-            src_image.get(),
-            dst_image.get_mut(),
-            src_origin,
-            dst_origin,
-            region,
-            sync_point_wait_list,
-            &mut sync_point,
-            ptr::null_mut(),
-        )?;
-        Ok(sync_point)
-    }}
+    ) -> Result<cl_sync_point_khr> {
+        unsafe {
+            let mut sync_point = 0;
+            command_copy_image_khr(
+                self.buffer,
+                queue,
+                properties,
+                src_image.get(),
+                dst_image.get_mut(),
+                src_origin,
+                dst_origin,
+                region,
+                sync_point_wait_list,
+                &mut sync_point,
+                ptr::null_mut(),
+            )?;
+            Ok(sync_point)
+        }
+    }
 
     /// Records a command to copy an image object to a buffer object.
     pub unsafe fn copy_image_to_buffer<T>(
@@ -267,23 +277,25 @@ impl CommandBuffer {
         region: *const size_t,
         dst_offset: size_t,
         sync_point_wait_list: &[cl_sync_point_khr],
-    ) -> Result<cl_sync_point_khr> { unsafe {
-        let mut sync_point = 0;
-        command_copy_image_to_buffer_khr(
-            self.buffer,
-            queue,
-            properties,
-            src_image.get(),
-            dst_buffer.get_mut(),
-            src_origin,
-            region,
-            dst_offset,
-            sync_point_wait_list,
-            &mut sync_point,
-            ptr::null_mut(),
-        )?;
-        Ok(sync_point)
-    }}
+    ) -> Result<cl_sync_point_khr> {
+        unsafe {
+            let mut sync_point = 0;
+            command_copy_image_to_buffer_khr(
+                self.buffer,
+                queue,
+                properties,
+                src_image.get(),
+                dst_buffer.get_mut(),
+                src_origin,
+                region,
+                dst_offset,
+                sync_point_wait_list,
+                &mut sync_point,
+                ptr::null_mut(),
+            )?;
+            Ok(sync_point)
+        }
+    }
 
     /// Records a command to fill a buffer object with a pattern of a given pattern size.
     #[allow(clippy::as_ptr_cast_mut)]
@@ -296,23 +308,25 @@ impl CommandBuffer {
         offset: size_t,
         size: size_t,
         sync_point_wait_list: &[cl_sync_point_khr],
-    ) -> Result<cl_sync_point_khr> { unsafe {
-        let mut sync_point = 0;
-        command_fill_buffer_khr(
-            self.buffer,
-            queue,
-            properties,
-            buffer.get_mut(),
-            pattern.as_ptr() as cl_mem,
-            mem::size_of_val(pattern),
-            offset,
-            size,
-            sync_point_wait_list,
-            &mut sync_point,
-            ptr::null_mut(),
-        )?;
-        Ok(sync_point)
-    }}
+    ) -> Result<cl_sync_point_khr> {
+        unsafe {
+            let mut sync_point = 0;
+            command_fill_buffer_khr(
+                self.buffer,
+                queue,
+                properties,
+                buffer.get_mut(),
+                pattern.as_ptr() as cl_mem,
+                mem::size_of_val(pattern),
+                offset,
+                size,
+                sync_point_wait_list,
+                &mut sync_point,
+                ptr::null_mut(),
+            )?;
+            Ok(sync_point)
+        }
+    }
 
     /// Records a command to fill an image object with a specified color.
     pub unsafe fn fill_image<T>(
@@ -324,22 +338,24 @@ impl CommandBuffer {
         origin: *const size_t,
         region: *const size_t,
         sync_point_wait_list: &[cl_sync_point_khr],
-    ) -> Result<cl_sync_point_khr> { unsafe {
-        let mut sync_point = 0;
-        command_fill_image_khr(
-            self.buffer,
-            queue,
-            properties,
-            image.get_mut(),
-            fill_color,
-            origin,
-            region,
-            sync_point_wait_list,
-            &mut sync_point,
-            ptr::null_mut(),
-        )?;
-        Ok(sync_point)
-    }}
+    ) -> Result<cl_sync_point_khr> {
+        unsafe {
+            let mut sync_point = 0;
+            command_fill_image_khr(
+                self.buffer,
+                queue,
+                properties,
+                image.get_mut(),
+                fill_color,
+                origin,
+                region,
+                sync_point_wait_list,
+                &mut sync_point,
+                ptr::null_mut(),
+            )?;
+            Ok(sync_point)
+        }
+    }
 
     /// Records a command to execute a kernel on a device.
     pub unsafe fn nd_range_kernel(
@@ -352,23 +368,25 @@ impl CommandBuffer {
         global_work_sizes: *const size_t,
         local_work_sizes: *const size_t,
         sync_point_wait_list: &[cl_sync_point_khr],
-    ) -> Result<cl_sync_point_khr> { unsafe {
-        let mut sync_point = 0;
-        command_nd_range_kernel_khr(
-            self.buffer,
-            queue,
-            properties,
-            kernel,
-            work_dim,
-            global_work_offsets,
-            global_work_sizes,
-            local_work_sizes,
-            sync_point_wait_list,
-            &mut sync_point,
-            ptr::null_mut(),
-        )?;
-        Ok(sync_point)
-    }}
+    ) -> Result<cl_sync_point_khr> {
+        unsafe {
+            let mut sync_point = 0;
+            command_nd_range_kernel_khr(
+                self.buffer,
+                queue,
+                properties,
+                kernel,
+                work_dim,
+                global_work_offsets,
+                global_work_sizes,
+                local_work_sizes,
+                sync_point_wait_list,
+                &mut sync_point,
+                ptr::null_mut(),
+            )?;
+            Ok(sync_point)
+        }
+    }
 
     pub unsafe fn svm_memcpy(
         &self,
@@ -379,21 +397,23 @@ impl CommandBuffer {
         size: size_t,
         sync_point_wait_list: &[cl_sync_point_khr],
         mutable_handle: *mut cl_mutable_command_khr,
-    ) -> Result<cl_sync_point_khr> { unsafe {
-        let mut sync_point = 0;
-        command_svm_memcpy_khr(
-            self.buffer,
-            queue,
-            properties,
-            dst_ptr,
-            src_ptr,
-            size,
-            sync_point_wait_list,
-            &mut sync_point,
-            mutable_handle,
-        )?;
-        Ok(sync_point)
-    }}
+    ) -> Result<cl_sync_point_khr> {
+        unsafe {
+            let mut sync_point = 0;
+            command_svm_memcpy_khr(
+                self.buffer,
+                queue,
+                properties,
+                dst_ptr,
+                src_ptr,
+                size,
+                sync_point_wait_list,
+                &mut sync_point,
+                mutable_handle,
+            )?;
+            Ok(sync_point)
+        }
+    }
 
     pub unsafe fn svm_mem_fill(
         &self,
@@ -405,22 +425,24 @@ impl CommandBuffer {
         size: size_t,
         sync_point_wait_list: &[cl_sync_point_khr],
         mutable_handle: *mut cl_mutable_command_khr,
-    ) -> Result<cl_sync_point_khr> { unsafe {
-        let mut sync_point = 0;
-        command_svm_mem_fill_khr(
-            self.buffer,
-            queue,
-            properties,
-            svm_ptr,
-            pattern,
-            pattern_size,
-            size,
-            sync_point_wait_list,
-            &mut sync_point,
-            mutable_handle,
-        )?;
-        Ok(sync_point)
-    }}
+    ) -> Result<cl_sync_point_khr> {
+        unsafe {
+            let mut sync_point = 0;
+            command_svm_mem_fill_khr(
+                self.buffer,
+                queue,
+                properties,
+                svm_ptr,
+                pattern,
+                pattern_size,
+                size,
+                sync_point_wait_list,
+                &mut sync_point,
+                mutable_handle,
+            )?;
+            Ok(sync_point)
+        }
+    }
 
     pub fn num_queues(&self) -> Result<cl_uint> {
         Ok(get_command_buffer_info_khr(self.buffer, CL_COMMAND_BUFFER_NUM_QUEUES_KHR)?.into())

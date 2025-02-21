@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use opencl3::device::{device_type_text, vendor_id_text, Device, CL_DEVICE_TYPE_ALL};
 use opencl3::Result;
+use opencl3::device::{CL_DEVICE_TYPE_ALL, Device, device_type_text, vendor_id_text};
 
 /// Finds all the OpenCL platforms and devices on a system.
 ///

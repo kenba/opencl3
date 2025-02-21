@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use opencl3::Result;
 use opencl3::command_queue::CommandQueue;
 use opencl3::context::Context;
-use opencl3::device::{get_all_devices, Device, CL_DEVICE_TYPE_GPU};
+use opencl3::device::{CL_DEVICE_TYPE_GPU, Device, get_all_devices};
 use opencl3::error_codes::cl_int;
 use opencl3::kernel::{ExecuteKernel, Kernel};
 use opencl3::memory::{CL_MAP_READ, CL_MAP_WRITE};
-use opencl3::program::{Program, CL_STD_2_0};
+use opencl3::program::{CL_STD_2_0, Program};
 use opencl3::svm::{ExtendSvmVec, SvmVec};
 use opencl3::types::CL_BLOCKING;
-use opencl3::Result;
 use serde::de::DeserializeSeed;
 use std::ptr;
 

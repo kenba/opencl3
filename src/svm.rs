@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::context::Context;
 use super::Result;
+use super::context::Context;
 
 use cl3::device::{
     CL_DEVICE_SVM_ATOMICS, CL_DEVICE_SVM_COARSE_GRAIN_BUFFER, CL_DEVICE_SVM_FINE_GRAIN_BUFFER,
     CL_DEVICE_SVM_FINE_GRAIN_SYSTEM,
 };
 use cl3::memory::{
-    svm_alloc, svm_free, CL_MEM_READ_WRITE, CL_MEM_SVM_ATOMICS, CL_MEM_SVM_FINE_GRAIN_BUFFER,
+    CL_MEM_READ_WRITE, CL_MEM_SVM_ATOMICS, CL_MEM_SVM_FINE_GRAIN_BUFFER, svm_alloc, svm_free,
 };
 use cl3::types::{cl_device_svm_capabilities, cl_svm_mem_flags, cl_uint};
 use libc::c_void;
@@ -629,18 +629,20 @@ struct RawValIter<T> {
 unsafe impl<T: Send> Send for RawValIter<T> {}
 
 impl<T> RawValIter<T> {
-    unsafe fn new(slice: &[T]) -> Self { unsafe {
-        Self {
-            start: slice.as_ptr(),
-            end: if mem::size_of::<T>() == 0 {
-                ((slice.as_ptr() as usize) + slice.len()) as *const _
-            } else if slice.is_empty() {
-                slice.as_ptr()
-            } else {
-                slice.as_ptr().add(slice.len())
-            },
+    unsafe fn new(slice: &[T]) -> Self {
+        unsafe {
+            Self {
+                start: slice.as_ptr(),
+                end: if mem::size_of::<T>() == 0 {
+                    ((slice.as_ptr() as usize) + slice.len()) as *const _
+                } else if slice.is_empty() {
+                    slice.as_ptr()
+                } else {
+                    slice.as_ptr().add(slice.len())
+                },
+            }
         }
-    }}
+    }
 }
 
 impl<T> Iterator for RawValIter<T> {

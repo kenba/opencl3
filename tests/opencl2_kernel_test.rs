@@ -19,15 +19,15 @@ use cl3::device::{
     CL_DEVICE_SVM_FINE_GRAIN_BUFFER, CL_DEVICE_SVM_FINE_GRAIN_SYSTEM, CL_DEVICE_TYPE_ALL,
     CL_DEVICE_TYPE_GPU,
 };
+use opencl3::Result;
 use opencl3::command_queue::CommandQueue;
 use opencl3::context::Context;
 use opencl3::device::Device;
-use opencl3::kernel::{create_program_kernels, ExecuteKernel, Kernel};
+use opencl3::kernel::{ExecuteKernel, Kernel, create_program_kernels};
 use opencl3::platform::get_platforms;
-use opencl3::program::{Program, CL_STD_2_0};
+use opencl3::program::{CL_STD_2_0, Program};
 use opencl3::svm::SvmVec;
 use opencl3::types::cl_int;
-use opencl3::Result;
 use std::ptr;
 
 // The OpenCL kernels in PROGRAM_SOURCE below use built-in work-group functions:

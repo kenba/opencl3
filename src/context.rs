@@ -16,10 +16,10 @@
 
 pub use cl3::context;
 
+use super::Result;
 use super::device::Device;
 #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
 use super::device::SubDevice;
-use super::Result;
 
 #[allow(unused_imports)]
 use cl3::dx9_media_sharing;
@@ -262,15 +262,17 @@ impl Context {
         properties: *const ext::cl_import_properties_arm,
         memory: *mut c_void,
         size: size_t,
-    ) -> Result<cl_mem> { unsafe {
-        Ok(ext::import_memory_arm(
-            self.context,
-            flags,
-            properties,
-            memory,
-            size,
-        )?)
-    }}
+    ) -> Result<cl_mem> {
+        unsafe {
+            Ok(ext::import_memory_arm(
+                self.context,
+                flags,
+                properties,
+                memory,
+                size,
+            )?)
+        }
+    }
 
     pub fn devices(&self) -> &[cl_device_id] {
         &self.devices
@@ -310,9 +312,9 @@ impl Context {
     }
 
     #[cfg(any(feature = "cl_khr_terminate_context", feature = "dynamic"))]
-    pub unsafe fn terminate(&self) -> Result<()> { unsafe {
-        Ok(ext::terminate_context_khr(self.context)?)
-    }}
+    pub unsafe fn terminate(&self) -> Result<()> {
+        unsafe { Ok(ext::terminate_context_khr(self.context)?) }
+    }
 
     /// Create a cl_event linked to an OpenGL sync object.  
     /// Requires the cl_khr_gl_event extension
@@ -339,13 +341,15 @@ impl Context {
         &self,
         sync: egl::CLeglSyncKHR,
         display: egl::CLeglDisplayKHR,
-    ) -> Result<cl_event> { unsafe {
-        Ok(egl::create_event_from_egl_sync_khr(
-            self.context,
-            sync,
-            display,
-        )?)
-    }}
+    ) -> Result<cl_event> {
+        unsafe {
+            Ok(egl::create_event_from_egl_sync_khr(
+                self.context,
+                sync,
+                display,
+            )?)
+        }
+    }
 
     #[cfg(any(feature = "cl_khr_semaphore", feature = "dynamic"))]
     pub fn create_semaphore_with_properties_khr(

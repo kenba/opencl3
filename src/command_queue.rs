@@ -19,10 +19,10 @@ pub use cl3::command_queue::*;
 
 use super::context::Context;
 
+use super::Result;
 use super::device::Device;
 use super::event::Event;
 use super::memory::*;
-use super::Result;
 
 #[allow(unused_imports)]
 use cl3::d3d10;
@@ -119,12 +119,14 @@ impl CommandQueue {
         context: &Context,
         device_id: cl_device_id,
         properties: cl_command_queue_properties,
-    ) -> Result<Self> { unsafe {
-        let queue = create_command_queue(context.get(), device_id, properties)?;
-        let device = Device::new(device_id);
-        let max_work_item_dimensions = device.max_work_item_dimensions()?;
-        Ok(Self::new(queue, max_work_item_dimensions))
-    }}
+    ) -> Result<Self> {
+        unsafe {
+            let queue = create_command_queue(context.get(), device_id, properties)?;
+            let device = Device::new(device_id);
+            let max_work_item_dimensions = device.max_work_item_dimensions()?;
+            Ok(Self::new(queue, max_work_item_dimensions))
+        }
+    }
 
     /// Create an OpenCL command-queue on the context default device.  
     /// Queries the device the max_work_item_dimensions.  
@@ -177,30 +179,32 @@ impl CommandQueue {
         device_id: cl_device_id,
         properties: cl_command_queue_properties,
         queue_size: cl_uint,
-    ) -> Result<Self> { unsafe {
-        let queue = if (0 < properties) || (0 < queue_size) {
-            let mut props: [cl_queue_properties; 5] = [0; 5];
+    ) -> Result<Self> {
+        unsafe {
+            let queue = if (0 < properties) || (0 < queue_size) {
+                let mut props: [cl_queue_properties; 5] = [0; 5];
 
-            let mut index = 0;
-            if 0 < properties {
-                props[index] = CL_QUEUE_PROPERTIES as cl_queue_properties;
-                props[index + 1] = properties as cl_queue_properties;
-                index += 2;
-            }
+                let mut index = 0;
+                if 0 < properties {
+                    props[index] = CL_QUEUE_PROPERTIES as cl_queue_properties;
+                    props[index + 1] = properties as cl_queue_properties;
+                    index += 2;
+                }
 
-            if 0 < queue_size {
-                props[index] = CL_QUEUE_SIZE as cl_queue_properties;
-                props[index + 1] = queue_size as cl_queue_properties;
-            }
-            create_command_queue_with_properties(context.get(), device_id, props.as_ptr())?
-        } else {
-            create_command_queue_with_properties(context.get(), device_id, ptr::null())?
-        };
+                if 0 < queue_size {
+                    props[index] = CL_QUEUE_SIZE as cl_queue_properties;
+                    props[index + 1] = queue_size as cl_queue_properties;
+                }
+                create_command_queue_with_properties(context.get(), device_id, props.as_ptr())?
+            } else {
+                create_command_queue_with_properties(context.get(), device_id, ptr::null())?
+            };
 
-        let device = Device::new(device_id);
-        let max_work_item_dimensions = device.max_work_item_dimensions()?;
-        Ok(Self::new(queue, max_work_item_dimensions))
-    }}
+            let device = Device::new(device_id);
+            let max_work_item_dimensions = device.max_work_item_dimensions()?;
+            Ok(Self::new(queue, max_work_item_dimensions))
+        }
+    }
 
     /// Create an OpenCL command-queue on the default device.  
     /// Queries the device the max_work_item_dimensions.  
@@ -259,23 +263,25 @@ impl CommandQueue {
         offset: size_t,
         data: &mut [T],
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_read_buffer(
-            self.queue,
-            buffer.get(),
-            blocking_read,
-            offset,
-            mem::size_of_val(data),
-            data.as_mut_ptr() as cl_mem,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_read_buffer(
+                self.queue,
+                buffer.get(),
+                blocking_read,
+                offset,
+                mem::size_of_val(data),
+                data.as_mut_ptr() as cl_mem,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[allow(clippy::as_ptr_cast_mut)]
     pub unsafe fn enqueue_read_buffer_rect<T>(
@@ -291,28 +297,30 @@ impl CommandQueue {
         host_slice_pitch: size_t,
         ptr: *mut c_void,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_read_buffer_rect(
-            self.queue,
-            buffer.get(),
-            blocking_read,
-            buffer_origin,
-            host_origin,
-            region,
-            buffer_row_pitch,
-            buffer_slice_pitch,
-            host_row_pitch,
-            host_slice_pitch,
-            ptr,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_read_buffer_rect(
+                self.queue,
+                buffer.get(),
+                blocking_read,
+                buffer_origin,
+                host_origin,
+                region,
+                buffer_row_pitch,
+                buffer_slice_pitch,
+                host_row_pitch,
+                host_slice_pitch,
+                ptr,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[allow(clippy::as_ptr_cast_mut)]
     pub unsafe fn enqueue_write_buffer<T>(
@@ -322,23 +330,25 @@ impl CommandQueue {
         offset: size_t,
         data: &[T],
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_write_buffer(
-            self.queue,
-            buffer.get_mut(),
-            blocking_write,
-            offset,
-            mem::size_of_val(data),
-            data.as_ptr() as cl_mem,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_write_buffer(
+                self.queue,
+                buffer.get_mut(),
+                blocking_write,
+                offset,
+                mem::size_of_val(data),
+                data.as_ptr() as cl_mem,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     pub unsafe fn enqueue_write_buffer_rect<T>(
         &self,
@@ -353,28 +363,30 @@ impl CommandQueue {
         host_slice_pitch: size_t,
         ptr: *mut c_void,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_write_buffer_rect(
-            self.queue,
-            buffer.get_mut(),
-            blocking_write,
-            buffer_origin,
-            host_origin,
-            region,
-            buffer_row_pitch,
-            buffer_slice_pitch,
-            host_row_pitch,
-            host_slice_pitch,
-            ptr,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_write_buffer_rect(
+                self.queue,
+                buffer.get_mut(),
+                blocking_write,
+                buffer_origin,
+                host_origin,
+                region,
+                buffer_row_pitch,
+                buffer_slice_pitch,
+                host_row_pitch,
+                host_slice_pitch,
+                ptr,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     #[allow(clippy::as_ptr_cast_mut)]
@@ -385,23 +397,25 @@ impl CommandQueue {
         offset: size_t,
         size: size_t,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_fill_buffer(
-            self.queue,
-            buffer.get_mut(),
-            pattern.as_ptr() as cl_mem,
-            mem::size_of_val(pattern),
-            offset,
-            size,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_fill_buffer(
+                self.queue,
+                buffer.get_mut(),
+                pattern.as_ptr() as cl_mem,
+                mem::size_of_val(pattern),
+                offset,
+                size,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     pub unsafe fn enqueue_copy_buffer<T>(
         &self,
@@ -411,23 +425,25 @@ impl CommandQueue {
         dst_offset: size_t,
         size: size_t,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_copy_buffer(
-            self.queue,
-            src_buffer.get(),
-            dst_buffer.get_mut(),
-            src_offset,
-            dst_offset,
-            size,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_copy_buffer(
+                self.queue,
+                src_buffer.get(),
+                dst_buffer.get_mut(),
+                src_offset,
+                dst_offset,
+                size,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     pub unsafe fn enqueue_copy_buffer_rect<T>(
         &self,
@@ -441,27 +457,29 @@ impl CommandQueue {
         dst_row_pitch: size_t,
         dst_slice_pitch: size_t,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_copy_buffer_rect(
-            self.queue,
-            src_buffer.get(),
-            dst_buffer.get_mut(),
-            src_origin,
-            dst_origin,
-            region,
-            src_row_pitch,
-            src_slice_pitch,
-            dst_row_pitch,
-            dst_slice_pitch,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_copy_buffer_rect(
+                self.queue,
+                src_buffer.get(),
+                dst_buffer.get_mut(),
+                src_origin,
+                dst_origin,
+                region,
+                src_row_pitch,
+                src_slice_pitch,
+                dst_row_pitch,
+                dst_slice_pitch,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     pub unsafe fn enqueue_read_image(
         &self,
@@ -473,25 +491,27 @@ impl CommandQueue {
         slice_pitch: size_t,
         ptr: *mut c_void,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_read_image(
-            self.queue,
-            image.get(),
-            blocking_read,
-            origin,
-            region,
-            row_pitch,
-            slice_pitch,
-            ptr,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_read_image(
+                self.queue,
+                image.get(),
+                blocking_read,
+                origin,
+                region,
+                row_pitch,
+                slice_pitch,
+                ptr,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     pub unsafe fn enqueue_write_image(
         &self,
@@ -503,25 +523,27 @@ impl CommandQueue {
         slice_pitch: size_t,
         ptr: *mut c_void,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_write_image(
-            self.queue,
-            image.get_mut(),
-            blocking_write,
-            origin,
-            region,
-            row_pitch,
-            slice_pitch,
-            ptr,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_write_image(
+                self.queue,
+                image.get_mut(),
+                blocking_write,
+                origin,
+                region,
+                row_pitch,
+                slice_pitch,
+                ptr,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     pub unsafe fn enqueue_fill_image(
@@ -531,22 +553,24 @@ impl CommandQueue {
         origin: *const size_t,
         region: *const size_t,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_fill_image(
-            self.queue,
-            image.get_mut(),
-            fill_color,
-            origin,
-            region,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_fill_image(
+                self.queue,
+                image.get_mut(),
+                fill_color,
+                origin,
+                region,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     pub unsafe fn enqueue_copy_image(
         &self,
@@ -556,23 +580,25 @@ impl CommandQueue {
         dst_origin: *const size_t,
         region: *const size_t,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_copy_image(
-            self.queue,
-            src_image.get(),
-            dst_image.get_mut(),
-            src_origin,
-            dst_origin,
-            region,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_copy_image(
+                self.queue,
+                src_image.get(),
+                dst_image.get_mut(),
+                src_origin,
+                dst_origin,
+                region,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     pub unsafe fn enqueue_copy_image_to_buffer<T>(
         &self,
@@ -582,23 +608,25 @@ impl CommandQueue {
         region: *const size_t,
         dst_offset: size_t,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_copy_image_to_buffer(
-            self.queue,
-            src_image.get(),
-            dst_buffer.get_mut(),
-            src_origin,
-            region,
-            dst_offset,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_copy_image_to_buffer(
+                self.queue,
+                src_image.get(),
+                dst_buffer.get_mut(),
+                src_origin,
+                region,
+                dst_offset,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     pub unsafe fn enqueue_copy_buffer_to_image<T>(
         &self,
@@ -608,23 +636,25 @@ impl CommandQueue {
         dst_origin: *const size_t,
         region: *const size_t,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_copy_buffer_to_image(
-            self.queue,
-            src_buffer.get(),
-            dst_image.get_mut(),
-            src_offset,
-            dst_origin,
-            region,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_copy_buffer_to_image(
+                self.queue,
+                src_buffer.get(),
+                dst_image.get_mut(),
+                src_offset,
+                dst_origin,
+                region,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     pub unsafe fn enqueue_map_buffer<T>(
         &self,
@@ -635,24 +665,26 @@ impl CommandQueue {
         size: size_t,
         buffer_ptr: &mut cl_mem,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_map_buffer(
-            self.queue,
-            buffer.get(),
-            blocking_map,
-            map_flags,
-            offset,
-            size,
-            buffer_ptr,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_map_buffer(
+                self.queue,
+                buffer.get(),
+                blocking_map,
+                map_flags,
+                offset,
+                size,
+                buffer_ptr,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     pub unsafe fn enqueue_map_image(
         &self,
@@ -665,46 +697,50 @@ impl CommandQueue {
         image_slice_pitch: *mut size_t,
         image_ptr: &mut cl_mem,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_map_image(
-            self.queue,
-            image.get(),
-            blocking_map,
-            map_flags,
-            origin,
-            region,
-            image_row_pitch,
-            image_slice_pitch,
-            image_ptr,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_map_image(
+                self.queue,
+                image.get(),
+                blocking_map,
+                map_flags,
+                origin,
+                region,
+                image_row_pitch,
+                image_slice_pitch,
+                image_ptr,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     pub unsafe fn enqueue_unmap_mem_object(
         &self,
         memobj: cl_mem,
         mapped_ptr: *mut c_void,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_unmap_mem_object(
-            self.queue,
-            memobj,
-            mapped_ptr,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_unmap_mem_object(
+                self.queue,
+                memobj,
+                mapped_ptr,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     pub unsafe fn enqueue_migrate_mem_object(
@@ -713,21 +749,23 @@ impl CommandQueue {
         mem_objects: *const cl_mem,
         flags: cl_mem_migration_flags,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_migrate_mem_object(
-            self.queue,
-            num_mem_objects,
-            mem_objects,
-            flags,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_migrate_mem_object(
+                self.queue,
+                num_mem_objects,
+                mem_objects,
+                flags,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "cl_ext_migrate_memobject", feature = "dynamic"))]
     pub unsafe fn enqueue_migrate_mem_object_ext(
@@ -736,21 +774,23 @@ impl CommandQueue {
         mem_objects: *const cl_mem,
         flags: ext::cl_mem_migration_flags_ext,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = ext::enqueue_migrate_mem_object_ext(
-            self.queue,
-            num_mem_objects,
-            mem_objects,
-            flags,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = ext::enqueue_migrate_mem_object_ext(
+                self.queue,
+                num_mem_objects,
+                mem_objects,
+                flags,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     pub unsafe fn enqueue_nd_range_kernel(
         &self,
@@ -760,23 +800,25 @@ impl CommandQueue {
         global_work_sizes: *const size_t,
         local_work_sizes: *const size_t,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_nd_range_kernel(
-            self.queue,
-            kernel,
-            work_dim,
-            global_work_offsets,
-            global_work_sizes,
-            local_work_sizes,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_nd_range_kernel(
+                self.queue,
+                kernel,
+                work_dim,
+                global_work_offsets,
+                global_work_sizes,
+                local_work_sizes,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     #[cfg_attr(
@@ -795,19 +837,21 @@ impl CommandQueue {
         &self,
         kernel: cl_kernel,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_task(
-            self.queue,
-            kernel,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_task(
+                self.queue,
+                kernel,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[allow(clippy::as_ptr_cast_mut)]
     pub unsafe fn enqueue_native_kernel(
@@ -817,62 +861,68 @@ impl CommandQueue {
         mem_list: &[cl_mem],
         args_mem_loc: &[*const c_void],
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_native_kernel(
-            self.queue,
-            user_func,
-            args.as_ptr() as *mut c_void,
-            args.len() as size_t,
-            mem_list.len() as cl_uint,
-            if !mem_list.is_empty() {
-                mem_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-            args_mem_loc.as_ptr(),
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_native_kernel(
+                self.queue,
+                user_func,
+                args.as_ptr() as *mut c_void,
+                args.len() as size_t,
+                mem_list.len() as cl_uint,
+                if !mem_list.is_empty() {
+                    mem_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+                args_mem_loc.as_ptr(),
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     pub unsafe fn enqueue_marker_with_wait_list(
         &self,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_marker_with_wait_list(
-            self.queue,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_marker_with_wait_list(
+                self.queue,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
     pub unsafe fn enqueue_barrier_with_wait_list(
         &self,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_barrier_with_wait_list(
-            self.queue,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_barrier_with_wait_list(
+                self.queue,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
     pub unsafe fn enqueue_svm_free(
@@ -888,22 +938,24 @@ impl CommandQueue {
         >,
         user_data: *mut c_void,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_svm_free(
-            self.queue,
-            svm_pointers.len() as cl_uint,
-            svm_pointers.as_ptr(),
-            pfn_free_func,
-            user_data,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_svm_free(
+                self.queue,
+                svm_pointers.len() as cl_uint,
+                svm_pointers.as_ptr(),
+                pfn_free_func,
+                user_data,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
     pub unsafe fn enqueue_svm_mem_cpy(
@@ -913,22 +965,24 @@ impl CommandQueue {
         src_ptr: *const c_void,
         size: size_t,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_svm_mem_cpy(
-            self.queue,
-            blocking_copy,
-            dst_ptr,
-            src_ptr,
-            size,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_svm_mem_cpy(
+                self.queue,
+                blocking_copy,
+                dst_ptr,
+                src_ptr,
+                size,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
     pub unsafe fn enqueue_svm_mem_fill<T>(
@@ -937,22 +991,24 @@ impl CommandQueue {
         pattern: &[T],
         size: size_t,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_svm_mem_fill(
-            self.queue,
-            svm_ptr,
-            pattern.as_ptr() as *const c_void,
-            mem::size_of_val(pattern),
-            size,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_svm_mem_fill(
+                self.queue,
+                svm_ptr,
+                pattern.as_ptr() as *const c_void,
+                mem::size_of_val(pattern),
+                size,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
     pub unsafe fn enqueue_svm_map<T>(
@@ -961,22 +1017,24 @@ impl CommandQueue {
         flags: cl_map_flags,
         svm: &mut [T],
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_svm_map(
-            self.queue,
-            blocking_map,
-            flags,
-            svm.as_mut_ptr() as *mut c_void,
-            mem::size_of_val(svm),
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_svm_map(
+                self.queue,
+                blocking_map,
+                flags,
+                svm.as_mut_ptr() as *mut c_void,
+                mem::size_of_val(svm),
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
     #[allow(clippy::as_ptr_cast_mut)]
@@ -984,19 +1042,21 @@ impl CommandQueue {
         &self,
         svm: &[T],
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_svm_unmap(
-            self.queue,
-            svm.as_ptr() as *mut c_void,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_svm_unmap(
+                self.queue,
+                svm.as_ptr() as *mut c_void,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "CL_VERSION_2_1", feature = "dynamic"))]
     pub unsafe fn enqueue_svm_migrate_mem(
@@ -1005,60 +1065,66 @@ impl CommandQueue {
         sizes: *const size_t,
         flags: cl_mem_migration_flags,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = enqueue_svm_migrate_mem(
-            self.queue,
-            svm_pointers.len() as cl_uint,
-            svm_pointers.as_ptr(),
-            sizes,
-            flags,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = enqueue_svm_migrate_mem(
+                self.queue,
+                svm_pointers.len() as cl_uint,
+                svm_pointers.as_ptr(),
+                sizes,
+                flags,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     pub unsafe fn enqueue_acquire_gl_objects(
         &self,
         mem_objects: &[*const c_void],
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = gl::enqueue_acquire_gl_objects(
-            self.queue,
-            mem_objects.len() as cl_uint,
-            mem_objects.as_ptr() as *const *mut c_void,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = gl::enqueue_acquire_gl_objects(
+                self.queue,
+                mem_objects.len() as cl_uint,
+                mem_objects.as_ptr() as *const *mut c_void,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     pub unsafe fn enqueue_release_gl_objects(
         &self,
         mem_objects: &[*const c_void],
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = gl::enqueue_release_gl_objects(
-            self.queue,
-            mem_objects.len() as cl_uint,
-            mem_objects.as_ptr() as *const *mut c_void,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = gl::enqueue_release_gl_objects(
+                self.queue,
+                mem_objects.len() as cl_uint,
+                mem_objects.as_ptr() as *const *mut c_void,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "cl_khr_egl_image", feature = "dynamic"))]
     #[inline]
@@ -1066,20 +1132,22 @@ impl CommandQueue {
         &self,
         mem_objects: &[*const c_void],
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = egl::enqueue_acquire_egl_objects(
-            self.queue,
-            mem_objects.len() as cl_uint,
-            mem_objects.as_ptr() as *const *mut c_void,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = egl::enqueue_acquire_egl_objects(
+                self.queue,
+                mem_objects.len() as cl_uint,
+                mem_objects.as_ptr() as *const *mut c_void,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "cl_khr_egl_image", feature = "dynamic"))]
     #[inline]
@@ -1087,20 +1155,22 @@ impl CommandQueue {
         &self,
         mem_objects: &[*const c_void],
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = egl::enqueue_release_egl_objects(
-            self.queue,
-            mem_objects.len() as cl_uint,
-            mem_objects.as_ptr() as *const *mut c_void,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = egl::enqueue_release_egl_objects(
+                self.queue,
+                mem_objects.len() as cl_uint,
+                mem_objects.as_ptr() as *const *mut c_void,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "cl_img_use_gralloc_ptr", feature = "dynamic"))]
     #[inline]
@@ -1108,20 +1178,22 @@ impl CommandQueue {
         &self,
         mem_objects: &[*const c_void],
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = ext::enqueue_acquire_gralloc_objects_img(
-            self.queue,
-            mem_objects.len() as cl_uint,
-            mem_objects.as_ptr() as *const *mut c_void,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = ext::enqueue_acquire_gralloc_objects_img(
+                self.queue,
+                mem_objects.len() as cl_uint,
+                mem_objects.as_ptr() as *const *mut c_void,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "cl_img_use_gralloc_ptr", feature = "dynamic"))]
     #[inline]
@@ -1129,20 +1201,22 @@ impl CommandQueue {
         &self,
         mem_objects: &[*const c_void],
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = ext::enqueue_release_gralloc_objects_img(
-            self.queue,
-            mem_objects.len() as cl_uint,
-            mem_objects.as_ptr() as *const *mut c_void,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = ext::enqueue_release_gralloc_objects_img(
+                self.queue,
+                mem_objects.len() as cl_uint,
+                mem_objects.as_ptr() as *const *mut c_void,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "cl_khr_external_memory", feature = "dynamic"))]
     #[inline]
@@ -1150,20 +1224,22 @@ impl CommandQueue {
         &self,
         mem_objects: &[*const c_void],
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = ext::enqueue_acquire_external_mem_objects_khr(
-            self.queue,
-            mem_objects.len() as cl_uint,
-            mem_objects.as_ptr() as *const *mut c_void,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = ext::enqueue_acquire_external_mem_objects_khr(
+                self.queue,
+                mem_objects.len() as cl_uint,
+                mem_objects.as_ptr() as *const *mut c_void,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "cl_khr_external_memory", feature = "dynamic"))]
     #[inline]
@@ -1171,20 +1247,22 @@ impl CommandQueue {
         &self,
         mem_objects: &[*const c_void],
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = ext::enqueue_release_external_mem_objects_khr(
-            self.queue,
-            mem_objects.len() as cl_uint,
-            mem_objects.as_ptr() as *const *mut c_void,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = ext::enqueue_release_external_mem_objects_khr(
+                self.queue,
+                mem_objects.len() as cl_uint,
+                mem_objects.as_ptr() as *const *mut c_void,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "cl_khr_semaphore", feature = "dynamic"))]
     #[inline]
@@ -1193,21 +1271,23 @@ impl CommandQueue {
         sema_objects: &[*const c_void],
         sema_payload_list: *const ext::cl_semaphore_payload_khr,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = ext::enqueue_wait_semaphores_khr(
-            self.queue,
-            sema_objects.len() as cl_uint,
-            sema_objects.as_ptr() as *const *mut c_void,
-            sema_payload_list,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = ext::enqueue_wait_semaphores_khr(
+                self.queue,
+                sema_objects.len() as cl_uint,
+                sema_objects.as_ptr() as *const *mut c_void,
+                sema_payload_list,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "cl_khr_semaphore", feature = "dynamic"))]
     #[inline]
@@ -1216,21 +1296,23 @@ impl CommandQueue {
         sema_objects: &[*const c_void],
         sema_payload_list: *const ext::cl_semaphore_payload_khr,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = ext::enqueue_signal_semaphores_khr(
-            self.queue,
-            sema_objects.len() as cl_uint,
-            sema_objects.as_ptr() as *const *mut c_void,
-            sema_payload_list,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = ext::enqueue_signal_semaphores_khr(
+                self.queue,
+                sema_objects.len() as cl_uint,
+                sema_objects.as_ptr() as *const *mut c_void,
+                sema_payload_list,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "cl_intel_dx9_media_sharing", feature = "dynamic"))]
     #[inline]
@@ -1238,20 +1320,22 @@ impl CommandQueue {
         &self,
         mem_objects: &[*const c_void],
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = dx9_media_sharing::enqueue_acquire_dx9_objects_intel(
-            self.queue,
-            mem_objects.len() as cl_uint,
-            mem_objects.as_ptr() as *const *mut c_void,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = dx9_media_sharing::enqueue_acquire_dx9_objects_intel(
+                self.queue,
+                mem_objects.len() as cl_uint,
+                mem_objects.as_ptr() as *const *mut c_void,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "cl_intel_dx9_media_sharing", feature = "dynamic"))]
     #[inline]
@@ -1259,20 +1343,22 @@ impl CommandQueue {
         &self,
         mem_objects: &[*const c_void],
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = dx9_media_sharing::enqueue_release_dx9_objects_intel(
-            self.queue,
-            mem_objects.len() as cl_uint,
-            mem_objects.as_ptr() as *const *mut c_void,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = dx9_media_sharing::enqueue_release_dx9_objects_intel(
+                self.queue,
+                mem_objects.len() as cl_uint,
+                mem_objects.as_ptr() as *const *mut c_void,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "cl_img_generate_mipmap", feature = "dynamic"))]
     #[allow(clippy::cast_possible_truncation)]
@@ -1285,23 +1371,25 @@ impl CommandQueue {
         array_region: *const size_t,
         mip_region: *const size_t,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = ext::enqueue_generate_mipmap_img(
-            self.queue,
-            src_image,
-            dst_image,
-            mipmap_filter_mode,
-            array_region,
-            mip_region,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = ext::enqueue_generate_mipmap_img(
+                self.queue,
+                src_image,
+                dst_image,
+                mipmap_filter_mode,
+                array_region,
+                mip_region,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "cl_intel_program_scope_host_pipe", feature = "dynamic"))]
     pub unsafe fn enqueue_read_host_pipe_intel(
@@ -1312,23 +1400,25 @@ impl CommandQueue {
         ptr: *mut c_void,
         size: size_t,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = ext::enqueue_read_host_pipe_intel(
-            self.queue,
-            program,
-            pipe_symbol,
-            blocking_read,
-            ptr,
-            size,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = ext::enqueue_read_host_pipe_intel(
+                self.queue,
+                program,
+                pipe_symbol,
+                blocking_read,
+                ptr,
+                size,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     #[cfg(any(feature = "cl_intel_program_scope_host_pipe", feature = "dynamic"))]
     pub unsafe fn enqueue_write_host_pipe_intel(
@@ -1339,23 +1429,25 @@ impl CommandQueue {
         ptr: *const c_void,
         size: size_t,
         event_wait_list: &[cl_event],
-    ) -> Result<Event> { unsafe {
-        let event = ext::enqueue_write_host_pipe_intel(
-            self.queue,
-            program,
-            pipe_symbol,
-            blocking_write,
-            ptr,
-            size,
-            event_wait_list.len() as cl_uint,
-            if !event_wait_list.is_empty() {
-                event_wait_list.as_ptr()
-            } else {
-                ptr::null()
-            },
-        )?;
-        Ok(Event::new(event))
-    }}
+    ) -> Result<Event> {
+        unsafe {
+            let event = ext::enqueue_write_host_pipe_intel(
+                self.queue,
+                program,
+                pipe_symbol,
+                blocking_write,
+                ptr,
+                size,
+                event_wait_list.len() as cl_uint,
+                if !event_wait_list.is_empty() {
+                    event_wait_list.as_ptr()
+                } else {
+                    ptr::null()
+                },
+            )?;
+            Ok(Event::new(event))
+        }
+    }
 
     pub fn context(&self) -> Result<cl_context> {
         Ok(isize::from(get_command_queue_info(self.queue, CL_QUEUE_CONTEXT)?) as cl_context)

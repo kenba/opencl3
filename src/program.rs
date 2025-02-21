@@ -166,12 +166,14 @@ impl Program {
         context: &Context,
         devices: &[cl_device_id],
         binaries: &[&[u8]],
-    ) -> Result<Self> { unsafe {
-        Ok(Self::new(
-            create_program_with_binary(context.get(), devices, binaries)?,
-            "",
-        ))
-    }}
+    ) -> Result<Self> {
+        unsafe {
+            Ok(Self::new(
+                create_program_with_binary(context.get(), devices, binaries)?,
+                "",
+            ))
+        }
+    }
 
     /// Create a Program for a context and  loads the information related to
     /// the built-in kernels into that object.  
@@ -191,15 +193,17 @@ impl Program {
         context: &Context,
         devices: &[cl_device_id],
         kernel_names: &str,
-    ) -> Result<Self> { unsafe {
-        // Ensure options string is null terminated
-        let c_names = CString::new(kernel_names)
-            .expect("Program::create_from_builtin_kernels, invalid kernel_names");
-        Ok(Self::new(
-            create_program_with_builtin_kernels(context.get(), devices, &c_names)?,
-            kernel_names,
-        ))
-    }}
+    ) -> Result<Self> {
+        unsafe {
+            // Ensure options string is null terminated
+            let c_names = CString::new(kernel_names)
+                .expect("Program::create_from_builtin_kernels, invalid kernel_names");
+            Ok(Self::new(
+                create_program_with_builtin_kernels(context.get(), devices, &c_names)?,
+                kernel_names,
+            ))
+        }
+    }
 
     /// Create a Program for a context and load code in an intermediate language
     /// into that object.  
@@ -374,20 +378,22 @@ impl Program {
         devices: &[cl_device_id],
         options: &str,
         input_programs: &[cl_program],
-    ) -> Result<()> { unsafe {
-        // Ensure options string is null terminated
-        let c_options = CString::new(options).expect("Program::link, invalid options");
-        self.program = link_program(
-            self.program,
-            devices,
-            &c_options,
-            input_programs,
-            None,
-            ptr::null_mut(),
-        )?;
-        self.kernel_names = self.get_kernel_names()?;
-        Ok(())
-    }}
+    ) -> Result<()> {
+        unsafe {
+            // Ensure options string is null terminated
+            let c_options = CString::new(options).expect("Program::link, invalid options");
+            self.program = link_program(
+                self.program,
+                devices,
+                &c_options,
+                input_programs,
+                None,
+                ptr::null_mut(),
+            )?;
+            self.kernel_names = self.get_kernel_names()?;
+            Ok(())
+        }
+    }
 
     /// Set the value of a specialization constant.
     /// CL_VERSION_2_2
@@ -404,14 +410,16 @@ impl Program {
         spec_id: cl_uint,
         spec_size: size_t,
         spec_value: *const c_void,
-    ) -> Result<()> { unsafe {
-        Ok(set_program_specialization_constant(
-            self.program,
-            spec_id,
-            spec_size,
-            spec_value,
-        )?)
-    }}
+    ) -> Result<()> {
+        unsafe {
+            Ok(set_program_specialization_constant(
+                self.program,
+                spec_id,
+                spec_size,
+                spec_value,
+            )?)
+        }
+    }
 
     pub fn get_reference_count(&self) -> Result<cl_uint> {
         Ok(get_program_info(self.program, CL_PROGRAM_REFERENCE_COUNT)?.into())

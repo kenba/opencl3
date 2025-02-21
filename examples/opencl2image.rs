@@ -14,16 +14,16 @@
 
 use cl3::ext::CL_IMAGE_FORMAT_NOT_SUPPORTED;
 use cl3::memory::{CL_MEM_OBJECT_IMAGE2D, CL_MEM_WRITE_ONLY, CL_RGBA, CL_UNSIGNED_INT8};
-use cl3::types::{cl_image_desc, cl_image_format, CL_NON_BLOCKING};
+use cl3::types::{CL_NON_BLOCKING, cl_image_desc, cl_image_format};
 use libc::c_void;
-use opencl3::command_queue::{CommandQueue, CL_QUEUE_PROFILING_ENABLE};
+use opencl3::Result;
+use opencl3::command_queue::{CL_QUEUE_PROFILING_ENABLE, CommandQueue};
 use opencl3::context::Context;
-use opencl3::device::{Device, CL_DEVICE_TYPE_GPU};
+use opencl3::device::{CL_DEVICE_TYPE_GPU, Device};
 use opencl3::kernel::{ExecuteKernel, Kernel};
 use opencl3::memory::Image;
-use opencl3::program::{Program, CL_STD_2_0};
+use opencl3::program::{CL_STD_2_0, Program};
 use opencl3::types::cl_event;
-use opencl3::Result;
 
 const PROGRAM_SOURCE: &str = r#"
 kernel void colorize(write_only image2d_t image)

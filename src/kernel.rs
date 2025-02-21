@@ -14,10 +14,10 @@
 
 pub use cl3::kernel::*;
 
+use super::Result;
 use super::command_queue::CommandQueue;
 use super::event::Event;
 use super::program::Program;
-use super::Result;
 
 #[allow(unused_imports)]
 use cl3::ext;
@@ -103,14 +103,16 @@ impl Kernel {
     /// # Safety
     ///
     /// This function is unsafe because the index, size and value must be valid.
-    pub unsafe fn set_arg<T>(&self, arg_index: cl_uint, arg: &T) -> Result<()> { unsafe {
-        Ok(set_kernel_arg(
-            self.kernel,
-            arg_index,
-            mem::size_of::<T>(),
-            arg as *const _ as *const c_void,
-        )?)
-    }}
+    pub unsafe fn set_arg<T>(&self, arg_index: cl_uint, arg: &T) -> Result<()> {
+        unsafe {
+            Ok(set_kernel_arg(
+                self.kernel,
+                arg_index,
+                mem::size_of::<T>(),
+                arg as *const _ as *const c_void,
+            )?)
+        }
+    }
 
     /// Create a local memory buffer for a specific argument of a kernel.  
     ///
@@ -122,9 +124,9 @@ impl Kernel {
     /// # Safety
     ///
     /// This function is unsafe because the index and size must be valid.
-    pub unsafe fn set_arg_local_buffer(&self, arg_index: cl_uint, size: size_t) -> Result<()> { unsafe {
-        Ok(set_kernel_arg(self.kernel, arg_index, size, ptr::null())?)
-    }}
+    pub unsafe fn set_arg_local_buffer(&self, arg_index: cl_uint, size: size_t) -> Result<()> {
+        unsafe { Ok(set_kernel_arg(self.kernel, arg_index, size, ptr::null())?) }
+    }
 
     /// Set set a SVM pointer as the argument value for a specific argument of a kernel.  
     ///
@@ -141,9 +143,9 @@ impl Kernel {
         &self,
         arg_index: cl_uint,
         arg_ptr: *const c_void,
-    ) -> Result<()> { unsafe {
-        Ok(set_kernel_arg_svm_pointer(self.kernel, arg_index, arg_ptr)?)
-    }}
+    ) -> Result<()> {
+        unsafe { Ok(set_kernel_arg_svm_pointer(self.kernel, arg_index, arg_ptr)?) }
+    }
 
     /// Pass additional information other than argument values to a kernel.  
     ///
@@ -161,14 +163,16 @@ impl Kernel {
         &self,
         param_name: cl_kernel_exec_info,
         param_ptr: *const T,
-    ) -> Result<()> { unsafe {
-        Ok(set_kernel_exec_info(
-            self.kernel,
-            param_name,
-            mem::size_of::<T>(),
-            param_ptr as *const c_void,
-        )?)
-    }}
+    ) -> Result<()> {
+        unsafe {
+            Ok(set_kernel_exec_info(
+                self.kernel,
+                param_name,
+                mem::size_of::<T>(),
+                param_ptr as *const c_void,
+            )?)
+        }
+    }
 
     pub fn function_name(&self) -> Result<String> {
         Ok(get_kernel_info(self.kernel, CL_KERNEL_FUNCTION_NAME)?.into())
@@ -369,21 +373,23 @@ impl<'a> ExecuteKernel<'a> {
     ///
     /// This function is unsafe because arg must be valid.
     #[track_caller]
-    pub unsafe fn set_arg<'b, T>(&'b mut self, arg: &T) -> &'b mut Self { unsafe {
-        assert!(
-            self.arg_index < self.num_args,
-            "ExecuteKernel::set_arg too many args"
-        );
+    pub unsafe fn set_arg<'b, T>(&'b mut self, arg: &T) -> &'b mut Self {
+        unsafe {
+            assert!(
+                self.arg_index < self.num_args,
+                "ExecuteKernel::set_arg too many args"
+            );
 
-        if let Err(e) = self.kernel.set_arg(self.arg_index, arg) {
-            panic!(
-                "ExecuteKernel::set_arg invalid kernel arg at index: {}, {:?}, {}",
-                self.arg_index, e, e,
-            )
-        };
-        self.arg_index += 1;
-        self
-    }}
+            if let Err(e) = self.kernel.set_arg(self.arg_index, arg) {
+                panic!(
+                    "ExecuteKernel::set_arg invalid kernel arg at index: {}, {:?}, {}",
+                    self.arg_index, e, e,
+                )
+            };
+            self.arg_index += 1;
+            self
+        }
+    }
 
     /// Set the next argument of the kernel as a local buffer
     /// Calls `self.kernel.set_arg_local_buffer` to set the next unset kernel argument.
@@ -400,22 +406,24 @@ impl<'a> ExecuteKernel<'a> {
     ///
     /// This function is unsafe because size must be valid.
     #[track_caller]
-    pub unsafe fn set_arg_local_buffer(&mut self, size: size_t) -> &mut Self { unsafe {
-        assert!(
-            self.arg_index < self.num_args,
-            "ExecuteKernel::set_arg_local_buffer too many args"
-        );
+    pub unsafe fn set_arg_local_buffer(&mut self, size: size_t) -> &mut Self {
+        unsafe {
+            assert!(
+                self.arg_index < self.num_args,
+                "ExecuteKernel::set_arg_local_buffer too many args"
+            );
 
-        if let Err(e) = self.kernel.set_arg_local_buffer(self.arg_index, size) {
-            panic!(
-                "ExecuteKernel::set_arg_local_buffer invalid kernel arg at index: {}, {:?}, {}",
-                self.arg_index, e, e,
-            )
-        };
+            if let Err(e) = self.kernel.set_arg_local_buffer(self.arg_index, size) {
+                panic!(
+                    "ExecuteKernel::set_arg_local_buffer invalid kernel arg at index: {}, {:?}, {}",
+                    self.arg_index, e, e,
+                )
+            };
 
-        self.arg_index += 1;
-        self
-    }}
+            self.arg_index += 1;
+            self
+        }
+    }
 
     /// Set the next argument of the kernel.  
     /// Calls `self.kernel.set_arg` to set the next unset kernel argument.
@@ -433,24 +441,26 @@ impl<'a> ExecuteKernel<'a> {
     /// This function is unsafe because ptr must be valid.
     #[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
     #[track_caller]
-    pub unsafe fn set_arg_svm<T>(&mut self, arg_ptr: *const T) -> &mut Self { unsafe {
-        assert!(
-            self.arg_index < self.num_args,
-            "ExecuteKernel::set_arg_svm too many args"
-        );
+    pub unsafe fn set_arg_svm<T>(&mut self, arg_ptr: *const T) -> &mut Self {
+        unsafe {
+            assert!(
+                self.arg_index < self.num_args,
+                "ExecuteKernel::set_arg_svm too many args"
+            );
 
-        if let Err(e) = self
-            .kernel
-            .set_arg_svm_pointer(self.arg_index, arg_ptr as *const c_void)
-        {
-            panic!(
-                "ExecuteKernel::set_arg_svm_pointer invalid kernel arg at index: {}, {:?}, {}",
-                self.arg_index, e, e,
-            )
-        };
-        self.arg_index += 1;
-        self
-    }}
+            if let Err(e) = self
+                .kernel
+                .set_arg_svm_pointer(self.arg_index, arg_ptr as *const c_void)
+            {
+                panic!(
+                    "ExecuteKernel::set_arg_svm_pointer invalid kernel arg at index: {}, {:?}, {}",
+                    self.arg_index, e, e,
+                )
+            };
+            self.arg_index += 1;
+            self
+        }
+    }
 
     /// Pass additional information other than argument values to a kernel.  
     ///
@@ -468,12 +478,14 @@ impl<'a> ExecuteKernel<'a> {
         &mut self,
         param_name: cl_kernel_exec_info,
         param_ptr: *const T,
-    ) -> &mut Self { unsafe {
-        self.kernel
-            .set_exec_info(param_name, param_ptr)
-            .expect("Invalid param_name or param_ptr");
-        self
-    }}
+    ) -> &mut Self {
+        unsafe {
+            self.kernel
+                .set_exec_info(param_name, param_ptr)
+                .expect("Invalid param_name or param_ptr");
+            self
+        }
+    }
 
     /// Set a global work offset for a call to clEnqueueNDRangeKernel.  
     ///
@@ -650,31 +662,33 @@ impl<'a> ExecuteKernel<'a> {
     /// # Safety
     ///
     /// This is unsafe when the kernel arguments have not been set up correctly.
-    pub unsafe fn enqueue_nd_range(&mut self, queue: &CommandQueue) -> Result<Event> { unsafe {
-        // Get max_work_item_dimensions for the device CommandQueue
-        let max_work_item_dimensions = queue.max_work_item_dimensions() as usize;
-        self.validate(max_work_item_dimensions);
+    pub unsafe fn enqueue_nd_range(&mut self, queue: &CommandQueue) -> Result<Event> {
+        unsafe {
+            // Get max_work_item_dimensions for the device CommandQueue
+            let max_work_item_dimensions = queue.max_work_item_dimensions() as usize;
+            self.validate(max_work_item_dimensions);
 
-        let event = queue.enqueue_nd_range_kernel(
-            self.kernel.get(),
-            self.global_work_sizes.len() as cl_uint,
-            if self.global_work_offsets.is_empty() {
-                ptr::null()
-            } else {
-                self.global_work_offsets.as_ptr()
-            },
-            self.global_work_sizes.as_ptr(),
-            if self.local_work_sizes.is_empty() {
-                ptr::null()
-            } else {
-                self.local_work_sizes.as_ptr()
-            },
-            &self.event_wait_list,
-        )?;
+            let event = queue.enqueue_nd_range_kernel(
+                self.kernel.get(),
+                self.global_work_sizes.len() as cl_uint,
+                if self.global_work_offsets.is_empty() {
+                    ptr::null()
+                } else {
+                    self.global_work_offsets.as_ptr()
+                },
+                self.global_work_sizes.as_ptr(),
+                if self.local_work_sizes.is_empty() {
+                    ptr::null()
+                } else {
+                    self.local_work_sizes.as_ptr()
+                },
+                &self.event_wait_list,
+            )?;
 
-        self.clear();
-        Ok(event)
-    }}
+            self.clear();
+            Ok(event)
+        }
+    }
 }
 
 #[cfg(test)]
@@ -683,7 +697,7 @@ mod tests {
     use crate::context::Context;
     use crate::device::Device;
     use crate::platform::get_platforms;
-    use crate::program::{Program, CL_KERNEL_ARG_INFO};
+    use crate::program::{CL_KERNEL_ARG_INFO, Program};
     use cl3::device::CL_DEVICE_TYPE_GPU;
     use std::collections::HashSet;
 

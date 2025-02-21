@@ -144,12 +144,12 @@ impl Event {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::command_queue::{CommandQueue, CL_QUEUE_PROFILING_ENABLE};
+    use crate::command_queue::{CL_QUEUE_PROFILING_ENABLE, CommandQueue};
     use crate::context::Context;
-    use crate::device::{Device, CL_DEVICE_TYPE_GPU};
+    use crate::device::{CL_DEVICE_TYPE_GPU, Device};
     use crate::memory::{Buffer, CL_MEM_READ_ONLY};
     use crate::platform::get_platforms;
-    use crate::types::{cl_float, CL_NON_BLOCKING};
+    use crate::types::{CL_NON_BLOCKING, cl_float};
     use std::ptr;
 
     extern "C" fn event_callback_function(

@@ -16,8 +16,8 @@ pub use cl3::device::*;
 
 pub use cl3::ext::cl_device_feature_capabilities_intel;
 
-use super::platform::get_platforms;
 use super::Result;
+use super::platform::get_platforms;
 #[allow(unused_imports)]
 use cl3::ext;
 #[allow(unused_imports)]
