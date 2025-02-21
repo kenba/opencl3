@@ -93,14 +93,14 @@ impl Platform {
         dx9_device_source: dx9_media_sharing::cl_dx9_device_source_intel,
         dx9_object: *mut c_void,
         dx9_device_set: dx9_media_sharing::cl_dx9_device_set_intel,
-    ) -> Result<Vec<cl_device_id>> {
+    ) -> Result<Vec<cl_device_id>> { unsafe {
         Ok(dx9_media_sharing::get_device_ids_from_dx9_intel(
             self.id(),
             dx9_device_source,
             dx9_object,
             dx9_device_set,
         )?)
-    }
+    }}
 
     /// The OpenCL profile supported by the Platform,
     /// it can be FULL_PROFILE or EMBEDDED_PROFILE.  
@@ -200,9 +200,9 @@ impl Platform {
     ///
     /// Compiling is unsafe after the compiler has been unloaded.
     #[cfg(any(feature = "CL_VERSION_1_2", feature = "dynamic"))]
-    pub unsafe fn unload_compiler(&self) -> Result<()> {
+    pub unsafe fn unload_compiler(&self) -> Result<()> { unsafe {
         Ok(program::unload_platform_compiler(self.id())?)
-    }
+    }}
 }
 
 /// Get the available OpenCL platforms.  

@@ -629,7 +629,7 @@ struct RawValIter<T> {
 unsafe impl<T: Send> Send for RawValIter<T> {}
 
 impl<T> RawValIter<T> {
-    unsafe fn new(slice: &[T]) -> Self {
+    unsafe fn new(slice: &[T]) -> Self { unsafe {
         Self {
             start: slice.as_ptr(),
             end: if mem::size_of::<T>() == 0 {
@@ -640,7 +640,7 @@ impl<T> RawValIter<T> {
                 slice.as_ptr().add(slice.len())
             },
         }
-    }
+    }}
 }
 
 impl<T> Iterator for RawValIter<T> {

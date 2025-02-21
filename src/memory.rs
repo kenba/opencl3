@@ -169,11 +169,11 @@ impl<T> Buffer<T> {
         flags: cl_mem_flags,
         count: size_t,
         host_ptr: *mut c_void,
-    ) -> Result<Self> {
+    ) -> Result<Self> { unsafe {
         let buffer =
             memory::create_buffer(context.get(), flags, count * mem::size_of::<T>(), host_ptr)?;
         Ok(Self::new(buffer))
-    }
+    }}
 
     /// Create an OpenCL buffer object for a context.
     ///
@@ -197,7 +197,7 @@ impl<T> Buffer<T> {
         flags: cl_mem_flags,
         count: size_t,
         host_ptr: *mut c_void,
-    ) -> Result<Self> {
+    ) -> Result<Self> { unsafe {
         let buffer = memory::create_buffer_with_properties(
             context.get(),
             properties,
@@ -206,7 +206,7 @@ impl<T> Buffer<T> {
             host_ptr,
         )?;
         Ok(Self::new(buffer))
-    }
+    }}
 
     /// Create an OpenCL buffer object for a context from an OpenGL buffer.  
     ///
@@ -222,10 +222,10 @@ impl<T> Buffer<T> {
         context: &Context,
         flags: cl_mem_flags,
         bufobj: gl::cl_GLuint,
-    ) -> Result<Self> {
+    ) -> Result<Self> { unsafe {
         let buffer = gl::create_from_gl_buffer(context.get(), flags, bufobj)?;
         Ok(Self::new(buffer))
-    }
+    }}
 
     #[cfg(any(
         feature = "cl_intel_create_buffer_with_properties",
@@ -237,7 +237,7 @@ impl<T> Buffer<T> {
         flags: cl_mem_flags,
         count: size_t,
         host_ptr: *mut c_void,
-    ) -> Result<Self> {
+    ) -> Result<Self> { unsafe {
         let buffer = ext::create_buffer_with_properties_intel(
             context.get(),
             properties,
@@ -246,7 +246,7 @@ impl<T> Buffer<T> {
             host_ptr,
         )?;
         Ok(Self::new(buffer))
-    }
+    }}
 
     /// Create an new OpenCL buffer object from an existing buffer object.
     ///
@@ -265,7 +265,7 @@ impl<T> Buffer<T> {
         flags: cl_mem_flags,
         origin: usize,
         count: usize,
-    ) -> Result<Self> {
+    ) -> Result<Self> { unsafe {
         let buffer_create_info = cl_buffer_region {
             origin: origin * std::mem::size_of::<T>(),
             size: count * std::mem::size_of::<T>(),
@@ -277,7 +277,7 @@ impl<T> Buffer<T> {
             &buffer_create_info as *const _ as *const c_void,
         )?;
         Ok(Self::new(buffer))
-    }
+    }}
 }
 
 /// An OpenCL image.
@@ -341,10 +341,10 @@ impl Image {
         image_format: *const cl_image_format,
         image_desc: *const cl_image_desc,
         host_ptr: *mut c_void,
-    ) -> Result<Self> {
+    ) -> Result<Self> { unsafe {
         let image = memory::create_image(context.get(), flags, image_format, image_desc, host_ptr)?;
         Ok(Self::new(image))
-    }
+    }}
 
     /// Create an OpenCL image object for a context.
     ///
@@ -372,7 +372,7 @@ impl Image {
         image_format: *const cl_image_format,
         image_desc: *const cl_image_desc,
         host_ptr: *mut c_void,
-    ) -> Result<Self> {
+    ) -> Result<Self> { unsafe {
         let image = memory::create_image_with_properties(
             context.get(),
             properties,
@@ -382,7 +382,7 @@ impl Image {
             host_ptr,
         )?;
         Ok(Self::new(image))
-    }
+    }}
 
     /// Create an OpenCL image object, image array object, or image buffer object
     /// for a context.
@@ -406,11 +406,11 @@ impl Image {
         texture_target: gl::cl_GLenum,
         miplevel: gl::cl_GLint,
         texture: gl::cl_GLuint,
-    ) -> Result<Self> {
+    ) -> Result<Self> { unsafe {
         let image =
             gl::create_from_gl_texture(context.get(), flags, texture_target, miplevel, texture)?;
         Ok(Self::new(image))
-    }
+    }}
 
     /// Create an OpenCL 2D image object from an OpenGL renderbuffer object.  
     ///
@@ -426,10 +426,10 @@ impl Image {
         context: &Context,
         flags: cl_mem_flags,
         renderbuffer: gl::cl_GLuint,
-    ) -> Result<Self> {
+    ) -> Result<Self> { unsafe {
         let image = gl::create_from_gl_render_buffer(context.get(), flags, renderbuffer)?;
         Ok(Self::new(image))
-    }
+    }}
 
     /// Create an OpenCL image object, from the EGLImage source provided as image.  
     /// Requires the cl_khr_egl_image extension.  
@@ -451,11 +451,11 @@ impl Image {
         image: egl::CLeglImageKHR,
         flags: cl_mem_flags,
         properties: &[egl::cl_egl_image_properties_khr],
-    ) -> Result<Self> {
+    ) -> Result<Self> { unsafe {
         let image =
             egl::create_from_egl_image(context.get(), display, image, flags, properties.as_ptr())?;
         Ok(Self::new(image))
-    }
+    }}
 
     #[cfg(any(feature = "cl_intel_dx9_media_sharing", feature = "dynamic"))]
     #[inline]
@@ -465,7 +465,7 @@ impl Image {
         resource: dx9_media_sharing::IDirect3DSurface9_ptr,
         shared_handle: dx9_media_sharing::HANDLE,
         plane: cl_uint,
-    ) -> Result<Self> {
+    ) -> Result<Self> { unsafe {
         let image = dx9_media_sharing::create_from_dx9_media_surface_intel(
             context.get(),
             flags,
@@ -474,7 +474,7 @@ impl Image {
             plane,
         )?;
         Ok(Self::new(image))
-    }
+    }}
 
     pub fn format(&self) -> Result<Vec<cl_image_format>> {
         Ok(memory::get_image_info(self.image, CL_IMAGE_FORMAT)?.into())
@@ -704,10 +704,10 @@ impl Pipe {
         flags: cl_mem_flags,
         pipe_packet_size: cl_uint,
         pipe_max_packets: cl_uint,
-    ) -> Result<Self> {
+    ) -> Result<Self> { unsafe {
         let pipe = memory::create_pipe(context.get(), flags, pipe_packet_size, pipe_max_packets)?;
         Ok(Self::new(pipe))
-    }
+    }}
 
     pub fn pipe_packet_size(&self) -> Result<cl_uint> {
         Ok(memory::get_pipe_info(self.get(), CL_PIPE_PACKET_SIZE)?.into())

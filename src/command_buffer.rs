@@ -96,7 +96,7 @@ impl CommandBuffer {
         &self,
         queues: &mut [cl_command_queue],
         event_wait_list: &[cl_event],
-    ) -> Result<Event> {
+    ) -> Result<Event> { unsafe {
         let event = enqueue_command_buffer_khr(
             queues.len() as cl_uint,
             queues.as_mut_ptr(),
@@ -109,7 +109,7 @@ impl CommandBuffer {
             },
         )?;
         Ok(Event::new(event))
-    }
+    }}
 
     /// Records a barrier operation used as a synchronization point.
     pub unsafe fn command_barrier_with_wait_list(
@@ -143,7 +143,7 @@ impl CommandBuffer {
         dst_offset: size_t,
         size: size_t,
         sync_point_wait_list: &[cl_sync_point_khr],
-    ) -> Result<cl_sync_point_khr> {
+    ) -> Result<cl_sync_point_khr> { unsafe {
         let mut sync_point = 0;
         command_copy_buffer_khr(
             self.buffer,
@@ -159,7 +159,7 @@ impl CommandBuffer {
             ptr::null_mut(),
         )?;
         Ok(sync_point)
-    }
+    }}
 
     /// Records a command to copy a rectangular region from a buffer object to another buffer object.
     pub unsafe fn copy_buffer_rect<T>(
@@ -176,7 +176,7 @@ impl CommandBuffer {
         dst_row_pitch: size_t,
         dst_slice_pitch: size_t,
         sync_point_wait_list: &[cl_sync_point_khr],
-    ) -> Result<cl_sync_point_khr> {
+    ) -> Result<cl_sync_point_khr> { unsafe {
         let mut sync_point = 0;
         command_copy_buffer_rect_khr(
             self.buffer,
@@ -196,7 +196,7 @@ impl CommandBuffer {
             ptr::null_mut(),
         )?;
         Ok(sync_point)
-    }
+    }}
 
     /// Records a command to copy a buffer object to an image object.
     pub unsafe fn copy_buffer_to_image<T>(
@@ -209,7 +209,7 @@ impl CommandBuffer {
         dst_origin: *const size_t,
         region: *const size_t,
         sync_point_wait_list: &[cl_sync_point_khr],
-    ) -> Result<cl_sync_point_khr> {
+    ) -> Result<cl_sync_point_khr> { unsafe {
         let mut sync_point = 0;
         command_copy_buffer_to_image_khr(
             self.buffer,
@@ -225,7 +225,7 @@ impl CommandBuffer {
             ptr::null_mut(),
         )?;
         Ok(sync_point)
-    }
+    }}
 
     /// Records a command to copy image objects.
     pub unsafe fn copy_image<T>(
@@ -238,7 +238,7 @@ impl CommandBuffer {
         dst_origin: *const size_t,
         region: *const size_t,
         sync_point_wait_list: &[cl_sync_point_khr],
-    ) -> Result<cl_sync_point_khr> {
+    ) -> Result<cl_sync_point_khr> { unsafe {
         let mut sync_point = 0;
         command_copy_image_khr(
             self.buffer,
@@ -254,7 +254,7 @@ impl CommandBuffer {
             ptr::null_mut(),
         )?;
         Ok(sync_point)
-    }
+    }}
 
     /// Records a command to copy an image object to a buffer object.
     pub unsafe fn copy_image_to_buffer<T>(
@@ -267,7 +267,7 @@ impl CommandBuffer {
         region: *const size_t,
         dst_offset: size_t,
         sync_point_wait_list: &[cl_sync_point_khr],
-    ) -> Result<cl_sync_point_khr> {
+    ) -> Result<cl_sync_point_khr> { unsafe {
         let mut sync_point = 0;
         command_copy_image_to_buffer_khr(
             self.buffer,
@@ -283,7 +283,7 @@ impl CommandBuffer {
             ptr::null_mut(),
         )?;
         Ok(sync_point)
-    }
+    }}
 
     /// Records a command to fill a buffer object with a pattern of a given pattern size.
     #[allow(clippy::as_ptr_cast_mut)]
@@ -296,7 +296,7 @@ impl CommandBuffer {
         offset: size_t,
         size: size_t,
         sync_point_wait_list: &[cl_sync_point_khr],
-    ) -> Result<cl_sync_point_khr> {
+    ) -> Result<cl_sync_point_khr> { unsafe {
         let mut sync_point = 0;
         command_fill_buffer_khr(
             self.buffer,
@@ -312,7 +312,7 @@ impl CommandBuffer {
             ptr::null_mut(),
         )?;
         Ok(sync_point)
-    }
+    }}
 
     /// Records a command to fill an image object with a specified color.
     pub unsafe fn fill_image<T>(
@@ -324,7 +324,7 @@ impl CommandBuffer {
         origin: *const size_t,
         region: *const size_t,
         sync_point_wait_list: &[cl_sync_point_khr],
-    ) -> Result<cl_sync_point_khr> {
+    ) -> Result<cl_sync_point_khr> { unsafe {
         let mut sync_point = 0;
         command_fill_image_khr(
             self.buffer,
@@ -339,7 +339,7 @@ impl CommandBuffer {
             ptr::null_mut(),
         )?;
         Ok(sync_point)
-    }
+    }}
 
     /// Records a command to execute a kernel on a device.
     pub unsafe fn nd_range_kernel(
@@ -352,7 +352,7 @@ impl CommandBuffer {
         global_work_sizes: *const size_t,
         local_work_sizes: *const size_t,
         sync_point_wait_list: &[cl_sync_point_khr],
-    ) -> Result<cl_sync_point_khr> {
+    ) -> Result<cl_sync_point_khr> { unsafe {
         let mut sync_point = 0;
         command_nd_range_kernel_khr(
             self.buffer,
@@ -368,7 +368,7 @@ impl CommandBuffer {
             ptr::null_mut(),
         )?;
         Ok(sync_point)
-    }
+    }}
 
     pub unsafe fn svm_memcpy(
         &self,
@@ -379,7 +379,7 @@ impl CommandBuffer {
         size: size_t,
         sync_point_wait_list: &[cl_sync_point_khr],
         mutable_handle: *mut cl_mutable_command_khr,
-    ) -> Result<cl_sync_point_khr> {
+    ) -> Result<cl_sync_point_khr> { unsafe {
         let mut sync_point = 0;
         command_svm_memcpy_khr(
             self.buffer,
@@ -393,7 +393,7 @@ impl CommandBuffer {
             mutable_handle,
         )?;
         Ok(sync_point)
-    }
+    }}
 
     pub unsafe fn svm_mem_fill(
         &self,
@@ -405,7 +405,7 @@ impl CommandBuffer {
         size: size_t,
         sync_point_wait_list: &[cl_sync_point_khr],
         mutable_handle: *mut cl_mutable_command_khr,
-    ) -> Result<cl_sync_point_khr> {
+    ) -> Result<cl_sync_point_khr> { unsafe {
         let mut sync_point = 0;
         command_svm_mem_fill_khr(
             self.buffer,
@@ -420,7 +420,7 @@ impl CommandBuffer {
             mutable_handle,
         )?;
         Ok(sync_point)
-    }
+    }}
 
     pub fn num_queues(&self) -> Result<cl_uint> {
         Ok(get_command_buffer_info_khr(self.buffer, CL_COMMAND_BUFFER_NUM_QUEUES_KHR)?.into())

@@ -103,14 +103,14 @@ impl Kernel {
     /// # Safety
     ///
     /// This function is unsafe because the index, size and value must be valid.
-    pub unsafe fn set_arg<T>(&self, arg_index: cl_uint, arg: &T) -> Result<()> {
+    pub unsafe fn set_arg<T>(&self, arg_index: cl_uint, arg: &T) -> Result<()> { unsafe {
         Ok(set_kernel_arg(
             self.kernel,
             arg_index,
             mem::size_of::<T>(),
             arg as *const _ as *const c_void,
         )?)
-    }
+    }}
 
     /// Create a local memory buffer for a specific argument of a kernel.  
     ///
@@ -122,9 +122,9 @@ impl Kernel {
     /// # Safety
     ///
     /// This function is unsafe because the index and size must be valid.
-    pub unsafe fn set_arg_local_buffer(&self, arg_index: cl_uint, size: size_t) -> Result<()> {
+    pub unsafe fn set_arg_local_buffer(&self, arg_index: cl_uint, size: size_t) -> Result<()> { unsafe {
         Ok(set_kernel_arg(self.kernel, arg_index, size, ptr::null())?)
-    }
+    }}
 
     /// Set set a SVM pointer as the argument value for a specific argument of a kernel.  
     ///
@@ -141,9 +141,9 @@ impl Kernel {
         &self,
         arg_index: cl_uint,
         arg_ptr: *const c_void,
-    ) -> Result<()> {
+    ) -> Result<()> { unsafe {
         Ok(set_kernel_arg_svm_pointer(self.kernel, arg_index, arg_ptr)?)
-    }
+    }}
 
     /// Pass additional information other than argument values to a kernel.  
     ///
@@ -161,14 +161,14 @@ impl Kernel {
         &self,
         param_name: cl_kernel_exec_info,
         param_ptr: *const T,
-    ) -> Result<()> {
+    ) -> Result<()> { unsafe {
         Ok(set_kernel_exec_info(
             self.kernel,
             param_name,
             mem::size_of::<T>(),
             param_ptr as *const c_void,
         )?)
-    }
+    }}
 
     pub fn function_name(&self) -> Result<String> {
         Ok(get_kernel_info(self.kernel, CL_KERNEL_FUNCTION_NAME)?.into())
@@ -369,7 +369,7 @@ impl<'a> ExecuteKernel<'a> {
     ///
     /// This function is unsafe because arg must be valid.
     #[track_caller]
-    pub unsafe fn set_arg<'b, T>(&'b mut self, arg: &T) -> &'b mut Self {
+    pub unsafe fn set_arg<'b, T>(&'b mut self, arg: &T) -> &'b mut Self { unsafe {
         assert!(
             self.arg_index < self.num_args,
             "ExecuteKernel::set_arg too many args"
@@ -383,7 +383,7 @@ impl<'a> ExecuteKernel<'a> {
         };
         self.arg_index += 1;
         self
-    }
+    }}
 
     /// Set the next argument of the kernel as a local buffer
     /// Calls `self.kernel.set_arg_local_buffer` to set the next unset kernel argument.
@@ -400,7 +400,7 @@ impl<'a> ExecuteKernel<'a> {
     ///
     /// This function is unsafe because size must be valid.
     #[track_caller]
-    pub unsafe fn set_arg_local_buffer(&mut self, size: size_t) -> &mut Self {
+    pub unsafe fn set_arg_local_buffer(&mut self, size: size_t) -> &mut Self { unsafe {
         assert!(
             self.arg_index < self.num_args,
             "ExecuteKernel::set_arg_local_buffer too many args"
@@ -415,7 +415,7 @@ impl<'a> ExecuteKernel<'a> {
 
         self.arg_index += 1;
         self
-    }
+    }}
 
     /// Set the next argument of the kernel.  
     /// Calls `self.kernel.set_arg` to set the next unset kernel argument.
@@ -433,7 +433,7 @@ impl<'a> ExecuteKernel<'a> {
     /// This function is unsafe because ptr must be valid.
     #[cfg(any(feature = "CL_VERSION_2_0", feature = "dynamic"))]
     #[track_caller]
-    pub unsafe fn set_arg_svm<T>(&mut self, arg_ptr: *const T) -> &mut Self {
+    pub unsafe fn set_arg_svm<T>(&mut self, arg_ptr: *const T) -> &mut Self { unsafe {
         assert!(
             self.arg_index < self.num_args,
             "ExecuteKernel::set_arg_svm too many args"
@@ -450,7 +450,7 @@ impl<'a> ExecuteKernel<'a> {
         };
         self.arg_index += 1;
         self
-    }
+    }}
 
     /// Pass additional information other than argument values to a kernel.  
     ///
@@ -468,12 +468,12 @@ impl<'a> ExecuteKernel<'a> {
         &mut self,
         param_name: cl_kernel_exec_info,
         param_ptr: *const T,
-    ) -> &mut Self {
+    ) -> &mut Self { unsafe {
         self.kernel
             .set_exec_info(param_name, param_ptr)
             .expect("Invalid param_name or param_ptr");
         self
-    }
+    }}
 
     /// Set a global work offset for a call to clEnqueueNDRangeKernel.  
     ///
@@ -650,7 +650,7 @@ impl<'a> ExecuteKernel<'a> {
     /// # Safety
     ///
     /// This is unsafe when the kernel arguments have not been set up correctly.
-    pub unsafe fn enqueue_nd_range(&mut self, queue: &CommandQueue) -> Result<Event> {
+    pub unsafe fn enqueue_nd_range(&mut self, queue: &CommandQueue) -> Result<Event> { unsafe {
         // Get max_work_item_dimensions for the device CommandQueue
         let max_work_item_dimensions = queue.max_work_item_dimensions() as usize;
         self.validate(max_work_item_dimensions);
@@ -674,7 +674,7 @@ impl<'a> ExecuteKernel<'a> {
 
         self.clear();
         Ok(event)
-    }
+    }}
 }
 
 #[cfg(test)]
