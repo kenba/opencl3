@@ -1,5 +1,16 @@
 # Releases
 
+## Version 0.12.0 (2025-04-19)
+
+### Changes
+
+* Update for Rust edition = "2024"
+
+### New Features
+
+* Add `cl_qcom_perf_hint` feature.
+* Add `cl_ext_buffer_device_address ` feature.
+
 ## Version 0.11.0 (2025-02-19)
 
 ### Changes
