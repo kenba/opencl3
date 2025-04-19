@@ -64,8 +64,10 @@ cl_khr_d3d11_sharing = ["cl3/cl_khr_d3d11_sharing"]
 
 cl_loader_info = ["cl3/cl_loader_info"]
 cl_pocl_content_size = ["cl3/cl_pocl_content_size"]
+cl_ext_buffer_device_address = ["cl3/cl_ext_buffer_device_address"]
 cl_loader_layers = ["cl3/cl_loader_layers"]
 cl_img_cancel_command = ["cl3/cl_img_cancel_command"]
+cl_qcom_perf_hint = ["cl3/cl_qcom_perf_hint"]
 
 # Use dynamic linking instead of static linking
 dynamic = ["cl3/dynamic"]
@@ -75,7 +77,7 @@ default = ["dynamic"]
 
 [dependencies]
 libc = "0.2"
-cl3 = "0.12"
+cl3 = "0.13"
 serde = { version = "1.0", optional = true }
 
 [dev-dependencies]

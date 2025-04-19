@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2024 Via Technology Ltd. All Rights Reserved.
+// Copyright (c) 2020-2025 Via Technology Ltd. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -117,6 +117,7 @@ impl Program {
 
     /// Get the names of the OpenCL kernels in the Program, in a string
     /// separated by semicolons.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn kernel_names(&self) -> &str {
         &self.kernel_names
     }

@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2024 Via Technology Ltd.
+// Copyright (c) 2020-2025 Via Technology Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -163,7 +163,7 @@ impl<'a, T> SvmRawVec<'a, T> {
         Ok(())
     }
 
-    fn zero(&mut self, count: usize) {
+    const fn zero(&mut self, count: usize) {
         unsafe { ptr::write_bytes(self.ptr, 0u8, count) };
     }
 }
@@ -306,7 +306,7 @@ impl<'a, T> SvmVec<'a, T> {
     }
 
     /// Clear the vector, i.e. empty it.
-    pub fn clear(&mut self) {
+    pub const fn clear(&mut self) {
         self.len = 0;
     }
 
@@ -433,7 +433,7 @@ impl<'a, T> SvmVec<'a, T> {
     }
 
     /// Pop a value from the vector.
-    pub fn pop(&mut self) -> Option<T> {
+    pub const fn pop(&mut self) -> Option<T> {
         if self.len == 0 {
             None
         } else {
