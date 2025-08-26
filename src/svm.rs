@@ -491,7 +491,7 @@ impl<'a, T> SvmVec<'a, T> {
     }
 
     /// Drain the vector.
-    pub fn drain(&mut self) -> Drain<T> {
+    pub fn drain(&mut self) -> Drain<'_, T> {
         unsafe {
             let iter = RawValIter::new(self);
 
