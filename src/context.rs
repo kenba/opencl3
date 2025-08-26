@@ -283,7 +283,7 @@ impl Context {
         self.devices[0]
     }
 
-    pub fn num_devices(&self) -> cl_uint {
+    pub const fn num_devices(&self) -> cl_uint {
         self.devices.len() as cl_uint
     }
 
