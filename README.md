@@ -66,7 +66,7 @@ OpenCL 2.0 ICD loader then just add the following to your project's `Cargo.toml`
 
 ```toml
 [dependencies]
-opencl3 = "0.11"
+opencl3 = "0.12"
 ```
 
 If your OpenCL ICD loader supports higher versions of OpenCL then add the
@@ -75,7 +75,7 @@ following to your project's `Cargo.toml` instead:
 
 ```toml
 [dependencies.opencl3]
-version = "0.11"
+version = "0.12"
 features = ["CL_VERSION_2_1", "CL_VERSION_2_2", "CL_VERSION_3_0"]
 ```
 
@@ -83,7 +83,7 @@ OpenCL extensions and `serde` support can also be enabled by adding their featur
 
 ```toml
 [dependencies.opencl3]
-version = "0.11"
+version = "0.12"
 features = ["cl_khr_gl_sharing", "cl_khr_dx9_media_sharing", "serde"]
 ```
 

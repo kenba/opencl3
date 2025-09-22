@@ -1,5 +1,9 @@
 # Releases
 
+## Version 0.12.1 (2025-09-22)
+
+* PR [#72](https://github.com/kenba/opencl3/pull/72) fix static linking by disabling default features in cl3.
+
 ## Version 0.12.0 (2025-04-19)
 
 ### Changes
