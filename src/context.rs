@@ -112,11 +112,15 @@ unsafe impl Send for Context {}
 unsafe impl Sync for Context {}
 
 impl Context {
-    fn new(context: cl_context, devices: &[cl_device_id]) -> Self {
+    pub fn new(context: cl_context, devices: &[cl_device_id]) -> Self {
         Self {
             context,
             devices: devices.to_vec(),
         }
+    }
+
+    pub fn wrap_cl_command_queue(context: cl_context, device: &Device) -> Self {
+        Self::new(context, &[device.id()])
     }
 
     /// Get the underlying OpenCL cl_context.
