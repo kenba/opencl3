@@ -68,11 +68,16 @@ unsafe impl Send for CommandQueue {}
 unsafe impl Sync for CommandQueue {}
 
 impl CommandQueue {
-    const fn new(queue: cl_command_queue, max_work_item_dimensions: cl_uint) -> Self {
+    pub const fn new(queue: cl_command_queue, max_work_item_dimensions: cl_uint) -> Self {
         Self {
             queue,
             max_work_item_dimensions,
         }
+    }
+
+    pub fn wrap_cl_command_queue(queue: cl_command_queue, device: &Device) -> Result<Self> {
+        let max_work_item_dimensions = device.max_work_item_dimensions()?;
+        Ok(Self::new(queue, max_work_item_dimensions))
     }
 
     /// Get the underlying OpenCL cl_command_queue.
