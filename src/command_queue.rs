@@ -1561,4 +1561,24 @@ mod tests {
             Err(e) => println!("OpenCL error, queue.properties_array(): {}", e),
         }
     }
+
+    #[test]
+    fn test_command_queue_from_cl3() {
+        let platforms = get_platforms().unwrap();
+        assert!(0 < platforms.len());
+
+        // Get the first platform
+        let platform = &platforms[0];
+
+        let devices = platform.get_devices(CL_DEVICE_TYPE_GPU).unwrap();
+        assert!(0 < devices.len());
+
+        // Get the first device
+        let device = Device::new(devices[0]);
+        let context = Context::from_device(&device).unwrap();
+
+        let command_queue = unsafe { cl3::command_queue::create_command_queue(context.get(), device.id(), 0) }.expect("Failed to create command queue");
+        let command_queue = CommandQueue::wrap_cl_command_queue(command_queue, &device).expect("Failed to get max_item_working_size");
+        assert!(command_queue.properties().unwrap() == 0, "Properties were set to 0 above")
+    }
 }
