@@ -1,5 +1,12 @@
 # Releases
 
+## Version 0.12.2 (2026-03-06)
+
+### New Features
+
+* Issue [#73](https://github.com/kenba/opencl3/issues/73) Provide the ability
+to create a context and command queue from a cl_context or cl_command_queue
+
 ## Version 0.12.1 (2025-09-22)
 
 * PR [#72](https://github.com/kenba/opencl3/pull/72) fix static linking by disabling default features in cl3.
@@ -29,7 +36,7 @@
 
 ### New Features
 
-* Issue [#70](https://github.com/kenba/opencl3/issues/70) UpdSupport dynamic linking.
+* Issue [#70](https://github.com/kenba/opencl3/issues/70) Support dynamic linking.
 
 ## Version 0.9.5 (2023-12-22)
 
