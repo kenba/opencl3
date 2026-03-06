@@ -119,7 +119,7 @@ impl Context {
         }
     }
 
-    pub fn wrap_cl_command_queue(context: cl_context, device: &Device) -> Self {
+    pub fn wrap_cl_context(context: cl_context, device: &Device) -> Self {
         Self::new(context, &[device.id()])
     }
 
@@ -487,7 +487,7 @@ mod tests {
         match context {
             Ok(context) => {
                 let device = Device::new(devices[0]);
-                let context = Context::wrap_cl_command_queue(context, &device);
+                let context = Context::wrap_cl_context(context, &device);
                 let ref_cnt = context.reference_count().unwrap();
                 assert!(ref_cnt == 1, "Reference count was not 1, was instead {ref_cnt}")
             },
