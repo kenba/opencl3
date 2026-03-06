@@ -471,4 +471,27 @@ mod tests {
             Err(e) => println!("OpenCL error, Context::from_device_type: {}", e),
         }
     }
+
+    #[test]
+    fn test_context_from_cl3() {
+        let platforms = get_platforms().unwrap();
+        assert!(0 < platforms.len());
+
+        // Get the first platform
+        let platform = &platforms[0];
+
+        let devices = platform.get_devices(CL_DEVICE_TYPE_GPU).unwrap();
+        assert!(0 < devices.len());
+
+        let context = cl3::context::create_context(&devices, ptr::null(), None, ptr::null_mut());
+        match context {
+            Ok(context) => {
+                let device = Device::new(devices[0]);
+                let context = Context::wrap_cl_command_queue(context, &device);
+                let ref_cnt = context.reference_count().unwrap();
+                assert!(ref_cnt == 1, "Reference count was not 1, was instead {ref_cnt}")
+            },
+            Err(e) => println!("OpenCL error, create_context: {e}")
+        }
+    }
 }
