@@ -1,5 +1,12 @@
 # Releases
 
+## Version 0.12.3 (2026-03-08)
+
+### Bug fixes
+
+* PR [#76](https://github.com/kenba/opencl3/pull/76) Fix naming issue.\
+The name of the new wrap function should have been `wrap_cl_context`.
+
 ## Version 0.12.2 (2026-03-06)
 
 ### New Features
