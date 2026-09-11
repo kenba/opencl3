@@ -934,7 +934,7 @@ impl Device {
     ///
     /// CL_VERSION_2_0
     pub fn svm_mem_capability(&self) -> cl_device_svm_capabilities {
-        self.svm_capabilities().map_or(0, |svm| svm)
+        self.svm_capabilities().unwrap_or(0)
     }
 
     #[cfg(any(feature = "cl_khr_external_semaphore", feature = "dynamic"))]
