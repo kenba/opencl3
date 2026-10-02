@@ -14,7 +14,7 @@ jobs:
     name: Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install Rust
         run: rustup update stable
       - name: Unit test
@@ -38,7 +38,7 @@ jobs:
           intel-media-va-driver-non-free libmfx1
         sudo apt-get install ocl-icd-opencl-dev
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Install Rust
       run: rustup update stable
     - name: Build
@@ -53,7 +53,7 @@ jobs:
     env:
       RUSTFLAGS: "-Dwarnings"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install Rust
         run: rustup update stable
       - name: Run Clippy
