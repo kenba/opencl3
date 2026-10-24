@@ -22,6 +22,11 @@ CL_VERSION_2_0 = ["cl3/CL_VERSION_2_0"]
 CL_VERSION_2_1 = ["cl3/CL_VERSION_2_1"]
 CL_VERSION_2_2 = ["cl3/CL_VERSION_2_2"]
 CL_VERSION_3_0 = ["cl3/CL_VERSION_3_0"]
+CL_VERSION_3_1 = ["cl3/CL_VERSION_3_1"]
+
+CL_HAS_ANON_UNION = ["cl3/CL_HAS_ANON_UNION"]
+CL_ENABLE_BETA_EXTENSIONS = ["cl3/CL_ENABLE_BETA_EXTENSIONS"]
+CL_NO_NON_ICD_DISPATCH_EXTENSION_PROTOTYPES = ["cl3/CL_NO_NON_ICD_DISPATCH_EXTENSION_PROTOTYPES"]
 
 cl_apple_setmemobjectdestructor = ["cl3/cl_apple_setmemobjectdestructor"]
 cl_apple_contextloggingfunctions = ["cl3/cl_apple_contextloggingfunctions"]
