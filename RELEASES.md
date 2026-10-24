@@ -1,5 +1,11 @@
 # Releases
 
+## Version 0.12.4 (2026-10-24)
+
+### New Features
+
+* Issue [#77](https://github.com/kenba/opencl3/issues/77) Update for OpenCL 3.1.
+
 ## Version 0.12.3 (2026-03-08)
 
 ### Bug fixes
